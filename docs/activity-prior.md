@@ -3,9 +3,11 @@
 **Status: UberLens extension.** No source paper does this (see [research.md](research.md)). It ships only if it
 beats ForeSeek's uniform skim at the same frame budget (section 9); otherwise it is removed.
 
-In [design.md](design.md) the profile is one of the layers built once per source (5.1), and it places half of the
-`overview` tool's first look (5.2). The first version uses sections 3 to 5.2 and 5.4 here; question matching,
-features for a fast scorer and streaming come later.
+In [design.md](design.md) the profile is one of the layers built once per source (5.2), and it places half of the
+`overview` tool's first look (5.3). The agent picks the question profile of section 5.6 here before every
+overview; it is required, and `off` makes the look all uniform. Splitting the timeline into first intervals
+(5.2 here) belongs to the belief scheduler, which is behind a flag. Features for a fast scorer and streaming come
+later.
 
 ## 1. The problem: every source starts blind
 
@@ -270,12 +272,13 @@ without a separate FFmpeg call.
 
 These follow [design.md](design.md) section 10.
 
-- **M1, explore** (no model needed): S1, S2, S3 and S6; normalisation, cuts and reliability checks; the partition
-  for first intervals (design.md 5.1) and frame placement for `overview`. Tests on synthetic videos with known
+- **M1, explore** (no model needed): S1, S2, S3 and S6; normalisation, cuts and reliability checks; frame placement
+  for `overview` under each question profile (5.6). Tests on synthetic videos with known
   events (a static stretch, a busy stretch, a cut, a sound), each encoded three ways: variable bitrate, constant
   bitrate, fixed GOP. The tests check that peaks and cuts land where the events are, and that the reliability
   checks switch off the right signals.
 - **M3 and M4, benchmark**: the comparison in section 9 against the uniform first look, on the benchmark's Find
   and Answer tasks. S4 (voice activity) and S5 (thumbnail change) if the first three signals leave a gap.
-- **Later** (design.md section 11): matching the prior to the question as a logged decision (5.6), interval
+- **Behind the belief-scheduler flag**: the partition into first intervals (5.2).
+- **Later** (design.md section 11): interval
   features for a fast scorer (5.3), streaming wake triggers (5.5), S7 motion vectors.
