@@ -232,34 +232,47 @@ keyframes off that grid as cuts; switch S2 off when every keyframe is on the gri
 
 ## 9. How we know it works
 
-Run every comparison at the **same frame budget** as ForeSeek's uniform skim, on the same model.
+The synthetic measurement in section 7 shows that packet sizes separate motion from stillness for some encodes.
+It does not show that packet peaks predict the moments a question is about. That is what this test measures.
+
+**What the prior is up against.** On a two-hour source the first look tops out at 20 frames, so the uniform half
+samples about every six minutes. A two-second event is easy to miss either way. The prior has to earn its half of
+the budget on events like that.
+
+**Paired re-encode test.** The same footage and the same labels, encoded several ways: variable and constant
+bitrate, default and fixed keyframe interval, and a heavy web-style re-encode. Every encode is run with the
+uniform first look and the activity-guided one, at the same frame count, on the same model. Pairing on footage
+separates what the prior finds from what the encoder happened to do.
+
+**The labelled set must include the prior's failure cases**: quiet visual evidence (a sign, a face, a document on
+a desk), busy distractors (motion that has nothing to do with the question), and speech over continuous music.
 
 **Variants**
 
-1. `prior_mix = 0`: uniform skim, ForeSeek's Eq. 1 (the baseline).
-2. `prior_mix = 1`: activity frames only.
-3. `prior_mix = 0.5`, fixed default weights.
-4. `prior_mix = 0.5` with `prior_profile` chosen per question.
-5. Variant 4 with cut-snapped intervals (5.2) on and off.
+1. `prior_mix = 0`: uniform first look (the baseline).
+2. `prior_mix = 0.5`, fixed default weights.
+3. `prior_mix = 0.5` with the question profile (5.6) chosen per question.
+4. `prior_mix = 1`: activity frames only, to see the prior's ceiling and its failures.
 
 **Measures**
 
-- Accuracy and frames per question on LVBench and Video-MME (long), the long-video sets where a blind skim hurts
-  most.
-- **Evidence hit at skim**: the share of questions where at least one skim frame falls inside the ground-truth
-  evidence span. It isolates the prior from the rest of the agent. It needs timestamped answers: LongVALE-style
-  grounding sets and our in-house set.
-- Rounds to answer: a better first look should need fewer rounds.
-- Results split by question type (event, speech, static detail), to check that the prior helps where it should and
-  does no harm where it shouldn't.
-- Probe time per video hour.
+- **First-look evidence recall**: the share of questions where at least one first-look frame falls inside the
+  labelled span. Reported by event duration (under 2 s, 2–10 s, over 10 s) and by modality (visual motion, quiet
+  visual, speech, other sound).
+- **Final grounded success** (design.md section 8.2), measured separately: a better first look matters only if it
+  carries through to the answer or the edit.
+- Rounds and frames to the answer.
+- **Cost, split**: cold start (hashing, probing and decoding a file the first time) and repeated questions on the
+  same file, reported separately.
 
-**Rule:** the prior stays only if variant 3 or 4 matches or beats variant 1 on accuracy with no more frames, and
-does no worse than 1 point on static-detail questions. If not, `prior_mix` defaults to 0 and the code is removed
-at the next cleanup.
+**Rule.** The prior stays only if variant 2 or 3 matches or beats variant 1 on final grounded success at the same
+budget, with no drop on quiet-visual questions beyond the paired uncertainty interval. The test set has to be
+large enough for that interval to be useful: with about 20 tasks per family one task moves a score by five
+points, so a one-point guardrail cannot be checked at that size. If the prior does not pass, `prior_mix` defaults
+to 0 and the code is removed at the next cleanup.
 
-**Also check on original footage.** Benchmark videos are re-encoded, which weakens the signals; footage straight
-from a camera or from UberScene should show a larger effect. The in-house set should include both.
+**Also check on original footage.** Camera originals and UberScene renders should show a larger effect than web
+re-encodes; the set includes both.
 
 ## 10. UberScene footage
 
@@ -277,8 +290,8 @@ These follow [design.md](design.md) section 10.
   events (a static stretch, a busy stretch, a cut, a sound), each encoded three ways: variable bitrate, constant
   bitrate, fixed GOP. The tests check that peaks and cuts land where the events are, and that the reliability
   checks switch off the right signals.
-- **M3 and M4, benchmark**: the comparison in section 9 against the uniform first look, on the benchmark's Find
-  and Answer tasks. S4 (voice activity) and S5 (thumbnail change) if the first three signals leave a gap.
+- **M2 and M4, benchmark**: the uniform vs activity-guided comparison (design.md section 8.3) in M2, and the paired
+  re-encode test of section 9 in M4. S4 (voice activity) and S5 (thumbnail change) if the first three signals leave a gap.
 - **Behind the belief-scheduler flag**: the partition into first intervals (5.2).
 - **Later** (design.md section 11): interval
   features for a fast scorer (5.3), streaming wake triggers (5.5), S7 motion vectors.
