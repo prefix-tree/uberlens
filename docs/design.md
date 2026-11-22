@@ -27,7 +27,7 @@ defers them to section 11.
   reviewing the output (−14.6), version-pinned memory (−10.8). The perception papers (ForeSeek, OmniAgent,
   ActiveForager) get their gains from fine-tuning and reinforcement learning, and ForeSeek's own ablation says its
   predict-then-verify loop only pays off after training.
-- **Agents fail by drowning.** On AgenticVBench, 83% of failed repurposing tasks spent the budget transcribing or
+- **Agents fail by drowning** (May 2026 data, older models). On AgenticVBench, 83% of failed repurposing tasks spent the budget transcribing or
   thumbnailing the whole source and never assembled an edit; 65% of failed repairs looked in the wrong time window.
   The harness's job is to make the cheap, targeted look the easy path.
 - **Exploration serves an editorial decision.** The same moment needs different attention at each stage of an
@@ -41,12 +41,23 @@ defers them to section 11.
 - **The core claim is traceable edits.** UberLens keeps the link between a moment in the source, the editorial
   decision that uses it, and the rendered output, across repeated revisions. That makes an edit traceable; it does
   not make it correct or good (section 4 separates the three).
-- **Existing benchmarks leave a gap, a narrow one.** Editing benchmarks exist: AgenticVBench (100
-  expert-built tasks) and, according to a reviewer, Timeline-Bench (real editing jobs judged by human editors;
-  being verified, see section 13). What UberLens Bench would add is narrower than "nothing fits": footage that
-  can be redistributed, the same model with and without a harness at matched cost, and scoring of the evidence
-  behind an answer. Licences are checked dataset by dataset and asset by asset; AgentVidBench already uses openly
-  licensed video.
+- **Existing benchmarks leave a gap, a narrow one.** Two come close. AgenticVBench (100 post-production tasks,
+  May 2026) and Timeline-Bench (arXiv:2609.35143, September 2026: 56 complete jobs from raw footage and a brief to
+  a finished video) both make an agent find material in long sources and cut it, across several models and
+  harnesses; Timeline-Bench also reports cost per run. Neither scores the looking: only the delivered video is
+  graded, so a missed moment and a bad cut are the same failure, and no answer has to cite its evidence. Neither
+  compares a video harness with the bare model at a matched budget. Neither can be handed on: Timeline-Bench's code
+  is Apache-2.0 but its footage is gated and not redistributable. The sets that do redistribute openly licensed
+  video (AgentVidBench, MMTB) test question answering or file handling, not editing. What is missing is one
+  redistributable set that scores finding and editing separately, with cited evidence and code-checked repairs,
+  for the same model with and without a harness.
+- **The bottleneck may be craft, not compliance.** On Timeline-Bench, 16 agent setups resolved 14.0% of 896 runs,
+  and 562 of the 771 failures passed every delivery, content and brief test and failed only on quality. Agents cut
+  0.72 times as often as the reference edit, saw footage as stills and transcripts, rendered 72–90% of the way
+  through a run, aimed 5.5% of their fixes at pacing, story or shot choice (against 66% of editors' notes), and
+  claimed success in 93% of runs. No harness or guidance contrast there was significant. So checks and evidence
+  tracking alone will not make a good editor; that is why product and research are separated below, and why the
+  first build is a job where the editor keeps the craft decisions.
 
 ### 1.1 Product and research are separate
 
@@ -537,7 +548,10 @@ the result holds across models.
 
 ### 8.4 Judging
 
-Anything code can decide, code decides. Rubric items use a model judge from a **different family** than the agent
+Anything code can decide, code decides. A model judge is trusted per agent, not per edit: Timeline-Bench's
+three-judge panel tracked editors' preferences across agents (ρ = 0.93) but barely agreed with them on single
+edits (κ = 0.15). Its top agents could not be told apart at one run per task (about ±11 points), so small task
+families need repeated runs. Rubric items use a model judge from a **different family** than the agent
 and critic, validated against human grades on a held-out set before its numbers are reported; the agreement is
 published with the results.
 
@@ -660,7 +674,4 @@ Each is covered in the research docs and waits for the benchmark to show it is n
    (research-editing.md) found planner, critic and index-first systems, none organised by editorial pass.
 5. Does UberLens also need to edit footage that is not in an UberScene project? If yes, the first step is
    wrapping it in one.
-6. Timeline-Bench: confirm it exists and what it reports. A reviewer says most failed runs there passed the
-   mechanical checks and failed only on editorial quality, which would mean checks and evidence tracking are not
-   the bottleneck. Position UberLens Bench against it, AgenticVBench and VIVID once verified.
-7. The benchmark's name, and whether it lives in this repo or its own.
+6. The benchmark's name, and whether it lives in this repo or its own.
