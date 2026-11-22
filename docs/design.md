@@ -11,7 +11,8 @@ UberLens is two things:
 
 UberLens trains no model. It is tools, state, prompts and checks around a model you choose.
 
-Status: design, third version (after an external review at `28b1378`, folded in below). It replaces the first draft, which described a question-answering agent with
+Status: design, fourth version. External reviews are folded in; the latest makes the editorial pass part of the
+state and starts with logging and selects. It replaces the first draft, which described a question-answering agent with
 streaming and training. Every choice below names its source or is marked **ours**; the research behind it is in
 [research.md](research.md) (perception), [research-editing.md](research-editing.md) (editing),
 [research-importance.md](research-importance.md) (what to look at) and [activity-prior.md](activity-prior.md).
@@ -28,6 +29,11 @@ defers them to section 11.
 - **Agents fail by drowning.** On AgenticVBench, 83% of failed repurposing tasks spent the budget transcribing or
   thumbnailing the whole source and never assembled an edit; 65% of failed repairs looked in the wrong time window.
   The harness's job is to make the cheap, targeted look the easy path.
+- **Exploration serves an editorial decision.** The same moment needs different attention at each stage of an
+  edit: is this take worth keeping (logging), does this passage earn its place (rough cut), where should the cut
+  land (fine cut). The open decision says what to look at next, so the pass is part of the state (section 4), and
+  the first milestones are the passes where exploring decides what the editor has to work with: selects, stringout,
+  rough cut.
 - **UberScene removes the hard half.** The editing papers build their machinery on FFmpeg commands. In UberScene the
   edit is one TSX file changed through typed, validated, undoable actions, with lint, layout checks, labelled
   contact sheets and a per-frame render cache. UberLens uses these instead of rebuilding them.
@@ -127,6 +133,50 @@ SQLite, images by content hash.
 of the evidence. An agent that runs out of context writes a checkpoint and continues in a fresh one; the budget
 carries over.
 
+**Editorial pass** (**ours**; the passes are standard editing practice). A project is always in one pass. The pass
+sets what the agent is deciding, which instruments and evidence fit, and what "done" means. Passes are not a fixed
+pipeline: a review note can send the agent back (a rough-cut note such as "the change feels unmotivated" reopens
+the search of the source), and going back is recorded.
+
+| Pass | What the agent decides | Evidence that fits | Hands forward |
+| --- | --- | --- | --- |
+| **Ingest and log** | What footage exists; sync and media problems; which takes or passages are worth keeping | Probing and checks by code; transcript search; listening to competing takes; overview and inspect for visuals | A source inventory and a **selects list**: source ranges, why each might be useful, and what is still unreviewed |
+| **Stringout** | An order the editor can watch, with meaningful alternatives kept visible | The selects and their context | A playable assembly linked to the source, alternates included |
+| **Rough cut** | What each passage does for the story, what can go, which order lands. For dialogue, a radio edit first (sound only decides the structure) | Words and delivery; going back to the source for what is missing | A playable rough cut, each segment with its purpose, open decisions listed |
+| **Fine cut** | Local timing, delivery, angle changes, reaction beats, audio overlaps, inside the approved structure | Bursts and audiovisual excerpts around known cuts | Precise changes the editor can play and compare |
+| **Lock and finish** | Records the approved picture revision; sound, colour, graphics and checks run against it | Code checks on the render | A traceable approval and verified deliverables |
+
+Two rules:
+
+- **Stringout and rough cut stay separate.** A stringout answers "what material do we have?"; a rough cut answers
+  "what are we saying?". If they collapse, the agent's first search results become the story before the editor
+  has seen the alternatives.
+- **Approvals are state.** A select, a segment's purpose or a structure the editor approved is recorded with the
+  project revision it was approved at. Later work must not disturb approved material without saying so; a
+  structural change after lock explicitly reopens the cut and marks the affected work for review.
+
+```python
+class Select(BaseModel):
+    select_id: str
+    source: str                    # asset_id
+    span: Span
+    anchors: list[str]             # "word:412".."word:455", so it survives re-timing
+    reason: str                    # why it might be useful for this brief
+    cites: list[str]               # observation ids
+    alternates: list[str] = []     # other takes of the same thing
+    status: Literal["proposed", "approved", "rejected"]
+
+class Decision(BaseModel):         # anything the editor approved or left open
+    decision_id: str
+    pass_: Literal["log", "stringout", "rough", "fine", "lock"]
+    subject: str                   # a select, a segment, the order, the picture revision
+    state: Literal["open", "approved", "reopened"]
+    revision: str                  # project revision it applies to
+    note: str | None               # the editor's words
+```
+
+UberLens owns the source references, decisions and approvals, so a project can continue with a different model.
+
 **Coverage** (**ours**). For each source, which spans have been looked at, with what instrument and at what
 density. It answers "have we looked here, and how closely?", and it is always on.
 
@@ -168,7 +218,12 @@ edit:
   the activity profile.
 - **The uniform half of the first look**: the evenly spaced overview frames, which do not depend on the question.
 
-A transcript is **not** built up front. Full-source transcription first is the top failure on AgenticVBench.
+**Transcripts.** For dialogue-led footage (an interview, a talk), the word-timed transcript is part of ingest: it
+is built once by code, cached, charged to cold start, and it is how logging finds passages. What stays ruled out
+is the failure seen on AgenticVBench: spending a task's budget transcribing or thumbnailing everything inside the
+agent's loop and never assembling the edit. For footage that is not dialogue-led, transcription stays on demand,
+by span. A transcript finds where something is said; whether a take is usable is judged by listening
+(`audibility`, delivery), not from the words.
 
 ### 5.3 Layer A: instruments
 
@@ -262,6 +317,11 @@ brief ─► explore ─► plan ─► apply ─► check ─┬─ fails ─�
                       └──────────── one typed fix per failing segment ◄──┘
 ```
 
+This loop runs inside a pass (section 4), and the pass decides what `review` looks for. In the stringout it only
+checks that the material plays and links to its source. In the rough cut it reviews structure: does each segment
+do the job its purpose states, heard as a radio edit first. The watching critic of 6.3, with excerpts around cuts,
+belongs to the fine cut.
+
 The agent keeps control of strategy (VIVID): the loop is what the tools and prompt make easy, not a fixed
 pipeline. Two things are enforced: `review` refuses to run on a render that fails `check` (CutClaw's gates), and
 "done" requires a review of the current render file.
@@ -328,11 +388,16 @@ Working name: **UberLens Bench**. It measures an agent on exploring and editing 
 
 | Family | Task | Scored by |
 | --- | --- | --- |
+| **Select** (logging) | An interview and a brief; return a shortlist of passages worth keeping | Recall of the labelled useful passages; are the source ranges right and playable; is each reason supported by its cited observations; how much of the source is reported as unreviewed |
+| **Revise** (rough cut) | A rough cut with approved segments and one review note that forces a return to the source ("find a stronger reason for the pivot, but keep the opening") | By code: how much approved material was disturbed; is the substitution grounded in the footage. By editors: is the revision acceptable. Also time and cost to an acceptable revision |
 | **Find** | "Where does X happen?" in sources from 5 minutes to 2 hours | Overlap of the answered span with the labelled span; whether the cited looks fall inside it at a density that could show the event |
 | **Answer** | Questions needing one or several moments, including static details, speech, order and motion | Correctness; **support**: do the cited looks cover the labelled spans; a right answer with wrong or missing support is counted separately; split by question type (event, speech, static detail, order or motion, far-apart moments) |
 | **Find → Repair** | A long source and a draft whose cut misses a specific spoken phrase (or another injected defect: a caption off its word, a clipped title, a wrong clip, bad levels). Find the moment, cite the source span, apply a typed fix, render. Includes cases where the phrase is absent and distractors that sound alike, so a confident guess can fail | **Grounded repair success**: an independent verifier finds the phrase and the cut in the rendered output, the cited source span is right, and unrelated edits are preserved. Also: localization error, false completion, wall time, cost |
 | **Assemble** | A storyboard and a pool of clips with distractors; build the cut | Right clip per slot, order, durations, all by code |
 | **Repurpose** | A brief ("60-second vertical teaser from this talk") | Code checks for format; yes/no rubric items for content, judged as in 8.4 |
+
+The families follow the passes: Select and Find for logging, Assemble for the stringout, Repurpose and Revise for
+the rough cut, Find → Repair for the fine cut.
 
 About 20 tasks per family is enough to debug the benchmark, not to decide small differences: one task moves a
 20-task score by five points. Claims about a few points need more tasks, and results are reported with paired
@@ -346,10 +411,15 @@ Every comparison is at matched budgets.
 | --- | --- |
 | Native agent vs full UberLens (VIVID's protocol) | Does the whole product improve task completion? |
 | Same model and the same UberScene actions, with generic media tools vs UberLens's observation and claim tools | What UberLens's own design adds when both arms can make the same edits |
+| Same model, footage, tools and budget: a single-loop editor vs the pass-aware one | Do explicit passes, pass-specific criteria and recorded approvals improve rough cuts and reduce rework? |
 | Same harness, uniform vs activity-guided first look | Does the activity prior help search at the same first-look budget? |
 
-The second row is the one that matters for the design: if the same model makes more grounded, correct repairs with
-the same editing actions and budget, UberLens works, even if uniform sampling beats the activity prior.
+The second and third rows are the ones that matter for the design. The second shows what the observation and
+claim tools add; the third is the research question of the first build. For the third, editors review the renders
+blind for story coherence and fidelity to the brief; then both systems get the same revision note, and rework is
+measured as in the Revise task. Both arms get the same human input (the same brief, the same notes, the same
+approvals), otherwise passes are confounded with extra guidance. It is repeated with a second model to see whether
+the result holds across models.
 
 - Further ablations: uniform first look instead of `overview`'s activity half, no burst, no required verdict, no
   claim-kind sufficiency, the belief scheduler on, no evidence store, no `check`, no `review`, and a critic that
@@ -370,6 +440,8 @@ published with the results.
 3. Does ForeSeek's belief scheduler help an untrained model over the default narrow-and-change-one-thing
    search, or is it overhead?
 4. How often does the critic approve a bad edit, and does watching beat reading?
+5. Does a pass-aware editor produce better rough cuts and less rework than a single-loop editor with the same
+   model, tools and budget?
 
 ### 8.6 External benchmarks
 
@@ -403,23 +475,31 @@ tests/
 
 ## 10. Milestones
 
+The first build is one dialogue workflow: an interview and a brief in, linked selects, a playable stringout and a
+reviewable radio rough cut out, plus one follow-up note that forces a return to the source.
+
 0. **M0, prove the integration.**
    - The bridge: a trim is dry-run, committed to `video.tsx`, reloaded in a fresh process, and undone, with the
      expected-revision check refusing a stale edit.
    - Render the same file twice and compare frame hashes; record what the frame-cache key covers.
    - License check of candidate footage and of AgenticVBench. Pick the first models.
-1. **M1, one evidence-backed edit on real footage.** The Find → Repair task end to end: catalog, overview,
-   inspect with burst, listen, transcribe; observations and claims with kind-based sufficiency; the bridge;
-   `check`, `look`, `excerpt`, the critic. **Acceptance:** a real model, on held-out footage, locates an
-   independently labelled phrase, cites the observations it used, applies a typed trim, and the rendered output
-   passes the independent verifier, including the cases where the phrase is absent. A scripted fake model is
-   used only for unit tests, with events whose location changes between runs, so a fixture cannot pass by knowing
-   the answer.
-2. **M2, the three comparisons** of section 8.3 on a few dozen Find → Repair tasks, at matched budgets, with
-   paired intervals. This is the first UberLens result.
-3. **M3, benchmark v0.** Answer, Assemble, Repurpose; the runner and cost report.
-4. **M4, experiments.** The activity prior's paired re-encode test (activity-prior.md section 9), the belief
-   scheduler, the remaining ablations, AgenticVBench for comparison, and whether a fast scorer is worth building.
+1. **M1, ingest and log.** Catalog, versions, media and sync checks, the word-timed transcript for dialogue
+   footage, the activity profile; `inspect`, `listen`, `retrieve`; observations and claims; the selects list.
+   **Result:** a searchable source log and a shortlist of playable selects, each with its source range, its
+   reason and a jump to the source, and a list of what is still unreviewed. **Acceptance:** on held-out
+   interviews with independently labelled useful passages, a real model's selects recover them, with reasons its
+   cited observations support.
+2. **M2, stringout and radio rough cut.** The bridge in use; passes, selects and decisions as state; the
+   stringout with alternates; the rough cut with a purpose per segment; one revision note handled by going back
+   to the source, keeping what was approved. **Acceptance:** an editor can play each candidate, see what it
+   contributes, and accept or reject the substitution.
+3. **M3, the first result.** The comparisons of section 8.3 on this workflow, at matched budgets: pass-aware vs
+   single-loop, UberLens tools vs generic tools, and with vs without the harness. Blind editor review, the Revise
+   measures, a second model.
+4. **M4, fine cut.** The watching critic with audiovisual excerpts, Find → Repair, and timing review inside an
+   approved structure.
+5. **M5, benchmark v0 and experiments.** The remaining families, the runner and cost report; the activity prior's
+   paired re-encode test, the belief scheduler, the remaining ablations, AgenticVBench for comparison.
 
 ## 11. Later
 
@@ -447,6 +527,10 @@ Each is covered in the research docs and waits for the benchmark to show it is n
 
 1. Which models first, for the agent, the critic and the judge (the judge must be a different family)?
 2. Which footage for the benchmark, and who labels it?
-3. Does UberLens also need to edit footage that is not in an UberScene project? If yes, the first step is
+3. Who are the editors for the blind review, how many, and how is their agreement measured? Without them the
+   pass-aware comparison has only the code-scored rework measures.
+4. Has a pass-aware editing agent already been published? Not checked; the editing research
+   (research-editing.md) found planner, critic and index-first systems, none organised by editorial pass.
+5. Does UberLens also need to edit footage that is not in an UberScene project? If yes, the first step is
    wrapping it in one.
-4. The benchmark's name, and whether it lives in this repo or its own.
+6. The benchmark's name, and whether it lives in this repo or its own.
