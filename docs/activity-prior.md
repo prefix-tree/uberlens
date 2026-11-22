@@ -56,8 +56,9 @@ Each signal is checked on the video itself and switched off when it carries no i
 
 - **S1 off** when the bitrate is flat: its coefficient of variation across bins is below 0.15 (a constant-bitrate
   encode).
-- **S2 off as a cut signal** when keyframes are on a timer: the gaps between keyframes have a coefficient of
-  variation below 0.05. Off-grid keyframes inside a timed GOP are still kept as cuts.
+- **S2 as a cut signal**: estimate the keyframe timer (the most common gap between keyframes) and treat keyframes
+  off that grid as cuts. Switch S2 off when every keyframe sits on the grid (gap CV below 0.05), as in fixed-GOP
+  encodes. See the measurement in section 7.
 - **S3 and S4 off** when the video has no audio track, or audio energy is flat (same 0.15 rule).
 - **S5** is the fallback for cuts when S2 is off.
 
@@ -183,6 +184,34 @@ package we distribute.
 - The profile is computed once per file and cached.
 
 M1 measures these on real files and records them here.
+
+### First measurement (synthetic, 2026-11-22)
+
+A 60 s test video: a static grey frame (0–20 s), a moving test pattern (20–30 s), static colour bars (30–45 s) and a
+moving cellular pattern (45–60 s), with a tone that is loud only at 20–30 s. It was encoded three ways with
+x264 at 25 fps, and the video packets read with `ffprobe` (S1, S2):
+
+| Encode | Probe time | Bitrate CV | Keyframe-gap CV | kB/s per stretch (grey / test / bars / cellular) | Keyframes (s) |
+| --- | --- | --- | --- | --- | --- |
+| Variable bitrate (CRF 23, default GOP) | 0.07 s | 1.65 | 0.20 | 0 / 86 / 0 / 45 | 0, 10, **20, 30**, 40, **45**, 55 |
+| Constant bitrate (800 kb/s) | 0.08 s | 0.04 | 0.20 | 99 / 100 / 99 / 100 | same |
+| Fixed 2 s GOP, no scene cuts | 0.07 s | 1.50 | 0.00 | 0 / 81 / 0 / 110 | every 2 s |
+
+What it shows:
+
+- **Bitrate separates motion from stillness sharply** in variable-bitrate and fixed-GOP encodes, and the
+  constant-bitrate encode is flat (CV 0.04), so the 0.15 reliability rule switches S1 off where it should.
+- **Keyframes mark cuts** in the default encode: the cuts at 20, 30 and 45 s all got keyframes. The others (10, 40,
+  55 s) are x264's 10 s timer. So "off-grid keyframe = cut" needs the timer grid estimated, not just the gap spread:
+  a CV of 0.20 alone would not switch S2 off here, which is right, but the timer keyframes must still be dropped.
+- **Fixed-GOP encodes hide cuts entirely** (keyframe-gap CV 0.00): S2 switches off and S5 has to find them.
+- **Static stretches are invisible** to bitrate (0 kB/s for the grey frame and the colour bars), the failure mode
+  that keeps half the skim uniform.
+- **Cost:** reading the packets of a 60 s file took 0.07 s, roughly 4 s per hour of video if it scales linearly
+  (to confirm on real long files in M1).
+
+Change from this test: section 3's S2 rule becomes "estimate the keyframe timer (the most common gap) and treat
+keyframes off that grid as cuts; switch S2 off when every keyframe is on the grid".
 
 ## 8. Failure modes
 
