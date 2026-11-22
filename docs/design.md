@@ -20,6 +20,7 @@ Status: draft for review, no code yet. Python.
 | Short clean working window; Answer / ZoomIn / Recall / Wait; isolated Recall returning an EvidenceCard | ActiveForager (arXiv:2611.24267) | Streaming mode |
 | Expectations over unseen intervals, global interval belief, failed expectations as negative evidence | ForeSeek (arXiv:2611.26024) | Offline mode, re-planning |
 | Cheap calibrated decisions at enumerable choice points, escalate on low confidence | System-1 / AnyS1-style decision models | Every choice point in both loops |
+| Activity prior: bitrate, keyframes and audio decide the first look | **Ours** ([activity-prior.md](activity-prior.md)) | The skim, first intervals, System-1 features, streaming wake-ups |
 
 These summaries came from the brief that started this project. [research.md](research.md) checks each source
 against its paper and code; many details here are wrong, and its last section lists the corrections to make before
@@ -111,8 +112,10 @@ INIT ─► SKIM ─► PREDICT ─► PICK ─► OBSERVE ─► CONSOLIDATE �
 ```
 
 1. **INIT**: belief is one interval `[0, duration]`, `MEDIUM`, no expectation.
-2. **SKIM**: a sparse uniform pass (e.g. 1 frame per 2–5 min, plus audio transcript if cheap). Split the timeline
-   at scene changes into ~10–30 intervals.
+2. **SKIM**: ForeSeek's N(T) = clip(round(10 + 3·log2(1 + T/600)), 10, 20) frames. With the activity prior
+   ([activity-prior.md](activity-prior.md)), half go uniformly and half go where cheap signals from the file
+   (bitrate, keyframes, audio) show something happening; the first intervals are the gaps between skim frames,
+   snapped to nearby cuts. With the prior off, this is ForeSeek's uniform skim exactly.
 3. **PREDICT** (System-2, once per re-plan): for each unchecked interval, write an expectation tied to the question
    ("the receipt is shown at the counter, ~10:30–12:00") and a label.
 4. **PICK** (System-1): choose the next interval. Candidates are unchecked `HIGH`, then `MEDIUM`.
@@ -141,6 +144,8 @@ TICK ─► DECIDE (System-1) ─┬─ Answer ─► emit, keep watching if the
 
 - The window holds ~4 recent frames at low res; it is replaced each tick, not appended.
 - What leaves the window is captioned into the archive (cheap model, batched) so Recall can find it later.
+- Besides the timer, the agent wakes early when the live bitrate, visual change or audio jumps
+  ([activity-prior.md §5.5](activity-prior.md#55-streaming-waking-up)).
 - At most N non-Wait actions per tick, so a tick can't run away; then it Waits.
 - Proactive questions ("tell me when the oven light goes off") Answer when the condition holds, not once.
 
@@ -164,7 +169,8 @@ Decision points:
 
 | Point | Options | Inputs | Escalate when |
 | --- | --- | --- | --- |
-| `next_interval` | unchecked interval ids | question, belief, last 3 memory entries | top-2 margin < τ |
+| `prior_profile` | motion / speech / cuts / off | question | confidence < τ (falls back to default weights) |
+| `next_interval` | unchecked interval ids | question, belief, last 3 memory entries, each interval's activity summary | top-2 margin < τ |
 | `observe_how` | frames / audio / clip, with density | question, interval expectation | confidence < τ |
 | `stream_action` | answer / zoom_in / recall / wait | question, window captions, last memory | confidence < τ, or Answer below τ_answer |
 | `sufficient` | yes / no | question, memory | confidence < τ |
@@ -238,7 +244,8 @@ Every run writes a trace (state after each step, every decision, every tool call
 ```
 uberlens/
   state.py          # section 2 models and invariants
-  media/            # MediaSource: file, stream, synthetic
+  media/            # MediaSource: file, stream, synthetic; probe.py + activity.py (activity profile)
+  prior.py          # skim placement, interval seeding, wake triggers (activity-prior.md)
   tools.py          # section 3
   belief.py         # split / update / negative evidence
   memory.py         # consolidation
@@ -253,8 +260,10 @@ eval/               # benchmark adapters, baselines, metrics
 tests/
 ```
 
-1. **M1, skeleton**: state, belief, budget, synthetic media, heuristic System-1, offline loop with a fake VLM.
-   Tests cover invariants and a full run on the synthetic video.
+1. **M1, skeleton**: state, belief, budget, synthetic media, heuristic System-1, offline loop with a fake VLM;
+   the activity profile from the container and audio, and skim placement ([activity-prior.md §11](activity-prior.md#11-milestones)).
+   Tests cover invariants, a full run on the synthetic video, and the profile on synthetic videos encoded three
+   ways.
 2. **M2, real offline**: file media, a real VLM, consolidation, traces; first numbers on a small slice of Video-MME
    long against the baselines.
 3. **M3, System-1**: small-model decisions with calibration and escalation; cost/accuracy curves over τ.
