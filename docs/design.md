@@ -21,9 +21,9 @@ Status: draft for review, no code yet. Python.
 | Expectations over unseen intervals, global interval belief, failed expectations as negative evidence | ForeSeek (arXiv:2611.26024) | Offline mode, re-planning |
 | Cheap calibrated decisions at enumerable choice points, escalate on low confidence | System-1 / AnyS1-style decision models | Every choice point in both loops |
 
-These summaries come from the brief that started this project, not from reading the papers. Before building section
-6 and 7, read both papers and correct anything here that disagrees with them (belief labels, window size, reward
-terms).
+These summaries came from the brief that started this project. [research.md](research.md) checks each source
+against its paper and code; many details here are wrong, and its last section lists the corrections to make before
+M1.
 
 ## 2. Shared state
 
