@@ -11,8 +11,9 @@ UberLens is two things:
 
 UberLens trains no model. It is tools, state, prompts and checks around a model you choose.
 
-Status: design, fourth version. External reviews are folded in; the latest makes the editorial pass part of the
-state and starts with logging and selects. It replaces the first draft, which described a question-answering agent with
+Status: design, fifth version. External reviews are folded in. The latest, an adversarial one, separates the
+product from the research, narrows the first experiment to interview selects with three competing agents, and
+makes most of the machinery below earn its place before it is built (sections 1.1 and 10). It replaces the first draft, which described a question-answering agent with
 streaming and training. Every choice below names its source or is marked **ours**; the research behind it is in
 [research.md](research.md) (perception), [research-editing.md](research-editing.md) (editing),
 [research-importance.md](research-importance.md) (what to look at) and [activity-prior.md](activity-prior.md).
@@ -37,11 +38,41 @@ defers them to section 11.
 - **UberScene removes the hard half.** The editing papers build their machinery on FFmpeg commands. In UberScene the
   edit is one TSX file changed through typed, validated, undoable actions, with lint, layout checks, labelled
   contact sheets and a per-frame render cache. UberLens uses these instead of rebuilding them.
-- **The core claim is evidence-backed edits.** The link between a moment in the source, the typed edit that uses
-  it, and the rendered output that verifies it is what UberLens adds. The first milestone proves that one link on
-  real footage (section 10). The activity prior and the belief scheduler are hypotheses tested after it works.
-- **No benchmark fits.** Every public video benchmark is non-commercial and none may redistribute its videos; none
-  measures exploring and editing together, or what a harness adds at equal cost.
+- **The core claim is traceable edits.** UberLens keeps the link between a moment in the source, the editorial
+  decision that uses it, and the rendered output, across repeated revisions. That makes an edit traceable; it does
+  not make it correct or good (section 4 separates the three).
+- **Existing benchmarks leave a gap, a narrow one.** Editing benchmarks exist: AgenticVBench (100
+  expert-built tasks) and, according to a reviewer, Timeline-Bench (real editing jobs judged by human editors;
+  being verified, see section 13). What UberLens Bench would add is narrower than "nothing fits": footage that
+  can be redistributed, the same model with and without a harness at matched cost, and scoring of the evidence
+  behind an answer. Licences are checked dataset by dataset and asset by asset; AgentVidBench already uses openly
+  licensed video.
+
+### 1.1 Product and research are separate
+
+**The product** is an agent workspace that preserves source evidence, editing decisions and revisions. It does
+not need a new exploration method to be useful.
+
+**The research** asks whether evidence-aware exploration improves editorial outcomes. A more structured,
+observable process makes an agent easier to debug, audit and reproduce. That is not the same as making it a
+better editor: agents can pass every mechanical check and still fail on editorial quality. The design holds four
+separate hypotheses, and each has to be shown on its own:
+
+| | Hypothesis | Tested by |
+| --- | --- | --- |
+| H1 | Explicit observation provenance, coverage and claim rules find what is in the footage more reliably than generic media tools | Agent C vs B (section 10) |
+| H2 | Knowing the editorial decision at hand improves what the agent chooses to look at | A source index built without the brief vs exploration conditioned on the brief, same editing policy |
+| H3 | Recorded approvals and decision dependencies reduce unwanted changes and improve cuts | Pass-aware vs single-loop editor (section 8.3) |
+| H4 | A critic that watches and hears the render beats one that reads the timeline | Section 8.3 ablation |
+
+Exploring and editing are different problems. Exploring reduces uncertainty about what the footage holds;
+editing makes something good under creative constraints, and finding every relevant passage can produce a worse
+cut than finding three strong ones. So nothing here is assumed to help editing until an experiment shows it.
+
+**The baseline everything must beat** is simple: a full timestamped transcript, a shot index and searchable media
+references, handed to a general coding agent. No concrete failure of that baseline on interview selects has been
+shown yet. Until one is, the observation taxonomy, claim checks and adaptive search are unproven, and the first
+experiment (section 10) exists to find out.
 
 ## 2. Scope
 
@@ -77,9 +108,15 @@ already has. The benchmark drives the same tools.
 All state lives outside the model's context, in the project folder (`.uberlens/`), so it survives a full context
 and a new session.
 
-**Versions** (VIVID). Every media file has `asset_id = "asset_" + sha256(relative path + "\0" + sha256(content))[:24]`.
-A rewritten file is a new version; nothing is ever silently reattached to a newer one. A **project revision** is
-the hash of `video.tsx` plus the manifest; every edit names the revision it expects (section 6.1). A **render** is
+**Versions.** Content and location are separate. `content_id` is the hash of a file's bytes; an **asset** is a
+logical source that records which `content_id` sits at which path over time. Moving an unchanged file keeps its
+content identity and its evidence; rewriting it makes a new content version, and nothing is ever silently
+reattached to a newer one. (VIVID hashes path and content together, so a move makes a new identity.) Verified
+identities are cached by size and modification time and re-hashed when either changes.
+
+A **project revision** is the hash of `video.tsx` plus the manifest; every edit names the revision it expects
+(section 6.1). That boundary is stated, not total: imported code, UberScene and Chrome versions and outside
+configuration are recorded beside the revision, and a change in any of them is reported with a render. A **render** is
 identified by the hash of the output file it produced. Approval attaches to that file, not to inputs predicted to
 produce it.
 
@@ -90,18 +127,28 @@ of later questions on the same file.
 a versioned frame proves what the system *showed* the model, while a caption is the model's *interpretation* of it.
 
 ```python
-class Observation(BaseModel):          # what was shown; written by the harness, never by the model
+class Observation(BaseModel):          # written by the harness only; immutable
     obs_id: str                        # "ob_" + 24 hex
-    version: str                       # asset_id of the source, or the render's file hash
+    version: str                       # content_id of the source, or the render's file hash
     instrument: Literal["overview", "frames", "burst", "audio", "transcript", "check"]
-    requested: Span                    # what was asked for
+    requested: Span                    # the media range asked for
     pts: list[float]                   # presentation timestamps actually decoded
     max_gap: float                     # largest gap between consecutive samples, seconds
     crop: tuple[int, int, int, int] | None
+    payload_id: str                    # hash of the exact image sheet or audio handed to the model
+    payload: dict                      # its form: sheet size, cell size in pixels, order, compression;
+                                       # or audio sample rate, channels, duration
+    model_call: str | None             # the call that consumed it
     anchors: list[str] = []            # media terms that survive trims: "word:12", "shot:3"  (ours)
-    note: str                          # the model's description: an interpretation, never ground truth
+    created: datetime
 
-class Claim(BaseModel):                # what the model asserts; it must cite observations
+class Note(BaseModel):                 # written by the model about an observation; kept apart from it
+    obs_id: str
+    text: str                          # an interpretation, never ground truth
+    model: str
+    created: datetime
+
+class Claim(BaseModel):                # descriptive: what happens in the footage
     claim_id: str
     kind: Literal["read_text", "presence", "order", "spoken_words", "audibility", "location", "absence"]
     text: str
@@ -109,34 +156,62 @@ class Claim(BaseModel):                # what the model asserts; it must cite ob
     cites: list[str]                   # obs_ids
     expected: str | None               # stated before the look, when the agent states one
     verdict: Literal["confirmed", "partial", "not_found"] | None   # required when `expected` is set
+    eligibility: Literal["eligible", "ineligible"]                 # set by the store, from the table below
+    verified: Literal["unverified", "verified", "refuted"] = "unverified"   # set only by an independent check
     provenance: Literal["observed", "index"]
+
+class Judgment(BaseModel):             # editorial: why a passage may work for this brief
+    judgment_id: str
+    subject: str                       # a select, a segment, an ordering
+    text: str                          # "a strong opening: the admission lands before the explanation"
+    rests_on: list[str]                # claim_ids: the facts it depends on
+    alternatives: list[str] = []       # what it was weighed against
+    author: Literal["agent", "editor"]
 ```
 
-**Sufficiency depends on the claim**, not on a count of looks. A second look by the same model can repeat the same
-mistake, and one legible crop can settle a sign. The store checks each claim against its kind:
+**Three things the store keeps apart** (the distinction is from review; the wording is **ours**):
 
-| Claim | Supported when the cited observations include |
+| | What it establishes | Who can establish it |
+| --- | --- | --- |
+| **Provenance** | Which input the harness handed to the model, in which form | The store, exactly |
+| **Coverage** | Whether that input could plausibly have shown the thing | The store, by the rules below |
+| **Correctness** | Whether the evidence really supports the claim | Only an independent check: a human, a second model family, or a benchmark label |
+
+A valid citation is not proof. The model can be shown a blue cup and claim a red one with a perfect citation. So
+the store never calls a claim "supported": it marks it **eligible** (its citations could show such a thing) or
+not, and `verified` stays unset until something independent checks it. The record covers what the harness
+submitted; a hosted model may resize or recompress the input again, out of sight.
+
+**Eligibility depends on the claim's kind**, not on a count of looks:
+
+| Claim | Eligible when the cited observations include |
 | --- | --- |
-| `read_text` (a sign, a caption, a label) | A crop where the text is legible |
-| `presence` (X is in this shot) | A frame of that shot showing X |
-| `order` (A happens before B, who handed what) | A burst covering both, `max_gap` under the event's length |
-| `spoken_words` (where a phrase is said) | Word-timed transcript of the span |
+| `read_text` (a sign, a caption, a label) | A crop whose payload shows the text at a legible size |
+| `presence` (X is in this shot) | A frame of that shot at a size where X can be made out |
+| `order` (A happens before B, who handed what) | Samples covering both, with a sampling interval shorter than the event |
+| `spoken_words` (where a phrase is said) | Word-timed transcript of the span, with its alignment confidence |
 | `audibility` (is the line clear under the music) | The actual audio of the span, not only a transcript |
-| `location` (when X happens) | An observation inside the span at a gap that could show X |
-| `absence` (X does not happen) | Not supportable from samples; reported as "not seen at this coverage" |
+| `location` (when X happens) | An observation inside the span at an interval that could show X |
+| `absence` (X does not happen) | Never eligible from samples; reported as "not seen at this coverage" |
 
-A claim that does not meet its row is stored as unsupported and reported as a guess. Pixels and audio leave the
-context after each step; a one-line stub with the observation id and timestamps stays (OmniAgent). Rows go in
-SQLite, images by content hash.
+**Editorial judgments are not claims.** "This is a strong opening" cannot be settled by evidence rules, and the
+store does not pretend otherwise. A judgment names the facts it rests on (which are claims) and what it was
+weighed against; it is settled by alternatives, taste and the editor. A select's reason is a judgment.
+
+Pixels and audio leave the context after each step; a one-line stub with the observation id and timestamps stays
+(OmniAgent). Rows go in SQLite, payloads by content hash. A transcript keeps the recogniser's confidence per
+word, and recognised words are not treated as verified words.
 
 **Working files** (VIVID): `TASK.md` (the brief), `PLAN.md` (the current plan, size-capped), and a generated index
 of the evidence. An agent that runs out of context writes a checkpoint and continues in a fresh one; the budget
 carries over.
 
-**Editorial pass** (**ours**; the passes are standard editing practice). A project is always in one pass. The pass
-sets what the agent is deciding, which instruments and evidence fit, and what "done" means. Passes are not a fixed
-pipeline: a review note can send the agent back (a rough-cut note such as "the change feels unmotivated" reopens
-the search of the source), and going back is recorded.
+**Editorial pass** (**ours**; the passes are standard editing practice). The pass belongs to a **decision**, not
+to the whole project: a real project can have a locked opening, a rough middle, a fine-cut ending and unreviewed
+takes at once. Each part of the cut carries its own pass, its approvals and what it depends on; a project-level
+pass exists only as the default working mode. The pass sets what the agent is deciding there, which instruments
+and evidence fit, and what "done" means. A review note can reopen a decision and whatever depends on it ("the
+change feels unmotivated" reopens the search of the source for that segment), and that is recorded.
 
 | Pass | What the agent decides | Evidence that fits | Hands forward |
 | --- | --- | --- | --- |
@@ -158,7 +233,7 @@ Two rules:
 ```python
 class Select(BaseModel):
     select_id: str
-    source: str                    # asset_id
+    source: str                    # asset (a logical source)
     span: Span
     anchors: list[str]             # "word:412".."word:455", so it survives re-timing
     reason: str                    # why it might be useful for this brief
@@ -171,6 +246,7 @@ class Decision(BaseModel):         # anything the editor approved or left open
     pass_: Literal["log", "stringout", "rough", "fine", "lock"]
     subject: str                   # a select, a segment, the order, the picture revision
     state: Literal["open", "approved", "reopened"]
+    depends_on: list[str] = []     # other decisions; reopening one flags these
     revision: str                  # project revision it applies to
     note: str | None               # the editor's words
 ```
@@ -209,7 +285,7 @@ confirms anything.
 
 ### 5.2 Build once per source
 
-Cheap layers computed when a file is first cataloged, cached by `asset_id`, reused by every later question or
+Cheap layers computed when a file is first cataloged, cached by `content_id`, reused by every later question or
 edit:
 
 - **Activity profile** ([activity-prior.md](activity-prior.md), **ours**): bitrate, keyframes and audio energy per
@@ -232,10 +308,10 @@ by span. A transcript finds where something is said; whether a take is usable is
 | `catalog` | Lists sources with duration, streams, versions, what is cached | | VIVID |
 | `overview(source, profile)` | First look, **per question**: ForeSeek's N(T) = clip(round(10 + 3·log2(1 + T/600)), 10, 20) frames as contact sheets of 8 with timestamps. Half are the cached uniform frames; half are placed by the activity profile under `profile` | `profile` is required | ForeSeek, **ours** |
 | `inspect(source, span, n, roi)` | Frames spread over a span, optional crop | ≤ 24 frames, span ≤ 600 s; a larger request returns a bounded window and the next request | VIVID, OmniAgent |
-| `inspect(..., density="burst")` | A short run at up to native frame rate, for order, motion and "who handed what" | ≤ 24 frames, span ≤ 8 s, so at least 3 frames per second | OmniAgent `get_clip`, ActiveForager's temporal zoom |
+| `inspect(..., interval=…)` (a burst) | Consecutive samples at a stated interval, for order, motion and "who handed what" | ≤ 24 frames; the agent sets the interval, so the span is at most 24 × interval (0.8 s at 30 fps, 8 s at 3 fps) | OmniAgent `get_clip`, ActiveForager's temporal zoom |
 | `listen(source, span)` | Loudness, waveform and spectrogram summary, speech presence | ≤ 120 s | VIVID |
 | `transcribe(source, span)` | Local Whisper for a span, word timings; partial results kept | spans, never the whole source by default | VIVID |
-| `retrieve(query \| id)` | Exact lookup by id, text search over observations and claims, filters by source, time, kind; claims come back marked supported or unsupported | | VIVID |
+| `retrieve(query \| id)` | Exact lookup by id, text search over observations and claims, filters by source, time, kind; claims come back marked eligible or not, and verified or not | | VIVID |
 
 **`profile` runs before every overview.** The agent picks how the activity half is placed for this question:
 `motion` (events and actions), `speech`, `cuts` (scene or topic changes), or `off` (static details such as a sign
@@ -244,8 +320,11 @@ skim makes that worse for a static-detail question, so there is no default: the 
 time. The uniform half is always kept.
 
 **Why burst exists.** `inspect` at its widest is 24 frames over 600 s, one frame per 25 s. That finds a scene; it
-cannot show an event inside it. Every look returns its frame spacing, so the agent and the log can see whether a
-look could have caught what it was looking for.
+cannot show an event inside it. A burst trades span for density on purpose, within a fixed frame budget. Naming a
+look a burst does not make it fit for motion: a 150 ms handoff is missed at 3 frames per second, and a slow
+20-second move needs only sparse samples. So every look returns its actual sampling interval, and eligibility for
+`order` compares that interval with the event's length. A short interval still does not prove the event was
+caught.
 
 Every instrument returns the presentation timestamps actually decoded, the largest gap between them, the version,
 the crop and an observation id. A requested span and frame count can overstate what the model had a chance to
@@ -255,8 +334,10 @@ see; the decoded timestamps cannot.
 
 - **Every look is an observation** written by the harness (section 4): version, decoded timestamps, largest gap,
   crop. The model's note on it is an interpretation.
-- **Every claim cites observations**, and the citations must suffice for the claim's kind (the table in section
-  4). A claim without them is a guess and is reported as one. The benchmark scores the same thing (section 8.2).
+- **Every descriptive claim cites observations**, and the store marks it eligible or not for its kind (section
+  4). A claim without citations is a guess and is reported as one. Eligible is not correct: correctness comes only
+  from an independent check, and the benchmark scores against labels, never against citation shape alone.
+- **Editorial judgments are kept apart** from descriptive claims and are not put through evidence rules.
 - **Say what you expect, record what you got.** A claim made with an expectation requires a verdict: confirmed,
   partial or not found.
 - **A miss is not absence.** "Not found" means not seen at this coverage. Sampled frames are not continuous
@@ -273,7 +354,17 @@ out:
 3. Look at a density that could catch what is asked: a short span, or a burst for motion and order.
 4. If the look does not decide it, change **one** of span, density, crop or modality. Never repeat an identical
    look.
-5. Stop when the claim's citations suffice for its kind. Otherwise report what is known and where the gap is.
+5. Stop by the kind of question (below). Otherwise report what is known and where the gap is.
+
+| Question | When to stop |
+| --- | --- |
+| Existence ("is there a shot of the factory?") | After one eligible positive |
+| Exhaustive ("every time she mentions the price") | One positive proves nothing about the rest: stop on coverage, and report what is unreviewed |
+| Comparative ("the clearest take of the answer") | Not after the first candidate: look at the alternatives first |
+| Editorial selection ("a strong opening") | A stated exploration budget and a coverage report; stopping at the first adequate candidate is satisficing, and the goal is the best of what is there |
+
+Whether an evidence-based stop beats a plain fixed budget on creative tasks is untested; the first experiment
+uses a fixed budget.
 
 **Behind a flag: ForeSeek's belief scheduler.** Interval labels, a written prediction for every look, demotion
 on a failed prediction, and a split of the timeline into first intervals (APS's penalised split of the activity
@@ -345,16 +436,25 @@ class Critique(BaseModel):
     fix: Action | None             # exactly one UberScene action
 ```
 
-- `fix` must be in `actions(element)` and pass a dry run, or the critique is rejected before the editor sees it
-  (**ours**; it removes EditDuet's failure by construction).
+- **Diagnosis and remedy are separate.** The critic first says what is wrong. A remedy is optional: when it gives
+  one, `fix` must be in `actions(element)` and pass a dry run, or it is rejected before the editor sees it
+  (**ours**; it removes EditDuet's failure of invented functions). The critic may also answer "no acceptable local
+  fix", which reopens the decision above (the segment's purpose, the order) instead of forcing an atomic edit onto
+  a structural problem.
+- **Scores are a weak signal.** A 1–5 rating of a segment in isolation is noisy, and a segment that passed can
+  fail once its neighbours change. For craft, the critic also compares two rendered alternatives side by side;
+  whether pairwise judgments beat absolute scores is part of H4.
+- **The critic shares blind spots with the editor** when both are the same model. Real audio and video reduce
+  that; they do not remove it.
 - `plan` failures go back to planning; the rest go to the editor (Auto-Director's routing).
 - Approval is tied to the render file it was given. A frame-cache hit does **not** carry approval forward: an
   unchanged frame can sit beside a different cut, against different narration or under a different mix, and
   UberScene's cache keys media by size and modification time and does not see `--import` code. Frame keys are used
   to reuse images, not verdicts.
-- Within a round, a segment at 4 or more on both scores is not reviewed again unless an edit touches it. After any
-  timing change, the transitions on both sides of the edit are reviewed again.
-- At most 3 rounds (Auto-Director). At the limit the agent returns the best version, with failing segments and
+- A segment that passed is reviewed again when an edit touches it, when a neighbour changes, or when a decision it
+  depends on is reopened. After any timing change, the transitions on both sides of the edit are reviewed again.
+- The number of rounds is a budget setting, 3 to start (Auto-Director's value, not validated for this workflow);
+  the effect of the limit is measured. At the limit the agent returns the best version, with failing segments and
   reasons listed.
 
 ## 7. Small decisions
@@ -382,13 +482,22 @@ Working name: **UberLens Bench**. It measures an agent on exploring and editing 
 - **Ground truth from code where possible.** Because an UberScene video is a file, defects can be injected by
   known actions and checked exactly (**ours**).
 - **Cost is part of the score.** Every result reports frames sent, model calls, scorer passes, tokens, cost and
-  time, next to accuracy.
+  time, next to accuracy. Preprocessing is reported both ways: the total cost of a one-off task, and the cost
+  spread over repeated tasks on the same source, so a system that front-loads work cannot look cheap by hiding it.
+- **Outcomes over behaviour.** Counts of observations, valid citations and preserved approvals show how an agent
+  worked; they also happen to be things UberLens is built to produce, so a benchmark that rewards them would
+  measure whether an agent follows this architecture. The primary measures are outcomes: the quality of the final
+  render and the effort a human editor needs to finish from it. Behavioural measures are reported beside them and
+  never decide a comparison.
+- **One primary outcome and one hypothesis per experiment.** Many models times many policies times many families
+  at 20 tasks each gives a matrix of inconclusive results. Each experiment names its outcome and its hypothesis
+  first, uses paired tasks grouped by source, and grows only after a signal.
 
 ### 8.2 Tasks
 
 | Family | Task | Scored by |
 | --- | --- | --- |
-| **Select** (logging) | An interview and a brief; return a shortlist of passages worth keeping | Recall of the labelled useful passages; are the source ranges right and playable; is each reason supported by its cited observations; how much of the source is reported as unreviewed |
+| **Select** (logging) | An interview and a brief; return a ranked shortlist of passages worth keeping | **Outcome:** blind editors rate usefulness, ranking, missing alternatives and wasted passages, and how long it takes them to reach an acceptable assembly from the shortlist. Beside it: recall of labelled passages, whether the source ranges are right and playable, whether each stated reason matches the source |
 | **Revise** (rough cut) | A rough cut with approved segments and one review note that forces a return to the source ("find a stronger reason for the pivot, but keep the opening") | By code: how much approved material was disturbed; is the substitution grounded in the footage. By editors: is the revision acceptable. Also time and cost to an acceptable revision |
 | **Find** | "Where does X happen?" in sources from 5 minutes to 2 hours | Overlap of the answered span with the labelled span; whether the cited looks fall inside it at a density that could show the event |
 | **Answer** | Questions needing one or several moments, including static details, speech, order and motion | Correctness; **support**: do the cited looks cover the labelled spans; a right answer with wrong or missing support is counted separately; split by question type (event, speech, static detail, order or motion, far-apart moments) |
@@ -475,31 +584,47 @@ tests/
 
 ## 10. Milestones
 
-The first build is one dialogue workflow: an interview and a brief in, linked selects, a playable stringout and a
-reviewable radio rough cut out, plus one follow-up note that forces a return to the source.
+The first experiment is deliberately narrow: **one task, three agents, no cut**. Given a 45 to 90 minute interview
+and a brief, find and rank the best passages as source-linked selects an editor can review. No stringout, no
+rough cut, no critic, no approval states: those add variables before the exploration method has shown any value.
+
+| Agent | Has |
+| --- | --- |
+| **A. Baseline** | The full timestamped transcript, a shot index, ordinary media inspection, structured selects as output |
+| **B. Exploration** | A plus the adaptive overview, crops and bursts |
+| **C. Evidence** | B plus observation provenance, coverage and the claim rules |
+
+All three get the same brief, source and budget, preprocessing included. Editors, blind to the agent, judge the
+selects for usefulness, ranking, missing alternatives, wasted passages, and whether each stated reason matches the
+source. **Primary outcome:** the time an editor needs to turn a shortlist into an acceptable assembly.
+
+What the result decides:
+
+- **B no better than A:** the exploration instruments are not needed for dialogue footage; build the product on
+  the transcript-first baseline.
+- **C no better than B:** the evidence machinery is overhead for this task; keep the provenance log for audit and
+  drop the claim rules from the agent's loop.
+- **Neither reduces the editor's effort:** the benefit does not matter to the product, whatever the select scores.
 
 0. **M0, prove the integration.**
    - The bridge: a trim is dry-run, committed to `video.tsx`, reloaded in a fresh process, and undone, with the
      expected-revision check refusing a stale edit.
    - Render the same file twice and compare frame hashes; record what the frame-cache key covers.
-   - License check of candidate footage and of AgenticVBench. Pick the first models.
-1. **M1, ingest and log.** Catalog, versions, media and sync checks, the word-timed transcript for dialogue
-   footage, the activity profile; `inspect`, `listen`, `retrieve`; observations and claims; the selects list.
-   **Result:** a searchable source log and a shortlist of playable selects, each with its source range, its
-   reason and a jump to the source, and a list of what is still unreviewed. **Acceptance:** on held-out
-   interviews with independently labelled useful passages, a real model's selects recover them, with reasons its
-   cited observations support.
-2. **M2, stringout and radio rough cut.** The bridge in use; passes, selects and decisions as state; the
-   stringout with alternates; the rough cut with a purpose per segment; one revision note handled by going back
-   to the source, keeping what was approved. **Acceptance:** an editor can play each candidate, see what it
-   contributes, and accept or reject the substitution.
-3. **M3, the first result.** The comparisons of section 8.3 on this workflow, at matched budgets: pass-aware vs
-   single-loop, UberLens tools vs generic tools, and with vs without the harness. Blind editor review, the Revise
-   measures, a second model.
-4. **M4, fine cut.** The watching critic with audiovisual excerpts, Find → Repair, and timing review inside an
-   approved structure.
-5. **M5, benchmark v0 and experiments.** The remaining families, the runner and cost report; the activity prior's
-   paired re-encode test, the belief scheduler, the remaining ablations, AgenticVBench for comparison.
+   - License check of candidate footage, dataset by dataset and asset by asset. Pick the first models and write
+     down what each must support (tool calls, images, audio, context size); certify those few before claiming
+     any model works.
+1. **M1, source log and selects.** Ingest (content identities, media checks, the transcript with word
+   confidence, shots), the three agents above, the selects format with a jump to the source, and the decision
+   log: which interval, instrument and density each agent chose. That log is kept whatever the result; it is how
+   a good search policy can be found from data and not written in advance.
+2. **M2, the three-agent experiment** with editors. Then decide, from the three outcomes above, how much of
+   sections 4 and 5 gets built.
+3. **M3, stringout and radio rough cut**, with decisions, approvals and one revision note that forces a return
+   to the source. Only after M2 shows a signal.
+4. **M4, the pass-aware comparison** (H3) and the Revise measures, with a second model.
+5. **M5, fine cut** (H4): the watching critic, pairwise judgments, Find → Repair.
+6. **M6, benchmark v0 and the remaining experiments:** H2, the activity prior's paired re-encode test, the belief
+   scheduler, external benchmarks.
 
 ## 11. Later
 
@@ -525,7 +650,9 @@ Each is covered in the research docs and waits for the benchmark to show it is n
 
 ## 13. Open questions
 
-1. Which models first, for the agent, the critic and the judge (the judge must be a different family)?
+1. Which models first, for the agent, the critic and the judge (the judge must be a different family)? Models
+   differ a lot in tool calling, media support, caching, context and cost, so "any tool-calling model" is a goal,
+   not a starting claim.
 2. Which footage for the benchmark, and who labels it?
 3. Who are the editors for the blind review, how many, and how is their agreement measured? Without them the
    pass-aware comparison has only the code-scored rework measures.
@@ -533,4 +660,7 @@ Each is covered in the research docs and waits for the benchmark to show it is n
    (research-editing.md) found planner, critic and index-first systems, none organised by editorial pass.
 5. Does UberLens also need to edit footage that is not in an UberScene project? If yes, the first step is
    wrapping it in one.
-6. The benchmark's name, and whether it lives in this repo or its own.
+6. Timeline-Bench: confirm it exists and what it reports. A reviewer says most failed runs there passed the
+   mechanical checks and failed only on editorial quality, which would mean checks and evidence tracking are not
+   the bottleneck. Position UberLens Bench against it, AgenticVBench and VIVID once verified.
+7. The benchmark's name, and whether it lives in this repo or its own.
