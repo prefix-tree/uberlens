@@ -1,271 +1,335 @@
 # UberLens: design
 
-UberLens is one video agent with two modes over the same tools and the same state:
+UberLens is two things:
 
-- **Offline long-form** (ForeSeek-led): the whole video is available. The agent predicts what unseen stretches
-  contain, checks the most promising ones, and uses failed predictions to rule stretches out.
-- **Streaming** (ActiveForager-led): video arrives live. At each step the agent answers, looks closer at the recent
-  window, recalls something from the past, or waits.
+1. **A harness** that lets a general agent (Claude Code, Codex, any tool-calling model) **explore** video and
+   **edit** it. It gives the agent ways to look only where it matters, remembers what was seen and in which version
+   of which file, makes edits through [UberScene](https://github.com/prefix-tree/uberscene), and checks the rendered
+   result before calling it done.
+2. **A benchmark** that measures how well an agent explores and edits, with and without the harness, on footage
+   that can be redistributed.
 
-A fast System-1 model makes the many small choices (which interval next, which action, is this enough). The large
-System-2 model is called only when System-1 is unsure, and to write the final answer.
+UberLens trains no model. It is tools, state, prompts and checks around a model you choose.
 
-Status: draft for review, no code yet. Python.
+Status: design, second version. It replaces the first draft, which described a question-answering agent with
+streaming and training. Every choice below names its source or is marked **ours**; the research behind it is in
+[research.md](research.md) (perception), [research-editing.md](research-editing.md) (editing),
+[research-importance.md](research-importance.md) (what to look at) and [activity-prior.md](activity-prior.md).
+Where those documents list changes to "design.md", they mean the first draft; this version takes them in or
+defers them to section 11.
 
-## 1. Sources
+## 1. Why this shape
 
-| Idea | Source | Used for |
-| --- | --- | --- |
-| Native perception tools (`get_frames`, `get_audio`, `get_clip`, `answer`), memory consolidation | OmniAgent | The tool set and the text memory |
-| Short clean working window; Answer / ZoomIn / Recall / Wait; isolated Recall returning an EvidenceCard | ActiveForager (arXiv:2611.24267) | Streaming mode |
-| Expectations over unseen intervals, global interval belief, failed expectations as negative evidence | ForeSeek (arXiv:2611.26024) | Offline mode, re-planning |
-| Cheap calibrated decisions at enumerable choice points, escalate on low confidence | System-1 / AnyS1-style decision models | Every choice point in both loops |
-| Activity prior: bitrate, keyframes and audio decide the first look | **Ours** ([activity-prior.md](activity-prior.md)) | The skim, first intervals, System-1 features, streaming wake-ups |
+- **A harness is where the evidence is.** VIVID added about 20 points on AgenticVBench to the same model with no
+  training (58.6 vs 38.4 for Codex), and its ablation ranks what matters: looking on demand (−16.0 without it),
+  reviewing the output (−14.6), version-pinned memory (−10.8). The perception papers (ForeSeek, OmniAgent,
+  ActiveForager) get their gains from fine-tuning and reinforcement learning, and ForeSeek's own ablation says its
+  predict-then-verify loop only pays off after training.
+- **Agents fail by drowning.** On AgenticVBench, 83% of failed repurposing tasks spent the budget transcribing or
+  thumbnailing the whole source and never assembled an edit; 65% of failed repairs looked in the wrong time window.
+  The harness's job is to make the cheap, targeted look the easy path.
+- **UberScene removes the hard half.** The editing papers build their machinery on FFmpeg commands. In UberScene the
+  edit is one TSX file changed through typed, validated, undoable actions, with lint, layout checks, labelled
+  contact sheets and a per-frame render cache. UberLens uses these instead of rebuilding them.
+- **No benchmark fits.** Every public video benchmark is non-commercial and none may redistribute its videos; none
+  measures exploring and editing together, or what a harness adds at equal cost.
 
-These summaries came from the brief that started this project. [research.md](research.md) checks each source
-against its paper and code; many details here are wrong, and its last section lists the corrections to make before
-M1.
+## 2. Scope
 
-## 2. Shared state
-
-All state is plain, serialisable data (pydantic models). A run can be saved, replayed and diffed.
-
-```python
-class Span(BaseModel):
-    start: float          # seconds
-    end: float
-
-class MemoryEntry(BaseModel):
-    span: Span
-    text: str             # what was seen/heard, distilled
-    source: Literal["frames", "audio", "clip", "recall"]
-    step: int
-
-class Relevance(StrEnum):
-    HIGH = "high"; MEDIUM = "medium"; LOW = "low"; ELIM = "elim"
-
-class Interval(BaseModel):
-    span: Span
-    relevance: Relevance
-    expectation: str | None     # what we predict is there, in words
-    checked: bool = False
-    evidence: list[int] = []    # MemoryEntry indexes that confirmed or refuted it
-
-class AgentState(BaseModel):
-    question: str
-    mode: Literal["offline", "streaming"]
-    memory: list[MemoryEntry]          # text only; raw media is dropped after consolidation
-    window: list[Frame]                # streaming: ~4 most recent frames, low res
-    belief: list[Interval]             # covers the whole known timeline, no overlaps
-    archive: EventArchive | None       # streaming: past events Recall can search
-    budget: Budget                     # frames, tool calls, System-2 calls, wall time left
-    step: int
-```
-
-Invariants (checked in tests):
-
-- `belief` partitions `[0, known_duration]`: sorted, no gaps, no overlaps. Splitting an interval keeps its label until
-  updated.
-- Raw media never enters `memory`; only the current step's observation carries pixels or audio.
-- `budget` only goes down.
-
-## 3. Tools
-
-Same signatures in both modes; a mode just doesn't offer some of them.
-
-| Tool | Args | Returns | Offline | Streaming |
-| --- | --- | --- | --- | --- |
-| `get_frames` | `span, n, res` | frames | yes | yes (past via archive) |
-| `get_audio` | `span` | transcript + audio events | yes | yes |
-| `get_clip` | `span, fps, res` | short dense clip | yes | yes |
-| `seek_interval` | `interval_id` | observation of that interval, sampled to fit budget | yes | no |
-| `zoom_in` | `res \| burst` | the recent window at high res, or a dense burst | no | yes |
-| `recall` | `query` | `EvidenceCard` from a sub-agent | no | yes |
-| `wait` | `seconds?` | nothing; the window advances | no | yes |
-| `answer` | `text, confidence` | ends the run | yes | yes |
-
-`update_belief` is not a tool the model calls freely: it is the step after every observation (section 6), so belief
-always reflects what was seen.
-
-**Recall sub-agent.** Runs with its own context over the archive and the memory, never adds to the main context
-beyond its result:
-
-```python
-class EvidenceCard(BaseModel):
-    query: str
-    found: bool
-    spans: list[Span]
-    summary: str            # <= ~80 words
-    confidence: float
-```
-
-**Media backend.** One `MediaSource` interface with two implementations: a file (ffmpeg/PyAV decode with a frame
-cache) and a live stream (ring buffer; the archive keeps keyframes plus their captions). Tests use a synthetic video
-with known content per second.
-
-## 4. Offline loop (ForeSeek-led)
-
-```
-INIT ─► SKIM ─► PREDICT ─► PICK ─► OBSERVE ─► CONSOLIDATE ─► UPDATE ─► SUFFICIENT? ─yes─► ANSWER
-                   ▲                                                  │
-                   └──────────────── re-plan ◄─────── no ─────────────┘
-```
-
-1. **INIT**: belief is one interval `[0, duration]`, `MEDIUM`, no expectation.
-2. **SKIM**: ForeSeek's N(T) = clip(round(10 + 3·log2(1 + T/600)), 10, 20) frames. With the activity prior
-   ([activity-prior.md](activity-prior.md)), half go uniformly and half go where cheap signals from the file
-   (bitrate, keyframes, audio) show something happening; the first intervals are the gaps between skim frames,
-   snapped to nearby cuts. With the prior off, this is ForeSeek's uniform skim exactly.
-3. **PREDICT** (System-2, once per re-plan): for each unchecked interval, write an expectation tied to the question
-   ("the receipt is shown at the counter, ~10:30–12:00") and a label.
-4. **PICK** (System-1): choose the next interval. Candidates are unchecked `HIGH`, then `MEDIUM`.
-5. **OBSERVE**: `seek_interval`, sampling to fit the frame budget; `get_audio` / `get_clip` if System-1 picks them.
-6. **CONSOLIDATE**: distill the observation to a `MemoryEntry`; drop the pixels.
-7. **UPDATE**: compare the observation with the interval's expectation.
-   - Confirmed: keep `HIGH`; split around the matching part if it's narrower.
-   - Refuted: the interval drops to `LOW` or `ELIM`. Neighbours whose expectation relied on the same assumption drop
-     one level. If the refuted interval was the top `HIGH`, go back to PREDICT (global re-plan) with the failure
-     written into the prompt as negative evidence.
-   - Partial: split; label the parts separately.
-8. **SUFFICIENT?** (System-1): is the evidence in memory enough to answer? Also stop when the budget is out or
-   nothing `HIGH`/`MEDIUM` is left unchecked.
-9. **ANSWER** (System-2): from memory only.
-
-## 5. Streaming loop (ActiveForager-led)
-
-At each tick (new frames arrived, or a timer):
-
-```
-TICK ─► DECIDE (System-1) ─┬─ Answer ─► emit, keep watching if the question is ongoing
-                           ├─ ZoomIn ─► observe window at high res ─► CONSOLIDATE ─► DECIDE
-                           ├─ Recall ─► sub-agent ─► EvidenceCard into memory ─► DECIDE
-                           └─ Wait   ─► sleep until next tick
-```
-
-- The window holds ~4 recent frames at low res; it is replaced each tick, not appended.
-- What leaves the window is captioned into the archive (cheap model, batched) so Recall can find it later.
-- Besides the timer, the agent wakes early when the live bitrate, visual change or audio jumps
-  ([activity-prior.md §5.5](activity-prior.md#55-streaming-waking-up)).
-- At most N non-Wait actions per tick, so a tick can't run away; then it Waits.
-- Proactive questions ("tell me when the oven light goes off") Answer when the condition holds, not once.
-
-The belief map exists here too but only over the past: Recall uses it to rank where to look, and its results update
-it.
-
-## 6. System-1
-
-Every enumerable choice goes through one function:
-
-```python
-class Decision(BaseModel, Generic[T]):
-    choice: T
-    confidence: float           # calibrated probability that `choice` is right
-    scores: dict[T, float]      # all options, for logging and calibration
-
-def decide(point: DecisionPoint[T], state: AgentState) -> Decision[T]: ...
-```
-
-Decision points:
-
-| Point | Options | Inputs | Escalate when |
+| | In the first version | Later (section 11) | Not planned |
 | --- | --- | --- | --- |
-| `prior_profile` | motion / speech / cuts / off | question | confidence < τ (falls back to default weights) |
-| `next_interval` | unchecked interval ids | question, belief, last 3 memory entries, each interval's activity summary | top-2 margin < τ |
-| `observe_how` | frames / audio / clip, with density | question, interval expectation | confidence < τ |
-| `stream_action` | answer / zoom_in / recall / wait | question, window captions, last memory | confidence < τ, or Answer below τ_answer |
-| `sufficient` | yes / no | question, memory | confidence < τ |
-| `verify_expectation` | confirmed / refuted / partial | expectation, observation summary | confidence < τ |
+| Explore | Recorded video: find moments, answer with evidence | Live streams | |
+| Edit | Timeline edits through UberScene: cut, trim, order, captions, titles, sound | | Generative pixel edits |
+| Models | Any hosted or local tool-calling model, as configuration | A trained fast decision model; fine-tuning | |
+| Memory | Evidence store, working files, interval list | Event graph, story importance | |
 
-Escalation calls System-2 with the same inputs and options and the same output schema, so the loop doesn't care who
-decided. Each decision is logged with who made it; these logs are the training data for a better System-1 later.
+## 3. Parts
 
-Backends behind one `DecisionModel` interface:
+```
+                agent (your model)                         benchmark runner
+                       │ tools (MCP / CLI / skill)                │
+┌──────────────────────┴──────────────────────────────────────────┴─────────┐
+│ UberLens                                                                  │
+│  explore: catalog · overview · inspect · listen · transcribe · retrieve   │
+│  edit:    actions · apply · undo · check · look · review                  │
+│  state:   versions · evidence · working files · intervals · budget · log  │
+│  prior:   activity profile (bitrate, keyframes, audio), shots             │
+└───────────────┬───────────────────────────────────┬───────────────────────┘
+                │ ffprobe / PyAV / Whisper          │ uberscene CLI
+            source media                       video.tsx → render
+```
 
-1. **Heuristic** (first build): label order, budget rules, keyword overlap. Deterministic, for tests and as a
-   baseline.
-2. **Small model**: a small VLM/LLM prompted for JSON with per-option scores; confidence from those scores,
-   calibrated on logged decisions (temperature scaling).
-3. **Distilled** (later): trained on System-2's escalated decisions.
+The harness ships as an MCP server, a CLI and an agent skill, as VIVID does, so it works with an agent the user
+already has. The benchmark drives the same tools.
 
-τ starts at 0.7 and is tuned per point on a dev set for the accuracy/cost trade-off.
+## 4. State
 
-## 7. Models
+All state lives outside the model's context, in the project folder (`.uberlens/`), so it survives a full context
+and a new session.
 
-Two interfaces, both provider-agnostic:
+**Versions** (VIVID). Every media file has `asset_id = "asset_" + sha256(relative path + "\0" + sha256(content))[:24]`.
+A rewritten file is a new version; nothing is ever silently reattached to a newer one. A render has
+`render_id = hash(TSX text, media content hashes, props, UberScene version, Chrome version)`, computed before
+rendering (**ours**; it relies on renders being deterministic, which M0 tests).
 
-- `VisionLanguageModel`: `generate(messages, images, audio, schema) -> parsed output`. Used for System-2, captions,
-  consolidation and the Recall sub-agent.
-- `DecisionModel`: section 6.
+**Evidence** (VIVID, OmniAgent). Each observation is a row:
 
-Model choice is configuration, not code. The first build runs against one hosted VLM for System-2 and a small one for
-captions and System-1; which ones is an open question (section 11).
+```python
+class Evidence(BaseModel):
+    evidence_id: str                 # "ev_" + 24 hex
+    version: str                     # asset_id, or render_id + frame-cache key for rendered frames
+    kind: Literal["frames", "audio", "transcript", "check", "critique"]
+    span: Span                       # seconds in that version
+    anchors: list[str] = []          # media terms that survive trims: "word:12", "shot:3"  (ours)
+    timestamps: list[float]          # the frames actually decoded
+    crop: tuple[int, int, int, int] | None
+    text: str                        # what the model wrote about it
+    provenance: Literal["observed", "index"]   # index entries guide, never confirm  (ours)
+```
 
-## 8. Budget and stopping
+Rows go in SQLite with the images stored by content hash. Old media leaves the context after each step and a
+one-line stub with the evidence id and timestamps stays (OmniAgent). Evidence about a rendered frame is pinned to
+UberScene's frame-cache key, so a finding about scene 3 stays valid after an edit to scene 5 and expires exactly
+when its frame changes (**ours**).
 
-`Budget` tracks frames decoded and sent, tool calls, System-2 calls, tokens and wall time. Every tool checks it before
-running and refuses past the limit; the loop then goes to ANSWER with what it has and marks the answer
-budget-limited.
+**Working files** (VIVID): `TASK.md` (the brief), `PLAN.md` (the current plan, size-capped), and a generated index
+of the evidence. An agent that runs out of context writes a checkpoint and continues in a fresh one; the budget
+carries over.
 
-## 9. Evaluation
+**Intervals** (ForeSeek). A list covering each source: `(span, relevance, hint)` with relevance
+`high | medium | low | eliminated`, plus one current prediction of what the next look should show. A look that
+fails its prediction demotes the interval. ForeSeek's code does not enforce full coverage; UberLens does
+(**ours**).
 
-- **Offline**: Video-MME (long split), LongVideoBench, MLVU, plus a small in-house set with timestamps.
-- **Streaming**: OVO-Bench, StreamingBench; proactive-answer timing.
-- **Metrics**: accuracy; frames sent per question (ForeSeek reports 2.5–4.4× fewer than search agents at equal
-  accuracy; that is the bar); System-2 calls per question; System-1 escalation rate and calibration (ECE) per point;
-  latency per tick (streaming).
-- **Baselines** in the same harness: uniform sampling + one VLM call; reactive search (no PREDICT, no negative
-  evidence); our loop with System-1 off (everything System-2).
-- **Ablations**: no negative evidence; no re-plan; no consolidation; Recall in the main context instead of a
-  sub-agent.
+**Budget and log.** Frames sent to the model, tool calls, model calls, tokens, cost and wall time are counted and
+capped. Scorer passes (any embedding or rating model) are counted separately from frames sent to the main model.
+Every tool call and decision is logged; the log is the replayable trace and the benchmark's cost record.
 
-Every run writes a trace (state after each step, every decision, every tool call) that a small viewer can replay.
+## 5. Explore
 
-## 10. Training (later, not in the first build)
+### 5.1 Build once per source
 
-1. SFT on agent trajectories in the OmniAgent style, generated by the System-2-only loop and filtered for correct
-   answers.
-2. Add foresight trajectories: predict → verify → update belief.
-3. RL (GSPO-style) with: correctness; ActiveForager's counterfactual information gain (a tool call is rewarded only
-   if it raised P(correct)); a penalty per frame and per turn.
-4. Distil the logged decision points into System-1.
+Cheap layers computed when a file is first cataloged, cached by `asset_id`, reused by every later question or
+edit:
 
-## 11. Open questions
+- **Activity profile** ([activity-prior.md](activity-prior.md), **ours**): bitrate, keyframes and audio energy per
+  second, with reliability checks. Measured cost: 0.07 s per minute of video for the container signals.
+- **Shots and silences**: from UberScene's manifest when the footage is in an UberScene project; otherwise cuts from
+  the activity profile.
+- **First intervals**: an APS-style penalised split of the activity curve, ends snapped to cuts (APS's algorithm,
+  re-implemented from the paper; running it on activity instead of relevance scores is **ours**).
 
-1. Which models for System-2, captions and System-1 to start? Hosted or open weights (open weights matter if we
-   train)?
-2. What is the first target use: a benchmark number, or a product question (e.g. finding moments in UberScene /
-   Cutleap footage)? It decides which mode to build first.
-3. Belief labels: four levels as ForeSeek has them, or a probability per interval with labels only for display?
-4. Archive for streaming: captions only, or embeddings too for Recall search?
-5. Budget defaults per mode (frames, seconds per tick).
+A transcript is **not** built up front. Full-source transcription first is the top failure on AgenticVBench.
 
-## 12. Package layout and milestones
+### 5.2 Tools
+
+| Tool | Does | Limits | Source |
+| --- | --- | --- | --- |
+| `catalog` | Lists sources with duration, streams, versions, what is cached | | VIVID |
+| `overview(source)` | First look: ForeSeek's N(T) = clip(round(10 + 3·log2(1 + T/600)), 10, 20) frames, half uniform, half at activity peaks, as contact sheets of 8 with timestamps; returns the first intervals | once per source | ForeSeek, **ours** |
+| `inspect(source, span, n, roi)` | Frames from a span, optional crop; returns timestamps, version and evidence id | ≤ 24 frames, span ≤ 600 s; a larger request returns a bounded window and the next request | VIVID, OmniAgent |
+| `listen(source, span)` | Loudness, waveform and spectrogram summary, speech presence | ≤ 120 s | VIVID |
+| `transcribe(source, span)` | Local Whisper for a span, word timings; partial results kept | spans, never the whole source by default | VIVID |
+| `retrieve(query \| evidence_id)` | Exact lookup by id, text search over evidence, filters by source, time, kind | | VIVID |
+| `intervals(update)` | Read or update the interval list and the current prediction | | ForeSeek |
+
+### 5.3 Rules the prompt carries
+
+- Overview first, then dense looks inside candidate intervals; state what you expect to see before a look, and
+  record whether it held (ForeSeek).
+- Sampled frames are not continuous coverage; a transcript is not listening; a miss does not prove absence (VIVID).
+- Never repeat an identical look; look again through another modality instead (OmniAgent).
+- An answer cites evidence ids. A claim without one is a guess and is reported as one.
+
+ForeSeek's loop is used here as tools and prompt rules on an untrained model. Its paper shows the gain after
+training, so whether it helps untrained is an open question the benchmark answers (section 8.5).
+
+## 6. Edit
+
+The editor's only way to change a video is UberScene. It never writes FFmpeg commands.
+
+### 6.1 Tools
+
+| Tool | Does | Backed by |
+| --- | --- | --- |
+| `actions(element)` | The actions this element accepts now, with parameter ranges | UberScene `affordances()` |
+| `apply(actions, dry_run)` | Runs typed actions (`clip/trim`, `clip/split`, `caption/update`, …). A dry run answers without changing anything; an action that would break the file is refused | `Executor.can()` / `execute()`, `BREAKS_FILE` |
+| `undo(round)` | Reverts a round | `invert`, the patch log |
+| `check` | Code checks, no model: lint, structure errors, layout rules, export decodes, duration / aspect / codec against the brief, repeated sources, out-of-range trims | `uberscene lint`, `inspect --json`, `--check-layout`, `ffprobe` |
+| `look(segment \| around)` | Labelled contact sheets of the render: each clip's first frame, both sides of every transition, each title; cells carry time, frame and element id; optional sound strip | `uberscene look`, `--around`, `--listen` |
+| `review` | Runs the critic (6.3) on what changed | |
+
+Each round is a diff of `video.tsx`, so the history of an edit is readable and reversible.
+
+### 6.2 Loop
+
+```
+brief ─► explore ─► plan ─► apply ─► check ─┬─ fails ─► fix (the check says what and where)
+                      ▲                     └─ passes ─► look ─► review ─┬─ all segments pass ─► done
+                      └──────────── one typed fix per failing segment ◄──┘
+```
+
+The agent keeps control of strategy (VIVID): the loop is what the tools and prompt make easy, not a fixed
+pipeline. Two things are enforced: `review` refuses to run on a render that fails `check` (CutClaw's gates), and
+"done" requires a review of the current `render_id`.
+
+### 6.3 Critic
+
+A separate model call that **watches** the render: the `look` sheets and sound strip for each changed segment,
+with that segment's intent from the plan (Auto-Director). EditDuet's critic read only a text shot list, asked for
+things its editor could not do, and the editor invented functions to match.
+
+Per segment it returns:
+
+```python
+class Critique(BaseModel):
+    segment: str
+    semantic: int                  # 1–5: does it show what the plan says
+    craft: int                     # 1–5: framing, pacing, sound, captions
+    failure: Literal["wrong_clip", "plan", "layout", "timing", "ok"]
+    keep: list[str]                # what must not regress
+    fix: Action | None             # exactly one UberScene action
+```
+
+- `fix` must be in `actions(element)` and pass a dry run, or the critique is rejected before the editor sees it
+  (**ours**; it removes EditDuet's failure by construction).
+- `plan` failures go back to planning; the rest go to the editor (Auto-Director's routing).
+- A segment at 4 or more on both scores is frozen. Only frames whose cache key changed are reviewed again
+  (**ours**).
+- At most 3 rounds (Auto-Director). At the limit the agent returns the best version, with failing segments and
+  reasons listed.
+
+## 7. Small decisions
+
+Many choices are picks from a short list: which interval next, which tool, is the evidence enough, which segment
+to review. A fast scorer could make them and hand off to the main model when unsure (AnyS1, Gemini Decision 1).
+No source has tested this on video decisions, and exploring takes about two rounds per question in ForeSeek, so
+the saving is unproven.
+
+First version: one `decide(point, options)` interface that the main model answers, with every decision logged
+with its options, including "none of the above". Those logs are what a threshold per decision point would later
+be fitted on (20 or more runs, checked on held-out runs). Nothing fast runs until the logs show a saving.
+
+## 8. Benchmark
+
+Working name: **UberLens Bench**. It measures an agent on exploring and editing video, and what a harness adds.
+
+### 8.1 Principles
+
+- **Redistributable footage.** Public-domain and openly licensed sources only (license check per source in M0), so
+  the whole benchmark can be downloaded and results reproduced. Benchmark media never goes in this repo; a
+  manifest with hashes does.
+- **Score the result, not the plan.** Rendered output and cited evidence are scored. HKUDS VideoAgent's headline
+  number is a judge rating plans that were never run.
+- **Ground truth from code where possible.** Because an UberScene video is a file, defects can be injected by
+  known actions and checked exactly (**ours**).
+- **Cost is part of the score.** Every result reports frames sent, model calls, scorer passes, tokens, cost and
+  time, next to accuracy.
+
+### 8.2 Tasks
+
+| Family | Task | Scored by |
+| --- | --- | --- |
+| **Find** | "Where does X happen?" in sources from 5 minutes to 2 hours | Overlap of the answered span with the labelled span; share of answers whose cited evidence falls inside it |
+| **Answer** | Questions needing one or several moments, including static details and speech | Correctness; evidence inside the labelled spans; split by question type (event, speech, static detail, far-apart moments) |
+| **Repair** | An UberScene project with one injected defect (a mistimed cut, a caption off its word, a clipped title, a wrong clip, bad levels) | By code: is the defect gone, and is everything outside the defect window unchanged |
+| **Assemble** | A storyboard and a pool of clips with distractors; build the cut | Right clip per slot, order, durations, all by code |
+| **Repurpose** | A brief ("60-second vertical teaser from this talk") | Code checks for format; yes/no rubric items for content, judged as in 8.4 |
+
+The first release is small, about 20 tasks per family, so it can be labelled by hand and run cheaply.
+
+### 8.3 What gets compared
+
+- The same model **with and without** the harness (VIVID's protocol). This is the headline number.
+- Ablations: uniform first look instead of `overview`'s activity half, no interval list, no evidence store, no
+  `check`, no `review`, and a critic that reads the timeline instead of watching the render. No paper has run the
+  last one.
+- Reference points: uniform frames into one model call; a transcript-only agent.
+
+### 8.4 Judging
+
+Anything code can decide, code decides. Rubric items use a model judge from a **different family** than the agent
+and critic, validated against human grades on a held-out set before its numbers are reported; the agreement is
+published with the results.
+
+### 8.5 Questions the first run should answer
+
+1. How many points does the harness add to the same model, on each family, and at what extra cost?
+2. Does an activity-guided first look beat a uniform one at the same frame count? (The removal rule is in
+   activity-prior.md section 9.)
+3. Does stating a prediction before each look help an untrained model, or is it overhead?
+4. How often does the critic approve a bad edit, and does watching beat reading?
+
+### 8.6 External benchmarks
+
+AgenticVBench (editing; the comparison VIVID reports) and LVBench and Video-MME long (exploring). Their media is
+research-only and not redistributable, so they are for comparison with published work, never for product claims,
+and only through download adapters.
+
+## 9. Code
+
+Python, MPL-2.0. UberScene is driven through its CLI.
 
 ```
 uberlens/
-  state.py          # section 2 models and invariants
-  media/            # MediaSource: file, stream, synthetic; probe.py + activity.py (activity profile)
-  prior.py          # skim placement, interval seeding, wake triggers (activity-prior.md)
-  tools.py          # section 3
-  belief.py         # split / update / negative evidence
-  memory.py         # consolidation
-  decide/           # DecisionModel: heuristic, small model, escalation
-  models/           # VisionLanguageModel adapters
-  loops/offline.py  # section 4
-  loops/streaming.py
-  recall.py         # sub-agent, EvidenceCard
-  budget.py
-  trace.py          # run traces + replay
-eval/               # benchmark adapters, baselines, metrics
+  state/        # versions, evidence store (SQLite + blobs), working files, intervals, budget, log
+  media/        # probe (ffprobe / PyAV), frames, audio, transcribe
+  prior/        # activity profile, partition, first-look placement
+  explore/      # catalog, overview, inspect, listen, transcribe, retrieve
+  edit/         # uberscene bridge: actions, apply, undo, check, look; critic
+  decide.py     # the decision interface and its log
+  server/       # MCP server, CLI, skill
+bench/
+  tasks/        # manifests: sources (with hashes), briefs, labels, checks
+  inject/       # defect injection for Repair
+  score/        # per-family scorers, judge, cost report
+  run.py        # runs an agent with or without the harness
 tests/
 ```
 
-1. **M1, skeleton**: state, belief, budget, synthetic media, heuristic System-1, offline loop with a fake VLM;
-   the activity profile from the container and audio, and skim placement ([activity-prior.md §11](activity-prior.md#11-milestones)).
-   Tests cover invariants, a full run on the synthetic video, and the profile on synthetic videos encoded three
-   ways.
-2. **M2, real offline**: file media, a real VLM, consolidation, traces; first numbers on a small slice of Video-MME
-   long against the baselines.
-3. **M3, System-1**: small-model decisions with calibration and escalation; cost/accuracy curves over τ.
-4. **M4, streaming**: window, archive, Recall sub-agent, Wait; OVO-Bench slice.
-5. **M5, training**: trajectory export, SFT, then RL.
+## 10. Milestones
+
+0. **M0, checks before building.** Render the same UberScene file twice and compare frame hashes; confirm what the
+   frame-cache key covers. License check of candidate benchmark footage and of AgenticVBench. Pick the first
+   models.
+1. **M1, explore.** Versions, evidence store, working files, budget and log; activity profile and partition;
+   `catalog`, `overview`, `inspect`, `listen`, `transcribe`, `retrieve`, `intervals`; MCP server and CLI. Tests on
+   synthetic videos with known events.
+2. **M2, edit.** The UberScene bridge, `check`, `look`, the critic with typed fixes, freezing and the round limit.
+   Tests on small UberScene projects with injected defects.
+3. **M3, benchmark v0.** Find and Repair first (their ground truth is cheapest), then Answer, Assemble,
+   Repurpose; the runner and cost report; first numbers with and without the harness.
+4. **M4, experiments.** Section 8.5, the ablations, and AgenticVBench for comparison. Decide from the decision
+   logs whether a fast scorer is worth building.
+
+## 11. Later
+
+Each is covered in the research docs and waits for the benchmark to show it is needed.
+
+- **Query-aware scan**: FOCUS-style scoring of intervals with a small image-text model, behind a budget gate
+  (about 675 scorer passes per video hour for its first stage).
+- **Highlight prior for edits**: HiVid-style ratings per second, conditioned on the brief.
+- **Lazy narrative index and event graph**: built when one project gets many prompts; entries guide and never
+  count as evidence (NEST, Event-Causal RAG).
+- **Fast decision model**: thresholds fitted per decision point from the logs.
+- **Streaming**: ActiveForager's answer, zoom, recall or wait on a short window, and the activity prior's wake
+  triggers. ActiveForager's code has no license, so it would be written from the paper.
+- **Training**: fine-tuning on harness traces.
+
+## 12. Licenses
+
+- **Can be ported with notices**: VIVID (MIT), OmniAgent (Apache-2.0), ForeSeek (MIT), Q-Gate (MIT), FOCUS
+  (Apache-2.0). UberScene is MIT.
+- **Read, copy nothing**: ActiveForager and APS (no license), Crayotter (non-commercial), EditDuet (no code).
+- **Avoid**: HKUDS VideoAgent's code (conflicting license signals, bundled non-commercial and GPL tools).
+- **Unverified**: licenses of Hugging Face weights and datasets, AgenticVBench's repo and data, CutClaw.
+
+## 13. Open questions
+
+1. Which models first, for the agent, the critic and the judge (the judge must be a different family)?
+2. Is Python right for the harness, given UberScene's SDK is TypeScript? Python suits media tooling and the
+   benchmark; a TypeScript harness could call the `Executor` directly instead of through the CLI.
+3. Which footage for the benchmark, and who labels it?
+4. Does UberLens also need to edit footage that is not in an UberScene project? If yes, the first step is
+   wrapping it in one.
+5. The benchmark's name, and whether it lives in this repo or its own.

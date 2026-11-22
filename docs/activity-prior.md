@@ -3,6 +3,10 @@
 **Status: UberLens extension.** No source paper does this (see [research.md](research.md)). It ships only if it
 beats ForeSeek's uniform skim at the same frame budget (section 9); otherwise it is removed.
 
+In [design.md](design.md) the profile is one of the layers built once per source (5.1), and it places half of the
+`overview` tool's first look (5.2). The first version uses sections 3 to 5.2 and 5.4 here; question matching,
+features for a fast scorer and streaming come later.
+
 ## 1. The problem: every source starts blind
 
 Before the agent has seen anything, it has no idea where the answer is. Each source handles that first step the
@@ -264,12 +268,14 @@ without a separate FFmpeg call.
 
 ## 11. Milestones
 
-- **M1** (no model needed): `probe.py` for S1, S2, S3 and S6; `activity.py` with normalisation, cuts and
-  reliability checks; `skim_times()` and `seed_intervals()`. Tests on synthetic videos with known events (a static
-  stretch, a busy stretch, a cut, a sound), each encoded three ways: variable bitrate, constant bitrate, fixed GOP.
-  The tests check that peaks and cuts land where the events are, and that the reliability checks switch off the
-  right signals.
-- **M2**: S4 (voice activity) and S5 (thumbnail change); the evaluation in section 9 against the uniform skim.
-- **M3**: `prior_profile` as a System-1 decision; interval features for `next_interval`.
-- **M4**: streaming wake triggers.
-- **Later**: S7 motion vectors, only if M2 shows the cheaper signals leave a gap.
+These follow [design.md](design.md) section 10.
+
+- **M1, explore** (no model needed): S1, S2, S3 and S6; normalisation, cuts and reliability checks; the partition
+  for first intervals (design.md 5.1) and frame placement for `overview`. Tests on synthetic videos with known
+  events (a static stretch, a busy stretch, a cut, a sound), each encoded three ways: variable bitrate, constant
+  bitrate, fixed GOP. The tests check that peaks and cuts land where the events are, and that the reliability
+  checks switch off the right signals.
+- **M3 and M4, benchmark**: the comparison in section 9 against the uniform first look, on the benchmark's Find
+  and Answer tasks. S4 (voice activity) and S5 (thumbnail change) if the first three signals leave a gap.
+- **Later** (design.md section 11): matching the prior to the question as a logged decision (5.6), interval
+  features for a fast scorer (5.3), streaming wake triggers (5.5), S7 motion vectors.
