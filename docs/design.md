@@ -268,7 +268,9 @@ and only through download adapters.
 
 ## 9. Code
 
-Python, MPL-2.0. UberScene is driven through its CLI.
+Python, MPL-2.0. **Decided (2026-11-22):** the harness is written in Python and wraps UberScene through its CLI. A
+TypeScript harness calling UberScene's `Executor` directly was considered and not chosen; Python suits the media
+tooling and the benchmark.
 
 ```
 uberlens/
@@ -327,9 +329,7 @@ Each is covered in the research docs and waits for the benchmark to show it is n
 ## 13. Open questions
 
 1. Which models first, for the agent, the critic and the judge (the judge must be a different family)?
-2. Is Python right for the harness, given UberScene's SDK is TypeScript? Python suits media tooling and the
-   benchmark; a TypeScript harness could call the `Executor` directly instead of through the CLI.
-3. Which footage for the benchmark, and who labels it?
-4. Does UberLens also need to edit footage that is not in an UberScene project? If yes, the first step is
+2. Which footage for the benchmark, and who labels it?
+3. Does UberLens also need to edit footage that is not in an UberScene project? If yes, the first step is
    wrapping it in one.
-5. The benchmark's name, and whether it lives in this repo or its own.
+4. The benchmark's name, and whether it lives in this repo or its own.
