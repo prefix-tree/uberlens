@@ -31,7 +31,7 @@ def test_a_scripted_agent_receives_the_picture_it_asked_for(clips, tmp_path):
     def model(messages, info):
         returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
         if not returns:
-            assert {tool.name for tool in info.function_tools} == {"find", "observe", "execute", "show_again"}
+            assert {tool.name for tool in info.function_tools} == {"find", "observe", "execute", "show_again", "guide"}
             call = {"video": str(clips["bframes"]), "start": 1, "end": 4, "purpose": "is the bar moving?"}
             return ModelResponse(parts=[ToolCallPart("observe", call)])
         received.extend(returns[0].content)
@@ -76,7 +76,7 @@ def test_a_program_run_by_the_agent_returns_its_result_and_its_pictures(clips, t
     def model(messages, info):
         returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
         if not returns:
-            assert "The videos you can use: three_shots.mp4." in (info.instructions or "")
+            assert (info.instructions or "").endswith("The videos you can use: three_shots.mp4.")
             return ModelResponse(parts=[ToolCallPart("execute", {"program": program})])
         received.extend(returns[0].content)
         return ModelResponse(parts=[TextPart("done")])
@@ -101,7 +101,7 @@ def test_the_plain_surface_offers_one_operation_at_a_time(clips, tmp_path):
         return ModelResponse(parts=[TextPart(str(returns[0].content))])
 
     result = Agent(FunctionModel(model), toolsets=[toolset(Project(tmp_path), [clips["three_shots"]], surface="tools")]).run_sync("Cuts?")
-    assert asked == ["coverage", "cuts", "find", "observe", "pauses", "show_again", "words"]
+    assert asked == ["coverage", "cuts", "find", "guide", "observe", "pauses", "show_again", "words"]
     assert result.output == "[2.5, 4.5]"
 
 

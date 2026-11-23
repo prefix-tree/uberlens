@@ -63,6 +63,22 @@ observe("interview.mp4", span[0], span[1], "delivery")
 `toolset(..., surface="tools")` offers the same operations one call at a time instead. `find` searches the
 transcript and matches words, not meaning.
 
+## The skill
+
+`uberseek/skill/` is an Agent Skill that teaches an agent how to use all of this: the operations, how to
+work, how to read a picture, worked programs, and what UberSeek cannot do. Its references are generated from
+the code and its examples are run by the tests.
+
+```sh
+uv run uberseek skill install            # copies it to .claude/skills/uberseek for Claude Code and similar agents
+uv run uberseek guide                    # print the core
+uv run uberseek guide recipes            # print one reference: operations, looking, programs, recipes, limits
+uv run uberseek run program.py --video interview.mp4
+```
+
+In the Pydantic AI harness the skill is on by default: its core is the instructions, and a `guide` tool
+returns the references on request.
+
 ## Measurements
 
 ```sh

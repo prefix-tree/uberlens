@@ -1,0 +1,1122 @@
+{
+ "at": "2026-11-23T203536",
+ "note": "skill trial: 4 draft tasks, 2 cheap models, both surfaces, with and without the skill; rescored after two labels were corrected (telescope shot, second cave answer)",
+ "rows": [
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "code",
+   "skill": true,
+   "video": "explainer",
+   "question": "Where does he say what EVA stands for?",
+   "ranges": [
+    [
+     11.0,
+     14.7
+    ]
+   ],
+   "found": [
+    11.54,
+    14.22
+   ],
+   "why": "The transcript has him say \"EVA stands for extravehicular activity\" at 11.54-14.22 s. The look at 9-18 s confirms it: the on-screen caption reads EVA / EXTRAVEHICULAR ACTIVITY while he says it, and the next line, \"for what most of us think of as a spacewalk,\" follows at about 15 s.",
+   "overlap": 0.724,
+   "tool_calls": [
+    "find",
+    "find",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 1,
+   "requests": 3,
+   "tokens": {
+    "input": 18401,
+    "output": 682
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "code",
+   "skill": false,
+   "video": "explainer",
+   "question": "Where does he say what EVA stands for?",
+   "ranges": [
+    [
+     11.0,
+     14.7
+    ]
+   ],
+   "found": [
+    11.54,
+    14.22
+   ],
+   "why": "He says 'EVA stands for extravehicular activity' at this point, right before he explains that an EVA or spacewalk is when the crew climbs into a space suit.",
+   "overlap": 0.724,
+   "tool_calls": [
+    "find",
+    "find"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 0,
+   "requests": 2,
+   "tokens": {
+    "input": 6944,
+    "output": 224
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "tools",
+   "skill": true,
+   "video": "explainer",
+   "question": "Where does he say what EVA stands for?",
+   "ranges": [
+    [
+     11.0,
+     14.7
+    ]
+   ],
+   "found": [
+    11.54,
+    14.22
+   ],
+   "why": "The transcript has him say 'EVA stands for extravehicular activity' from 11.54 to 14.22 s. The observed span 0:08 to 0:24 (obs_000295) confirms it: the frame at 0:08 shows the caption 'EVA stands for extravehicular', and the frame at 0:13.333 shows the on-screen title 'EVA / EXTRAVEHICULAR ACTIVITY' with the words 'activity. The complicated term for what most of us think of as a spacewalk.' The sound was not heard; the timing rests on the transcript and the picture.",
+   "overlap": 0.724,
+   "tool_calls": [
+    "find",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 1,
+   "requests": 3,
+   "tokens": {
+    "input": 16813,
+    "output": 761
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "tools",
+   "skill": false,
+   "video": "explainer",
+   "question": "Where does he say what EVA stands for?",
+   "ranges": [
+    [
+     11.0,
+     14.7
+    ]
+   ],
+   "found": [
+    11.54,
+    14.22
+   ],
+   "why": "The narrator says 'EVA stands for extravehicular activity' at about 11.5 to 14.2 seconds, and goes on to explain it as the complicated term for a spacewalk.",
+   "overlap": 0.724,
+   "tool_calls": [
+    "find",
+    "words"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 0,
+   "requests": 3,
+   "tokens": {
+    "input": 9671,
+    "output": 279
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "code",
+   "skill": true,
+   "video": "explainer",
+   "question": "Where does he say what EVA stands for?",
+   "ranges": [
+    [
+     11.0,
+     14.7
+    ]
+   ],
+   "found": [
+    11.54,
+    14.22
+   ],
+   "why": "He says, \u201cEVA stands for extravehicular activity.\u201d The delivery-focused look confirms this passage.",
+   "overlap": 0.724,
+   "tool_calls": [
+    "find",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 1,
+   "requests": 3,
+   "tokens": {
+    "input": 11887,
+    "output": 214
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "code",
+   "skill": false,
+   "video": "explainer",
+   "question": "Where does he say what EVA stands for?",
+   "ranges": [
+    [
+     11.0,
+     14.7
+    ]
+   ],
+   "found": [
+    11.54,
+    14.22
+   ],
+   "why": "He says, \u201cEVA stands for extravehicular activity.\u201d",
+   "overlap": 0.724,
+   "tool_calls": [
+    "find",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 1,
+   "requests": 3,
+   "tokens": {
+    "input": 6382,
+    "output": 169
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "tools",
+   "skill": true,
+   "video": "explainer",
+   "question": "Where does he say what EVA stands for?",
+   "ranges": [
+    [
+     11.0,
+     14.7
+    ]
+   ],
+   "found": [
+    11.54,
+    14.22
+   ],
+   "why": "He says, \u201cEVA stands for extravehicular activity.\u201d The delivery-focused view confirms the definition in this span.",
+   "overlap": 0.724,
+   "tool_calls": [
+    "find",
+    "find",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 1,
+   "requests": 3,
+   "tokens": {
+    "input": 11111,
+    "output": 255
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "tools",
+   "skill": false,
+   "video": "explainer",
+   "question": "Where does he say what EVA stands for?",
+   "ranges": [
+    [
+     11.0,
+     14.7
+    ]
+   ],
+   "found": [
+    11.54,
+    14.22
+   ],
+   "why": "He says, \u201cEVA stands for extravehicular activity.\u201d",
+   "overlap": 0.724,
+   "tool_calls": [
+    "find",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 1,
+   "requests": 3,
+   "tokens": {
+    "input": 5058,
+    "output": 163
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "code",
+   "skill": true,
+   "video": "interview",
+   "question": "Where does she say how many nights they slept in the cave?",
+   "ranges": [
+    [
+     64.3,
+     69.9
+    ],
+    [
+     505.7,
+     509.4
+    ]
+   ],
+   "found": [
+    64.29,
+    69.85
+   ],
+   "why": "A find search for the cave nights matched 'I slept there five nights' at 64.29-69.85. The observe look at 1:00-1:16 (picture 2, labelled 1:05.333) shows her saying it, and the transcript line continues 'So it was a total of six days and five nights.' A later passage at 506-511s repeats the count ('five days, five nights'), but 64s is where she first states it.",
+   "overlap": 0.989,
+   "tool_calls": [
+    "find",
+    "find",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 1,
+   "requests": 3,
+   "tokens": {
+    "input": 19304,
+    "output": 773
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "code",
+   "skill": false,
+   "video": "interview",
+   "question": "Where does she say how many nights they slept in the cave?",
+   "ranges": [
+    [
+     64.3,
+     69.9
+    ],
+    [
+     505.7,
+     509.4
+    ]
+   ],
+   "found": [
+    64.29,
+    72.09
+   ],
+   "why": "She says they descended into the cave and lived there, \"I slept there five nights,\" and then sums it up as \"a total of six days and five nights.\" A second mention at 506\u2013511s repeats the five-nights figure.",
+   "overlap": 0.718,
+   "tool_calls": [
+    "find",
+    "find"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 0,
+   "requests": 2,
+   "tokens": {
+    "input": 7295,
+    "output": 239
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "tools",
+   "skill": true,
+   "video": "interview",
+   "question": "Where does she say how many nights they slept in the cave?",
+   "ranges": [
+    [
+     64.3,
+     69.9
+    ],
+    [
+     505.7,
+     509.4
+    ]
+   ],
+   "found": [
+    64.29,
+    69.85
+   ],
+   "why": "She says \"I slept there five nights\" (with \"a total of six days and five nights\" right after). I confirmed this in the delivery look at 1:00-1:16, where frame 7 (1:08.733) shows her saying \"I slept there five nights\" and frame 8 (1:10.166) carries \"it was a total of six days and five.\" A second, similar statement appears at about 8:22-8:34 (\"We slept there for six, five days, five nights\"), but the first is the clearer direct answer.",
+   "overlap": 0.989,
+   "tool_calls": [
+    "find",
+    "find",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 2,
+   "requests": 3,
+   "tokens": {
+    "input": 21389,
+    "output": 770
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "tools",
+   "skill": false,
+   "video": "interview",
+   "question": "Where does she say how many nights they slept in the cave?",
+   "ranges": [
+    [
+     64.3,
+     69.9
+    ],
+    [
+     505.7,
+     509.4
+    ]
+   ],
+   "found": [
+    64.29,
+    72.09
+   ],
+   "why": "She says she slept in the cave for five nights (\"I slept there five nights\"), making it a total of six days and five nights. A second mention at 506-511s repeats the five nights.",
+   "overlap": 0.718,
+   "tool_calls": [
+    "find",
+    "find"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 0,
+   "requests": 2,
+   "tokens": {
+    "input": 6723,
+    "output": 229
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "code",
+   "skill": true,
+   "video": "interview",
+   "question": "Where does she say how many nights they slept in the cave?",
+   "ranges": [
+    [
+     64.3,
+     69.9
+    ],
+    [
+     505.7,
+     509.4
+    ]
+   ],
+   "found": [
+    68.4,
+    71.7
+   ],
+   "why": "She says, \u201cI slept there five nights,\u201d then clarifies, \u201csix days and five nights.\u201d",
+   "overlap": 0.203,
+   "tool_calls": [
+    "find",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 2,
+   "requests": 3,
+   "tokens": {
+    "input": 14077,
+    "output": 305
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "code",
+   "skill": false,
+   "video": "interview",
+   "question": "Where does she say how many nights they slept in the cave?",
+   "ranges": [
+    [
+     64.3,
+     69.9
+    ],
+    [
+     505.7,
+     509.4
+    ]
+   ],
+   "found": [
+    64.29,
+    69.85
+   ],
+   "why": "She says, \u201cI slept there five nights.\u201d",
+   "overlap": 0.989,
+   "tool_calls": [
+    "find",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 2,
+   "requests": 3,
+   "tokens": {
+    "input": 7735,
+    "output": 328
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "tools",
+   "skill": true,
+   "video": "interview",
+   "question": "Where does she say how many nights they slept in the cave?",
+   "ranges": [
+    [
+     64.3,
+     69.9
+    ],
+    [
+     505.7,
+     509.4
+    ]
+   ],
+   "found": [
+    64.29,
+    72.09
+   ],
+   "why": "She says, \u201cI slept there five nights,\u201d then confirms, \u201csix days and five nights.\u201d Verified in observation obs_000307.",
+   "overlap": 0.718,
+   "tool_calls": [
+    "find",
+    "find",
+    "find",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 2,
+   "requests": 3,
+   "tokens": {
+    "input": 12522,
+    "output": 469
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "tools",
+   "skill": false,
+   "video": "interview",
+   "question": "Where does she say how many nights they slept in the cave?",
+   "ranges": [
+    [
+     64.3,
+     69.9
+    ],
+    [
+     505.7,
+     509.4
+    ]
+   ],
+   "found": [
+    64.29,
+    72.09
+   ],
+   "why": "She says, \u201cI slept there five nights,\u201d and clarifies, \u201ca total of six days and five nights.\u201d",
+   "overlap": 0.718,
+   "tool_calls": [
+    "find",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 1,
+   "requests": 3,
+   "tokens": {
+    "input": 5289,
+    "output": 262
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "code",
+   "skill": true,
+   "video": "reel",
+   "question": "Find the shot of rocket engines firing, seen close.",
+   "ranges": [
+    [
+     14.2,
+     15.6
+    ]
+   ],
+   "found": [
+    14.2,
+    15.6
+   ],
+   "why": "The motion look shows the close shot of the rocket engines firing: frames at 14.433 to 15.300 show the engine plumes and flames under the booster, filling the frame. The wide launch-pad frame at 14.166 is the shot before, and the cut at 15.6 leads to the tall-stack shot at 15.600 onward. The cuts at 14.2 and 15.6 are measured, and the picture confirms both edges.",
+   "overlap": 1.0,
+   "tool_calls": [
+    "find",
+    "execute",
+    "observe",
+    "execute",
+    "observe"
+   ],
+   "programs": 2,
+   "programs_combining": 0,
+   "looks": 2,
+   "requests": 4,
+   "tokens": {
+    "input": 30426,
+    "output": 1072
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "code",
+   "skill": false,
+   "video": "reel",
+   "question": "Find the shot of rocket engines firing, seen close.",
+   "ranges": [
+    [
+     14.2,
+     15.6
+    ]
+   ],
+   "found": [
+    28.4,
+    34.5
+   ],
+   "why": "Close-up of a rocket engine test firing: a bright exhaust plume blasts from the nozzle toward the right, with a NASA-marked test rig in view. It starts around 28.4 s, once the picture settles after the water/explosion flash, and runs to about 34.5 s, the end of the close firing footage. The cut to the V20 Thermal Vacuum Chamber comes at 35.0 s.",
+   "overlap": 0.0,
+   "tool_calls": [
+    "find",
+    "execute",
+    "find",
+    "find",
+    "execute",
+    "execute",
+    "execute",
+    "execute"
+   ],
+   "programs": 5,
+   "programs_combining": 0,
+   "looks": 6,
+   "requests": 7,
+   "tokens": {
+    "input": 65863,
+    "output": 1757
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "tools",
+   "skill": true,
+   "video": "reel",
+   "question": "Find the shot of rocket engines firing, seen close.",
+   "ranges": [
+    [
+     14.2,
+     15.6
+    ]
+   ],
+   "found": [
+    28.8,
+    35.0
+   ],
+   "why": "The reel's index card lists 00:27-00:34 as a Rotating Detonation Rocket Engine test. The close shot of the test-stand engine starts with ignition: frame at 28.667 shows the nozzle dark, frame at 29.000 shows a small flame, and by 29.333 to 33.500 a bright blue-white plume fires from the nozzle. The measured cut at 35.000 ends the shot (the frame at 36.000 is a different scene, the V20 chamber). I looked at frames but did not hear the sound.",
+   "overlap": 0.0,
+   "tool_calls": [
+    "observe",
+    "cuts",
+    "find",
+    "observe",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 4,
+   "requests": 4,
+   "tokens": {
+    "input": 36730,
+    "output": 1676
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "tools",
+   "skill": false,
+   "video": "reel",
+   "question": "Find the shot of rocket engines firing, seen close.",
+   "ranges": [
+    [
+     14.2,
+     15.6
+    ]
+   ],
+   "found": [
+    28.7,
+    35.0
+   ],
+   "why": "Close shot of a rocket engine test firing: a bright white-hot nozzle with a long pink-blue exhaust plume, filmed head-on at the test stand. It appears from about 28.7 s, after a brief blue flash at 28.0 s, and holds until a cut to the thermal vacuum chamber at 35.0 s.",
+   "overlap": 0.0,
+   "tool_calls": [
+    "find",
+    "cuts",
+    "observe",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 3,
+   "requests": 4,
+   "tokens": {
+    "input": 24868,
+    "output": 1037
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "code",
+   "skill": true,
+   "video": "reel",
+   "question": "Find the shot of rocket engines firing, seen close.",
+   "ranges": [
+    [
+     14.2,
+     15.6
+    ]
+   ],
+   "found": [
+    14.2,
+    15.6
+   ],
+   "why": "The close view of the rocket engines firing is shown continuously from the cut at 14.2 s until the next cut at 15.6 s.",
+   "overlap": 1.0,
+   "tool_calls": [
+    "find",
+    "find",
+    "find",
+    "find",
+    "execute",
+    "observe",
+    "observe",
+    "observe",
+    "observe"
+   ],
+   "programs": 1,
+   "programs_combining": 0,
+   "looks": 4,
+   "requests": 5,
+   "tokens": {
+    "input": 25406,
+    "output": 594
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "code",
+   "skill": false,
+   "video": "reel",
+   "question": "Find the shot of rocket engines firing, seen close.",
+   "ranges": [
+    [
+     14.2,
+     15.6
+    ]
+   ],
+   "found": [
+    14.2,
+    15.6
+   ],
+   "why": "Close-up shot of the rocket engines firing, with bright exhaust and smoke.",
+   "overlap": 1.0,
+   "tool_calls": [
+    "find",
+    "find",
+    "execute",
+    "execute",
+    "execute",
+    "observe",
+    "observe"
+   ],
+   "programs": 3,
+   "programs_combining": 0,
+   "looks": 6,
+   "requests": 8,
+   "tokens": {
+    "input": 40889,
+    "output": 772
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "tools",
+   "skill": true,
+   "video": "reel",
+   "question": "Find the shot of rocket engines firing, seen close.",
+   "ranges": [
+    [
+     14.2,
+     15.6
+    ]
+   ],
+   "found": [
+    14.2,
+    15.6
+   ],
+   "why": "The close-up shot visibly shows the rocket engine nozzles firing with bright exhaust and smoke; boundary checks confirm it starts at 14.2s and cuts away at 15.6s.",
+   "overlap": 1.0,
+   "tool_calls": [
+    "find",
+    "cuts",
+    "observe",
+    "observe",
+    "observe",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 5,
+   "requests": 4,
+   "tokens": {
+    "input": 23200,
+    "output": 608
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "tools",
+   "skill": false,
+   "video": "reel",
+   "question": "Find the shot of rocket engines firing, seen close.",
+   "ranges": [
+    [
+     14.2,
+     15.6
+    ]
+   ],
+   "found": [
+    28.4,
+    35.0
+   ],
+   "why": "This is the close-up shot of a rocket engine test firing, with the bright exhaust plume visible.",
+   "overlap": 0.0,
+   "tool_calls": [
+    "find",
+    "cuts",
+    "observe",
+    "observe",
+    "observe",
+    "observe",
+    "observe",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 7,
+   "requests": 5,
+   "tokens": {
+    "input": 26764,
+    "output": 705
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "code",
+   "skill": true,
+   "video": "reel",
+   "question": "Find the shot of two people with a telescope in silhouette at dusk.",
+   "ranges": [
+    [
+     96.8,
+     99.0
+    ]
+   ],
+   "found": [
+    96.9,
+    99.0
+   ],
+   "why": "The shot of two people silhouetted at dusk with a telescope runs from the cut at 1:34.966 to the cut at 1:39.000. Frame 8 (1:36.833) shows the backlit silhouette, and frames 9 to 14 (1:37.166 to 1:38.833) show the two figures clearly against a dusk sky. Frame 15 (1:39.166) is a different shot. The span I give is 96.9 to 99.0 because the shot's own boundary is at 99.0 and the figures read clearly from about 96.9 on.",
+   "overlap": 0.955,
+   "tool_calls": [
+    "find",
+    "execute",
+    "observe",
+    "execute",
+    "execute",
+    "observe"
+   ],
+   "programs": 3,
+   "programs_combining": 0,
+   "looks": 2,
+   "requests": 7,
+   "tokens": {
+    "input": 56666,
+    "output": 1289
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "code",
+   "skill": false,
+   "video": "reel",
+   "question": "Find the shot of two people with a telescope in silhouette at dusk.",
+   "ranges": [
+    [
+     96.8,
+     99.0
+    ]
+   ],
+   "found": [
+    37.167,
+    39.2
+   ],
+   "why": "This shot shows a boy and a man in silhouette at dusk, with a telescope on a tripod against an orange-to-blue sky. The shot runs from the cut at 37.167 s to the next cut at 39.2 s. The span was found by scanning the video visually, since the transcript has no mention of a telescope.",
+   "overlap": 0.0,
+   "tool_calls": [
+    "find",
+    "find",
+    "execute",
+    "execute",
+    "execute",
+    "execute",
+    "execute",
+    "execute",
+    "execute"
+   ],
+   "programs": 7,
+   "programs_combining": 0,
+   "looks": 9,
+   "requests": 8,
+   "tokens": {
+    "input": 75007,
+    "output": 1867
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "tools",
+   "skill": true,
+   "video": "reel",
+   "question": "Find the shot of two people with a telescope in silhouette at dusk.",
+   "ranges": [
+    [
+     96.8,
+     99.0
+    ]
+   ],
+   "found": [
+    97.0,
+    99.0
+   ],
+   "why": "Shot of a child and an adult silhouetted at a telescope against a sunset horizon. Motion look 1:37.000 to 1:43.000 (obs_000361) shows the silhouette from 1:37.0 to 1:38.6 and a measured cut at 1:39.000 into a different shot. The 1:36 map frame is sparks, so the shot starts after 1:36 and 1:37.0 is inside it. A second, bluer twilight shot of a woman with a mic and a man at a telescope runs 1:39.0 to about 1:41.8, before the eclipse; I chose the first because its sunset glow is the clearer dusk.",
+   "overlap": 0.909,
+   "tool_calls": [
+    "find",
+    "observe",
+    "observe",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 4,
+   "requests": 5,
+   "tokens": {
+    "input": 48043,
+    "output": 2236
+   }
+  },
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "tools",
+   "skill": false,
+   "video": "reel",
+   "question": "Find the shot of two people with a telescope in silhouette at dusk.",
+   "ranges": [
+    [
+     96.8,
+     99.0
+    ]
+   ],
+   "found": [
+    96.8,
+    99.0
+   ],
+   "why": "The two-person telescope silhouette at dusk runs from about 1:36.8, when the backlit figures first appear, through about 1:39.0, when the cut to the night-sky shot happens. Frames at 1:37.2 to 1:38.8 show the clearest silhouette of a child and an adult at a telescope against the sunset.",
+   "overlap": 1.0,
+   "tool_calls": [
+    "find",
+    "find",
+    "cuts",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 2,
+   "requests": 6,
+   "tokens": {
+    "input": 32346,
+    "output": 1442
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "code",
+   "skill": true,
+   "video": "reel",
+   "question": "Find the shot of two people with a telescope in silhouette at dusk.",
+   "ranges": [
+    [
+     96.8,
+     99.0
+    ]
+   ],
+   "found": [
+    94.966,
+    99.0
+   ],
+   "why": "The observed shot shows two people and a telescope in silhouette against the dusk sky; cuts mark its boundaries at 1:34.966 and 1:39.000.",
+   "overlap": 0.545,
+   "tool_calls": [
+    "find",
+    "find",
+    "find",
+    "execute",
+    "observe",
+    "execute",
+    "execute",
+    "execute",
+    "observe"
+   ],
+   "programs": 4,
+   "programs_combining": 0,
+   "looks": 2,
+   "requests": 8,
+   "tokens": {
+    "input": 39607,
+    "output": 1017
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "code",
+   "skill": false,
+   "video": "reel",
+   "question": "Find the shot of two people with a telescope in silhouette at dusk.",
+   "ranges": [
+    [
+     96.8,
+     99.0
+    ]
+   ],
+   "found": [
+    96.7,
+    99.0
+   ],
+   "why": "Two people and a telescope appear in silhouette against the dusk sky.",
+   "overlap": 0.957,
+   "tool_calls": [
+    "find",
+    "execute",
+    "find",
+    "find",
+    "find",
+    "execute",
+    "execute",
+    "execute",
+    "execute",
+    "execute",
+    "execute"
+   ],
+   "programs": 7,
+   "programs_combining": 3,
+   "looks": 7,
+   "requests": 10,
+   "tokens": {
+    "input": 67389,
+    "output": 1375
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "tools",
+   "skill": true,
+   "video": "reel",
+   "question": "Find the shot of two people with a telescope in silhouette at dusk.",
+   "ranges": [
+    [
+     96.8,
+     99.0
+    ]
+   ],
+   "found": [
+    94.967,
+    99.0
+   ],
+   "why": "The wide visual scan identifies two people silhouetted around a telescope at dusk, and the close motion/boundary views show the shot runs from the cut at 1:34.967 to the cut at 1:39.000.",
+   "overlap": 0.545,
+   "tool_calls": [
+    "cuts",
+    "observe",
+    "observe",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 4,
+   "requests": 4,
+   "tokens": {
+    "input": 20542,
+    "output": 505
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "tools",
+   "skill": false,
+   "video": "reel",
+   "question": "Find the shot of two people with a telescope in silhouette at dusk.",
+   "ranges": [
+    [
+     96.8,
+     99.0
+    ]
+   ],
+   "found": [
+    94.966,
+    99.0
+   ],
+   "why": "This shot shows two people in silhouette using a telescope against the dusk sky.",
+   "overlap": 0.545,
+   "tool_calls": [
+    "find",
+    "find",
+    "cuts",
+    "observe",
+    "observe",
+    "observe",
+    "observe",
+    "observe"
+   ],
+   "programs": 0,
+   "programs_combining": 0,
+   "looks": 5,
+   "requests": 6,
+   "tokens": {
+    "input": 24086,
+    "output": 664
+   }
+  }
+ ]
+}

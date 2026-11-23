@@ -25,6 +25,3 @@ docs/.vitepress/cache/
 
 # UberSeek project state
 .uberseek/
-
-# Trial runs of the locate tasks (the tasks are drafts until confirmed)
-bench/locate/results/

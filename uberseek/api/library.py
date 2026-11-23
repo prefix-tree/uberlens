@@ -21,6 +21,17 @@ class ApiError(ValueError):
     """A request the library cannot serve, said so the caller can fix it."""
 
 
+def signature(function) -> str:
+    """A function's parameters and return type as they would be written, without `self`."""
+    parts = []
+    for name, parameter in inspect.signature(function).parameters.items():
+        if name == "self":
+            continue
+        default = "" if parameter.default is parameter.empty else f" = {parameter.default!r}"
+        parts.append(f"{name}: {parameter.annotation}{default}")
+    return f"({', '.join(parts)}) -> {inspect.signature(function).return_annotation}"
+
+
 def _f(value: Fraction | str) -> float:
     return round(float(Fraction(value)), 3)
 
@@ -54,7 +65,7 @@ class Library:
 
     def _window(self, source: Source, start: float | None, end: float | None) -> tuple[Fraction, Fraction]:
         low = seconds(start) if start is not None else Fraction(0)
-        high = seconds(end) if end is not None else max(source.info.duration, source.index.end)
+        high = seconds(end) if end is not None else max(source.info.duration, source.index.end, low)
         if high < low:
             raise ApiError(f"the span ends ({end}) before it starts ({start})")
         return low, high
@@ -294,6 +305,5 @@ class Library:
             parts = inspect.getdoc(function).split("\n\n")
             says = [parts[0].replace("\n", " ")]
             says += [" ".join(part.split()) for part in parts[1:] if part.startswith("Returns:")]
-            signature = str(inspect.signature(function)).replace("'", "")
-            lines.append(f"{name}{signature}\n" + "\n".join(f"    {line}" for line in says))
+            lines.append(f"{name}{signature(function)}\n" + "\n".join(f"    {line}" for line in says))
         return "\n".join(lines)

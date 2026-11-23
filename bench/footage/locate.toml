@@ -88,7 +88,8 @@ verified = false
 video = "interview"
 basis = "words"
 question = "Where does she say how many nights they slept in the cave?"
-ranges = [[505.7, 509.4]]
+# Corrected after a trial: the video holds two interviews, and she answers this in both. The first range was missing.
+ranges = [[64.3, 69.9], [505.7, 509.4]]
 verified = false
 
 [[task]]

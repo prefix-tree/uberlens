@@ -8,7 +8,8 @@ import sys
 from fractions import Fraction
 from pathlib import Path
 
-from uberseek import Project
+from uberseek import Project, guide
+from uberseek.api import ApiError, Library
 from uberseek.media import MediaError
 from uberseek.observe.plan import FOCUSES
 from uberseek.timecode import clock
@@ -33,10 +34,32 @@ def main(argv: list[str] | None = None) -> int:
     transcribe = commands.add_parser("transcript", help="transcribe a video once; later looks show its words")
     transcribe.add_argument("video")
 
+    find = commands.add_parser("find", help="find where words are said, as JSON")
+    find.add_argument("video")
+    find.add_argument("query")
+    find.add_argument("--limit", type=int, default=8)
+
+    run = commands.add_parser("run", help="run a program against the library; prints its result and its pictures")
+    run.add_argument("program", help="a file with the program, or - for standard input")
+    run.add_argument("--video", action="append", help="a video the program may use, by name (repeat for more)")
+
+    read = commands.add_parser("guide", help="print the UberSeek skill, or one part of it")
+    read.add_argument("topic", nargs="?", choices=guide.TOPICS)
+
+    skill = commands.add_parser("skill", help="install the skill where an agent will find it")
+    skill.add_argument("action", choices=["install"])
+    skill.add_argument("folder", nargs="?", default=".claude/skills")
+
     log = commands.add_parser("log", help="list observations")
     log.add_argument("--json", action="store_true")
 
     args = parser.parse_args(argv)
+    if args.command == "guide":
+        print(guide.topic(args.topic) if args.topic else guide.core("shell"))
+        return 0
+    if args.command == "skill":
+        print(f"Installed: {guide.install(Path(args.folder))}")
+        return 0
     project = Project(args.project)
     try:
         if args.command == "observe":
@@ -47,6 +70,17 @@ def main(argv: list[str] | None = None) -> int:
                 path = Path(args.out)
                 path.write_bytes(seen.image)
             print(f"Picture: {path}")
+        elif args.command == "find":
+            print(json.dumps(Library(project, [args.video]).find(Path(args.video).name, args.query, limit=args.limit), indent=1))
+        elif args.command == "run":
+            from uberseek.exec import Executor
+
+            program = sys.stdin.read() if args.program == "-" else Path(args.program).read_text()
+            done = Executor(project, args.video).run_sync(program)
+            print(done.text)
+            for seen in done.looks:
+                print(f"Picture: {project.log.root / 'artifacts' / (seen.record['artifact']['sha256'] + '.png')}")
+            return 1 if done.error else 0
         elif args.command == "transcript":
             words = project.transcribe(args.video)["words"]
             print(" ".join(f"[{clock(Fraction(w[0]))}] {w[2]}" if i % 12 == 0 else w[2] for i, w in enumerate(words)))
@@ -61,7 +95,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             for record in project.log.observations():
                 print(json.dumps(record) if args.json else project.show(record["id"]).text.splitlines()[0])
-    except (MediaError, KeyError, ValueError, FileNotFoundError) as error:
+    except (MediaError, ApiError, KeyError, ValueError, FileNotFoundError) as error:
         print(f"uberseek: {error}", file=sys.stderr)
         return 2
     return 0

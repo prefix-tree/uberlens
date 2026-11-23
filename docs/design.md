@@ -100,8 +100,9 @@ it explore any codebase, with no special tool for each kind of analysis. The bas
 - **The API is a small library, and `execute` is one way to run it.** A host that is itself a coding agent can
   import the library and write ordinary Python; a host without a shell calls `execute`, which runs the same
   program in the sandbox. There is no query language.
-- **No `discover` for now.** A catalogue that small fits in the tool description. `discover` comes back only if
-  the API grows past what a model can hold.
+- **A skill teaches the surface; `guide` is `discover`, on request.** Tool descriptions say what each tool
+  does, not how to work. The skill (`uberseek/skill/`, section 5) does: the method, the rules, and the detail in
+  reference files. Its short core is always given; `guide(topic)` returns a reference file when the agent asks.
 - **Memory is part of the runtime, not a tool to remember to call.** Every `find` and `observe` is logged as it
   happens, and a program can read the log (below).
 - **The base does not know the creative task.** `ripgrep` does not know why a line is wanted. The base supplies
@@ -462,6 +463,18 @@ bigger orchestration layer:
   Every decode reports the timestamps it produced, and they are checked against the ones asked for, so a wrong
   seek fails loudly and never returns a neighbouring frame.
 - **Media services in Python**, Whisper for transcription.
+- **One skill, written once, read two ways** (`uberseek/skill/`, a standard Agent Skill).
+  - *What is in it.* A core of about 120 lines: the three operations, how to work (orient, narrow with code,
+    look before deciding, zoom, check coverage, answer with what it rests on), and six rules that each come from
+    a mistake a model made with this tool. Five reference files: every operation, looking and reading a
+    picture, writing programs, worked recipes, and what UberSeek cannot do.
+  - *How it stays true.* The operations reference is generated from the library and the recipes reference from
+    real programs. Tests run every recipe and every example through the executor, check each stated limit
+    against the code, and fail when a generated file is stale.
+  - *In the harness.* The core is the toolset's instructions, and `guide(topic)` returns a reference file.
+    `toolset(..., skill=False)` leaves it out, so its effect can be measured.
+  - *For a coding agent.* `uberseek skill install` copies it where the agent looks for skills, and the same
+    operations are on the command line: `uberseek find`, `observe`, `run`, `guide`.
 - **The model writes Python, run by Monty** (decided in M0). Monty is Pydantic's interpreter for a subset of
   Python, built for running model-written code: it runs in separate worker processes, has no files, network or
   environment unless the host passes them in, and takes limits on time and memory. Host functions can be async,
@@ -623,6 +636,17 @@ One vertical experiment before a broad harness.
    - *What the trial exposed.* A draft label was wrong: the cut detector missed a flash to white, so "the shot"
      began two seconds early. Looking at the picture showed it. Cut detection misses flashes and dissolves, and
      draft labels do need a person.
+   - *Done: the skill* (section 5), with a `guide` tool in the harness and `find`, `run`, `guide` and
+     `skill install` on the command line. Writing its tests found a bug: `find(after=...)` past the end of a
+     video raised an error where it should return nothing.
+   - *Tried with and without the skill, not measured* (`bench/locate/results`). Four draft tasks, two cheap
+     models, both surfaces, 32 runs. With the skill every run looked before answering (8 of 8 against 6 of 8)
+     and one more task was found on each surface (7 of 8 against 6 of 8, within chance at this size). On the
+     code surface it halved the programs written and cut tokens by a fifth; on the tools surface tokens rose,
+     because the core is sent on every request. **It did not make these models combine steps in a program**:
+     every program they wrote was a single call. That question stays open for E6 and for stronger models.
+   - *A second wrong label.* The interview answers one question twice and the draft had one range. That is two
+     wrong labels in four tasks tried.
    - *Next.* The explorer of E6: SAVE's loop reproduced twice on the same core, once with plain tools and once
      as code, on confirmed locate tasks. That settles the surface early. Picture search is added to `find` only
      after text search and the ladder are measured. No separate orchestration framework.

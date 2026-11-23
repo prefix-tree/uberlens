@@ -1,0 +1,257 @@
+# Operations
+
+Every function of the library, generated from the code. Times are seconds; a span is `[start, end]`.
+A `video` is a file's name. A call that cannot be served raises `ValueError` and says what to change.
+
+## `info`
+
+```python
+info(video: str) -> dict
+```
+
+Facts about a video: its length in seconds, its size, and what has been prepared for it.
+
+Args:
+    video: Name or path of the video.
+
+Example:
+
+```python
+info("interview.mp4")
+```
+
+## `find`
+
+```python
+find(video: str, query: str = '', after: float | None = None, before: float | None = None, limit: int = 8, like: list[float] | None = None) -> list[dict]
+```
+
+Find candidate spans where the words of `query` are said. Best first.
+
+It searches the transcript and matches words, not meaning: rephrase with words the speaker
+would use. A candidate is a place to look, not an answer, and an empty list does not mean the
+moment is absent: look at the map, or ask `coverage` what has not been looked at.
+
+Args:
+    video: Name or path of the video.
+    query: Words to look for.
+    after: Only candidates that start at or after this time, in seconds.
+    before: Only candidates that end at or before this time, in seconds.
+    limit: The most candidates to return.
+    like: Not available yet: a span to find lookalikes of.
+
+Returns:
+    A list of {"start", "end", "text", "score", "how"}. "how" is "words"; "score" is an estimate.
+
+Example:
+
+```python
+find("interview.mp4", "company almost failed", after=60, limit=5)
+```
+
+## `words`
+
+```python
+words(video: str, start: float, end: float) -> list[dict]
+```
+
+The words said in a span, each with its start and end time. From the transcript: an estimate.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds.
+    end: End of the span, in seconds.
+
+Example:
+
+```python
+words("interview.mp4", 1, 4)
+```
+
+## `pauses`
+
+```python
+pauses(video: str, start: float | None = None, end: float | None = None) -> list[list[float]]
+```
+
+Measured silent stretches in a span, as [start, end] pairs. A quarter of a second or longer.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+
+Example:
+
+```python
+pauses("interview.mp4", 0, 5)
+```
+
+## `loudness`
+
+```python
+loudness(video: str, start: float, end: float) -> list[list[float]]
+```
+
+Measured loudness in a span, as [time, LUFS] pairs every tenth of a second. Louder is nearer zero.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds.
+    end: End of the span, in seconds. At most 120 seconds after `start`.
+
+Example:
+
+```python
+loudness("interview.mp4", 0, 2)
+```
+
+## `cuts`
+
+```python
+cuts(video: str, start: float | None = None, end: float | None = None) -> list[float]
+```
+
+Times where the picture cuts to a new shot, measured. The first use on a video scans all of it.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+
+Example:
+
+```python
+cuts("interview.mp4")
+```
+
+## `shots`
+
+```python
+shots(video: str, start: float | None = None, end: float | None = None) -> list[list[float]]
+```
+
+The shots in a span, as [start, end] pairs: the stretches between cuts.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+
+Example:
+
+```python
+shots("interview.mp4", 0, 5)
+```
+
+## `observe`
+
+```python
+observe(video: str, start: float, end: float | None = None, focus: str = 'visual', purpose: str = '') -> dict
+```
+
+Look at a span. The picture is shown to you after the program ends; a program cannot see it.
+
+You choose the span and the focus; how many frames and how large is chosen for you.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds.
+    end: End of the span. Leave out to see the single frame showing at `start`.
+    focus: visual (what is in the picture), motion (dense frames), speech or delivery (sound and
+        pauses, a few frames), boundary (frames and sound right around one instant).
+    purpose: The question this look should answer, in a few words. Kept in the log.
+
+Returns:
+    {"id", "text"}: the observation's id and the statement of what it shows.
+
+Example:
+
+```python
+observe("interview.mp4", 1, 4, "delivery", "where does the line start?")
+```
+
+## `observations`
+
+```python
+observations(video: str | None = None, focus: str | None = None, start: float | None = None, end: float | None = None) -> list[dict]
+```
+
+Looks already made, oldest first: what was asked, what was shown, and why.
+
+Args:
+    video: Only looks at this video.
+    focus: Only looks with this focus.
+    start: Only looks that reach past this time, in seconds.
+    end: Only looks that begin before this time, in seconds.
+
+Example:
+
+```python
+observations("interview.mp4", focus="delivery")
+```
+
+## `coverage`
+
+```python
+coverage(video: str, start: float | None = None, end: float | None = None) -> dict
+```
+
+What has been looked at in a span, how closely, and what has not been looked at at all.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+
+Returns:
+    {"looked": [{"start", "end", "gap", "id"}], "never": [[start, end]]}. "gap" is the most
+    seconds between two frames shown in that look: a small gap is a close look.
+
+Example:
+
+```python
+coverage("interview.mp4", 0, 5)
+```
+
+## `expand`
+
+```python
+expand(span: Span, before: float = 0, after: float = 0) -> Span
+```
+
+Widen a span by `before` seconds at its start and `after` at its end. Never starts before zero.
+
+Example:
+
+```python
+expand([10, 14], before=2, after=3)
+```
+
+## `merge`
+
+```python
+merge(spans: list[Span], gap: float = 0) -> list[Span]
+```
+
+Join spans that overlap or lie within `gap` seconds of each other. Returns them in time order.
+
+Example:
+
+```python
+merge([[1, 2], [1.5, 3], [5, 6]], gap=0.5)
+```
+
+## `minus`
+
+```python
+minus(span: Span, spans: list[Span]) -> list[Span]
+```
+
+The parts of `span` that none of `spans` covers.
+
+Example:
+
+```python
+minus([0, 10], [[2, 3], [5, 12]])
+```

@@ -14,7 +14,7 @@ from typing import Literal
 from pydantic_ai import BinaryContent, ModelRetry, Tool
 from pydantic_ai.toolsets import FunctionToolset
 
-from uberseek import Project
+from uberseek import Project, guide
 from uberseek.api import ApiError, Library
 from uberseek.exec import Executor, Limits
 from uberseek.observe.gateway import Observation
@@ -57,14 +57,30 @@ def toolset(
     videos: list[Path | str] | None = None,
     surface: Surface = "code",
     limits: Limits | None = None,
+    skill: bool = True,
 ) -> FunctionToolset:
     """The tools to give an agent: `Agent(model, toolsets=[toolset(project, videos)])`.
 
-    `videos` are the files the agent may use, by name; leave it out to allow any path.
+    `videos` are the files the agent may use, by name; leave it out to allow any path. With `skill`,
+    the agent is also given the UberSeek skill: its core as instructions, and a `guide` tool for the rest.
     """
     library = Library(project, videos)
     names = ", ".join(library.videos) if library.videos else None
-    notes = f"The videos you can use: {names}." if names else None
+    notes = "\n\n".join(
+        part for part in (guide.core("harness") if skill else "", f"The videos you can use: {names}." if names else "") if part
+    )
+
+    def read_guide(topic: Literal["operations", "looking", "programs", "recipes", "limits"]) -> str:
+        """Read one part of the UberSeek guide.
+
+        Args:
+            topic: operations (every function, its arguments and what it returns), looking (spans, focus
+                and how to read a picture), programs (writing programs, limits, errors), recipes (worked
+                programs for common jobs), limits (what UberSeek cannot do).
+        """
+        return guide.topic(topic)
+
+    extra = [Tool(read_guide, name="guide")] if skill else []
 
     @functools.wraps(library.observe)
     def observe(*args, **kwargs) -> list:
@@ -85,7 +101,9 @@ def toolset(
 
     look = Tool(observe, description=library.observe.__doc__.replace("after the program ends; a program cannot see it", "in the reply"))
     if surface == "tools":
-        return FunctionToolset([look, show_again, *(_retrying(getattr(library, name)) for name in PLAIN)], instructions=notes)
+        return FunctionToolset(
+            [look, show_again, *(_retrying(getattr(library, name)) for name in PLAIN), *extra], instructions=notes or None
+        )
 
     executor = Executor(project, videos, limits)
 
@@ -95,4 +113,6 @@ def toolset(
         return [done.text, *(_picture(seen) for seen in done.looks)]
 
     description = EXECUTE.format(looks=executor.limits.looks, reference=executor.reference())
-    return FunctionToolset([_retrying(library.find), look, Tool(execute, description=description), show_again], instructions=notes)
+    return FunctionToolset(
+        [_retrying(library.find), look, Tool(execute, description=description), show_again, *extra], instructions=notes or None
+    )
