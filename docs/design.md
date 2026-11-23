@@ -1,18 +1,20 @@
 # UberLens: design
 
-UberLens is an agent harness for video, the way OpenCode is one for code. It does one job: **pick the right
-time**. Given footage and what is needed, it finds the moment, chooses the best candidate, and sets exactly where
-it starts and ends.
+UberLens is an agent harness for video, the way OpenCode is one for code: one reusable harness that brings
+together what an agent needs to work with video, with its own loop, for any model.
 
-It works by **zooming**: from the whole video down to a single frame, narrowing at each step. The harness, not
-the model, decides how each step is shown.
+It is built in iterations. **The first iteration is about understanding video moments**: finding the moment that
+is needed, choosing the best candidate, and setting exactly where it starts and ends. Its core is a way of
+exploring video and images from the top down, by **zooming** from the whole video to a single frame and narrowing
+at each step. The harness, not the model, decides how each step is shown.
 
-UberLens does not edit. It hands its selections to whatever does: UberScene, FFmpeg, another agent.
+Later iterations add more capabilities to the same harness: carrying out edits, reviewing the result, handling
+revisions (section 9). This document describes the harness and the first iteration in detail.
 
 This is the one maintained document. Everything earlier (the research reports, the activity-prior notes, the
 previous design) is frozen in [archive/](archive) and is cited here by file name where a number comes from it.
 
-## 1. The problem is picking, not executing
+## 1. Why moments come first
 
 - **Executing works.** On Timeline-Bench, 857 of 863 agent videos met the delivery spec and most passed every
   brief test. Only 14% of runs were resolved, because 562 of 771 failures were on quality alone
@@ -33,7 +35,9 @@ Picking has three levels, and the research covers them unevenly:
 | **Choose** | Of several candidates, which is best for this purpose? | Barely studied |
 | **Trim** | Exactly where does it start and end? | Barely studied |
 
-UberLens covers all three. Choose and trim are where it can add something new.
+The first iteration covers all three. Choose and trim are where it can add something new. Everything the harness
+does later (cutting, reviewing, revising) depends on having picked the right material, which is why this comes
+first.
 
 ## 2. The zoom ladder
 
@@ -110,7 +114,8 @@ class Selection(BaseModel):
 ```
 
 Exporters turn selections into what an editor needs: JSON, a cut list (EDL), FFmpeg commands, or an UberScene
-file. Editing itself is out of scope.
+file. In the first iteration another tool carries out the edit; doing it inside the harness is the next iteration
+(section 9).
 
 ## 4. State
 
@@ -129,6 +134,8 @@ Correctness is only measured against labels or checked by something independent.
 
 ## 5. The harness
 
+- **One harness, capabilities added over time.** The loop, the state, the budget, the model adapters and the
+  tool surface are shared. Each capability is a module on top of them; the ladder is the first.
 - **Its own loop**, model-agnostic. Each model gets a short contract: tool calling, images, and whether it takes
   audio or video directly. Where a model cannot hear, the moment level falls back to frames plus words and
   loudness, and that weaker view is recorded.
@@ -207,15 +214,25 @@ measures the real variance.
 - **Not new:** coarse-to-fine search (VideoTree, T\*), a range explorer with harness-set density (SAVE, the
   closest work), looking on demand (VIVID), choosing what and where to observe (AVP).
 - **Ours to show:** a fixed ladder the harness enforces down to the moment with sound; choose and trim as
-  measured targets, with data for them; selection as a product separate from the editor, usable by any of them.
+  measured targets, with data for them; and a harness whose understanding of moments any editor can use, its own
+  included.
 
 The claim is empirical. It stands only if the experiments of section 6 show it.
 
-## 9. Left out, and where it went
+## 9. Later iterations
 
-Editing through typed actions, the critic, editorial passes and approvals, claim kinds, the belief scheduler,
-streaming and training are not part of this design. The research on each is in [archive/](archive);
-`research-validation.md` there says where each one stands and what the audit of UberScene found.
+The same harness grows. Each of these has research behind it in [archive/](archive); `research-validation.md`
+there says where the evidence stands.
+
+| Iteration | Capability | What the research says so far |
+| --- | --- | --- |
+| 1 (this document) | Understanding moments: locate, choose, trim | Section 1 |
+| 2 | Carrying out edits inside the harness, through UberScene and FFmpeg | Typed, undoable timelines for agents exist (Cassette-Editor); whether typed actions beat editing the file as text is untested. The audit of UberScene lists what a bridge needs |
+| 3 | Reviewing the result by watching and hearing the render | No one has compared a watching critic with a reading one; model judges are reliable on checkable items and weak on craft |
+| 4 | Revisions: keeping approved material intact across notes | A code gate with rollback is the mechanism with evidence; typed pass and decision records have none yet |
+| Later | Live streams; a fast decision model; training on the harness's own traces | In the archive |
+
+Each iteration is added only after the one before it has shown its value in an experiment.
 
 ## 10. Open questions
 
