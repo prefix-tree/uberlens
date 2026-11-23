@@ -1,12 +1,13 @@
 # UberLens: design
 
-UberLens is an agent harness for video, the way OpenCode is one for code: one reusable harness that brings
-together what an agent needs to work with video, with its own loop, for any model.
+UberLens is a harness for video work: one reusable environment that brings together what an agent needs to work
+with video. It does not have an agent loop of its own. It runs inside an existing agent harness, such as Pydantic
+AI or Hermes, which drives the model and calls UberLens; that is also how it is tested end to end.
 
 It has two layers:
 
 - **A base for exploring video.** A programmable environment: the agent writes small programs against a typed
-  video API to search, measure and filter footage, and asks to be shown picture and sound only where a judgment
+  video API to search, measure and filter footage, and asks to be shown images of the footage only where a judgment
   needs it. Sources, observations, cost and task completion live here. It knows nothing about editing. Anything
   that needs to look at video can be built on it: question answering, search, review, selection.
 - **Modules on top.** The first is **selection**: finding the moment that is needed, choosing the best candidate,
@@ -39,9 +40,9 @@ Picking has three levels:
 | **Trim** | Exactly where does it start and end? | Studied as cut-point prediction (Pardo et al., Huang et al., 2021) and as highlight and deletion spans (RoughCut-Bench) |
 
 Choose and trim have public work and labels (section 8). What none of it tests is an agent that **decides what to
-look at and listen to under a stated budget, compares several takes of the same content, sets in and out points
+look at under a stated budget, compares several takes of the same content, sets in and out points
 to sub-second error, and gives a reason for each boundary**. That is the gap this iteration aims at. Comparing
-candidates with picture and sound is not new in itself (VEBench does it in one model pass, and the best model
+candidates is not new in itself (VEBench does it in one model pass, and the best model
 picks the right clip 44% of the time and localises it at 0.11 overlap); the untested part is the agent controlling
 its own looking.
 
@@ -88,7 +89,7 @@ Three primitives:
 | --- | --- |
 | `discover` | Returns the parts of the API relevant to the task, so the whole API never sits in context |
 | `execute(program)` | Runs a bounded program against the API and returns its result |
-| `observe(spans, focus)` | Delivers actual picture and sound to the model as an observation, by artifact id |
+| `observe(spans, focus)` | Delivers images of the footage to the model as an observation, by artifact id |
 
 ```ts
 const source = await video.open("interview.mp4");
@@ -107,10 +108,15 @@ return candidates.filter(c => c.words.length > 0);
 seen or heard, and asks for that with `observe`.
 
 **Code computes; only the model perceives.** A program can search, measure, filter and rank on timings, words
-and signals. It cannot judge delivery, framing or whether a cut lands. Any decision of that kind needs an
-`observe`, and only what `observe` delivered counts as something the model saw or heard. How `observe` gets
-picture, short clips and sound into the model's next step without flooding its context is the most important
-design question of the base (section 10).
+and signals. It cannot judge framing, expression or whether a cut lands. Any decision of that kind needs an
+`observe`, and only what `observe` delivered counts as something the model saw.
+
+**`observe` delivers images only** (decided). Frames, contact sheets and crops, returned by artifact id. Images
+are what every host and model can take in a tool result; sound and video clips are not. Sound reaches the model
+in two indirect forms: as measurements (words with timings, pauses, loudness) and drawn as a picture (a waveform
+or loudness strip with the words marked on it). The model does not hear anything in this iteration. So what
+depends on hearing (hesitation, tone, clarity under music, the rhythm of a cut) is decided from signals, recorded
+as **not heard**, and left for the editor to confirm. Real sound in `observe` is a later capability (section 9).
 
 **The simple actions remain, as a library.** `zoom(span, focus)`, `back`, `find(text)` and `done` are functions
 built on the same API, and can be exposed as plain tools for a model that does better with a small vocabulary.
@@ -123,10 +129,10 @@ tools.
 | Focus | `observe` delivers |
 | --- | --- |
 | `visual` (default) | Frames, by the ladder below |
-| `speech` | The words with timings, and the sound; few or no frames |
+| `speech` | The words with timings as text, and the sound drawn as a waveform strip; few or no frames |
 | `motion` | Dense consecutive frames over a short stretch |
-| `delivery` | Real sound with frames of the speaker |
-| `boundary` | Frame-accurate picture and sound around one instant |
+| `delivery` | Frames of the speaker, with the sound drawn as a strip and its measured pauses and loudness |
+| `boundary` | Consecutive frames around one instant, with the waveform and word boundaries marked |
 
 ### The ladder: the default for `visual`
 
@@ -135,7 +141,7 @@ tools.
 | **Map** | The whole source | One strip: a frame per section, the sound wave, where speech, silence and cuts are |
 | **Section** | Minutes | One frame per shot, with the gist of what is said |
 | **Passage** | 10–60 s | A frame every second or two, with the words |
-| **Moment** | 1–8 s | A dense run of frames with the real sound |
+| **Moment** | 1–8 s | A dense run of frames, with the sound drawn as a strip |
 | **Frame** | One instant | Full resolution, or a crop |
 
 The ladder is a **default way to show a span**, a policy the harness applies. It is not the definition of
@@ -156,11 +162,9 @@ nest.
   per task. These hold inside programs too: the API enforces them on the host side, so a program cannot ask its
   way around them. The model never writes media commands.
 - **Every observation states what it delivered:** the span asked for, the presentation timestamps actually
-  decoded, the gap between samples, frame size, whether sound was included.
-- **Degraded is not equivalent.** If a model cannot hear, a `delivery` or `boundary` look returns frames, words
-  and loudness, and is recorded as **degraded**. Anything decided from it that depends on sound (hesitation,
-  clarity under music, the rhythm of a cut) is marked unverified. Results are reported separately for models that
-  can hear and models that cannot, since they are doing different tasks.
+  decoded, the gap between samples, frame size, and which signals were drawn on it.
+- **Seen is not heard.** A picture of a waveform is not listening. Anything decided about sound from signals and
+  drawn strips is recorded as not heard, in the observation and on the selection it supports.
 - **Observations leave the model's context** after each step; the log stays (section 4).
 
 ### Built once per source: signals
@@ -237,7 +241,8 @@ Two functions on top of the base, callable from a program or as tools.
 `compare(candidates, purpose)` shows two or more candidates in a matched way, so they can be judged against each
 other and not one at a time.
 
-- Each candidate is shown with picture and real sound, and with a little of what comes before and after it.
+- Each candidate is shown as frames with its sound strip and words, and with a little of what comes before and
+  after it.
 - Candidates are matched on what they say or show, not forced to the same length.
 - The order is randomised and each comparison is run in both orders, because model preferences between two items
   flip with presentation order in other studies (`research-validation.md`).
@@ -253,7 +258,7 @@ ladder does not solve it. This action is the main research target of the iterati
 **chosen among alternatives**:
 
 - For each boundary, the harness offers nearby alternatives (the end of a word, a breath, a pause; the start or
-  end of a movement) and shows picture and sound around each.
+  end of a movement) and shows frames and the sound strip around each.
 - The agent picks one and says why, or leaves the boundary **rough**.
 - More than one cut point can be right, and the right one can depend on the neighbouring shot or the mix. A
   boundary is recorded as chosen for a stated reason, never as the single correct time.
@@ -268,8 +273,8 @@ class Selection(BaseModel):
     purpose: str                 # free text, optionally tied to a line of the brief
     signals: dict[str, Signal]   # measurements, each with its provenance
     assessment: Assessment       # the agent's judgment: strengths, weaknesses, why; separate from signals
-    start_status: Literal["rough", "compared", "unverified"]   # unverified: decided from a degraded look
-    end_status: Literal["rough", "compared", "unverified"]
+    start_status: Literal["rough", "compared", "not_heard"]    # not_heard: sound-dependent, decided from signals
+    end_status: Literal["rough", "compared", "not_heard"]
     observations: list[str]      # the observations it rests on
 
 class Preference(BaseModel):     # one comparison, kept with its context
@@ -317,8 +322,8 @@ labels or checked by something independent (`research-validation.md`).
 
 ## 5. The harness
 
-Kept thin until the method has shown a gain. The first build is a small loop and the pieces below, not a
-framework. A harness is an engineered environment in which the model can make and check useful decisions, not a
+Kept thin until the method has shown a gain. The first build is the pieces below, hosted by an existing harness,
+not a framework. A harness is an engineered environment in which the model can make and check useful decisions, not a
 bigger orchestration layer:
 
 | Mechanism | In UberLens |
@@ -331,11 +336,12 @@ bigger orchestration layer:
 | Delegation, only where isolation helps | Indexing and retrieval can run apart from the deciding model |
 | Change by measurement | Harness changes are compared on held-out footage |
 
-- **An environment first, a loop second.** The core is the typed video API, the bounded executor and the
-  `observe` gateway. It is usable from an agent the user already has (Claude Code, Codex, OpenCode) through tool
-  calls, and from a small loop of our own. The host model keeps the exploration strategy.
-- **Model contract.** What each model can take: tool calls, images, sound, video, and whether its host can pass
-  media back in a tool result. A missing capability is a recorded restriction (section 2), not a silent fallback.
+- **An environment, hosted by an existing harness** (decided). The core is the typed video API, the bounded
+  executor and the `observe` gateway. UberLens has no loop of its own: an existing agent harness drives the model
+  and calls it. Pydantic AI and Hermes are the candidates; one is chosen in M0 and used for all end-to-end tests.
+  The same tools can be offered to Claude Code, Codex or OpenCode. The host model keeps the exploration strategy.
+- **Model contract.** A model needs tool calls and images. The host must be able to return images in a tool
+  result; M0 confirms that for the chosen host.
 - **Media, behind one interface.** FFmpeg is the reference implementation and an inner tool of the harness, run by
   trusted host-side services. FilmCraft's codecs (through `uberscene-codec`) are an optional second
   implementation, to be used only after it matches FFmpeg on: the frame returned for a requested timestamp,
@@ -367,14 +373,14 @@ uberlens/
   state/        # observation log, executions, cost
   actions/      # zoom, back, find, done as a library and as plain tools
   select/       # the selection module: compare, mark, selections, export
-  loop/         # an optional small loop of our own, model contracts
+  host/         # the adapter for the chosen host harness (Pydantic AI or Hermes); model contracts
 bench/          # tasks, scoring, cost report
 ```
 
 ## 6. Proof
 
-**The research question.** Can an agent make better editorial decisions by selectively acquiring picture and
-sound evidence and comparing alternatives against an editorial objective, than by retrieving and ranking
+**The research question.** Can an agent make better editorial decisions by selectively acquiring visual
+evidence and comparing alternatives against an editorial objective, than by retrieving and ranking
 candidates one by one?
 
 The question is not whether the agent finds the most relevant moment. It is whether it can tell why one relevant
@@ -385,7 +391,7 @@ locate; if this fails, the ladder may still be a useful interface, but there is 
 | --- | --- | --- | --- | --- |
 | E0 | Does adaptive exploration help **locate**? | Full-video inference; a static index; SAVE, reproduced faithfully; UberLens | Localization accuracy at equal total cost | It does not beat SAVE; then SAVE's loop is the base |
 | E1 | Do **signals** improve selection? | Excerpts alone vs excerpts plus selected speech, motion and semantic signals | Blind editor preference; observation cost | Signals improve neither |
-| E2 | Does **direct comparison** beat independent ranking? | Absolute scores; pairwise audiovisual comparison; ranking several at once; same candidates, context and budget, order randomised | Blind editor preference | Comparison is no better, or its verdicts flip with order |
+| E2 | Does **direct comparison** beat independent ranking? | Absolute scores; pairwise comparison with `compare`; ranking several at once; same candidates, context and budget, order randomised | Blind editor preference | Comparison is no better, or its verdicts flip with order |
 | E3 | Does the **brief** change which moments are right? | General relevance ranking vs ranking conditioned on the brief, same footage under several briefs | Agreement with editors working to each brief | Conditioning adds nothing over relevance |
 | E4 | Does **decision-led looking** beat the alternatives? | Free inspection (VIVID-style); SAVE; the ladder; the decision loop of section 3 | Editor preference, missed alternatives, cost, share of looks that changed a decision | It is no better than plain range exploration |
 | E6 | Does **code** beat plain tools? | A: plain tools (`find`, `zoom`, `compare`, `mark`); B: the API through `execute` only; C: `execute` plus `observe` | Accuracy on locate, choose and trim; tokens in and out; round trips; wall time; failed or invalid programs | The model spends more writing and fixing programs than it saves; then plain tools are the surface |
@@ -396,7 +402,8 @@ Rules for all of them:
 - The same model in every arm, matched budgets with reasoning tokens counted, repeated runs.
 - `compare` is ablated on its own, so a gain over SAVE can be traced to the ladder, to comparison, or to more
   reasoning.
-- Results for models that can hear are separate from those that cannot.
+- No arm hears. Every arm sees the same images and signals, so sound-dependent judgments are out of scope for
+  these experiments and are reported as not heard.
 - Full-video inference is always an arm: where evidence is not sparse it can make exploration unnecessary.
 - Human cut points are not treated as the only right answer. On MEDit-Bench, professionals editing the same
   video for the same message agree at only 0.42 F1. So labels are **acceptable ranges from several annotators**,
@@ -428,14 +435,15 @@ measures the real variance.
 
 One vertical experiment before a broad harness.
 
-0. **M0, the observation contract.** FFmpeg-backed media services: frames, sound, timestamps. The simplest
-   persistent log. Proof that an observation can be reproduced exactly. Decide the API language and the sandbox.
-1. **M1, the environment and a minimal explorer.** The typed API, the bounded executor and `observe`. SAVE's
-   loop reproduced twice on the same core, once with plain tools and once as code, which is experiment E6 and
+0. **M0, the observation contract.** FFmpeg-backed media services: frames, sound signals, timestamps. The
+   simplest persistent log. Proof that an observation can be reproduced exactly. Choose the host harness
+   (Pydantic AI or Hermes) and confirm it returns images in tool results. Decide the API language and the sandbox.
+1. **M1, the environment and a minimal explorer.** The typed API, the bounded executor and `observe`, wired into
+   the host harness and run end to end through it. SAVE's loop reproduced twice on the same core, once with plain tools and once as code, which is experiment E6 and
    settles the surface early. No separate orchestration framework.
 2. **M2, candidate comparison.** The brief and profile, the candidate set, the cheap measured signals, and
-   `compare` with matched picture and sound and context. Preferences recorded with their context.
-3. **M3, boundary comparison.** `mark` with alternative cut points shown with real sound and dense frames.
+   `compare` with matched frames, sound strips and context. Preferences recorded with their context.
+3. **M3, boundary comparison.** `mark` with alternative cut points shown as dense frames with the sound strip.
 4. **M4, controlled experiments.** E0 to E5 of section 6: whether each added capability improves locating,
    choosing or trimming over its simpler baseline. E2 first, since it carries the research question.
 
@@ -465,7 +473,7 @@ wide benchmark coverage.
   against, run in a sandbox, so intermediate results stay out of the model's context; a later version reaches a
   very large API through two tools, a search and an execute. (From the articles the proposal cites; not re-read
   by us.) Their measured savings are for large tool catalogues. Nothing found applies this to video, where the
-  open problem is getting picture and sound back to the model.
+  open problem is getting what the footage looks and sounds like back to the model.
 - **Harness engineering** (verified; OpenAI's post read as snippets only). A source-code study of eleven coding
   agents (arXiv:2609.00006) finds none uses a general agent framework and that a more elaborate loop "does not
   predict benchmark performance". Anthropic's guidance covers just-in-time context, clearing tool results, and
@@ -483,7 +491,7 @@ wide benchmark coverage.
   highlights (Video2GIF); agents that choose what to look at in video, for question answering, which stop when
   they have enough to answer (LensWalk, AVP, OmniAgent). Not found: these joined for an editorial choice, or a
   rule for looking tied to which pending choice it could change. The search was not exhaustive.
-- **Ours to show:** an agent that controls its own looking and listening under a budget; that looks further
+- **Ours to show:** an agent that controls its own looking under a budget; that looks further
   because a specific editorial choice is unresolved; comparison of several takes of the same content against a
   brief; in and out points chosen among alternatives to sub-second error, each with a reason. None of the works
   above tests these.
@@ -501,6 +509,7 @@ where the evidence stands.
 | 2 | Carrying out edits inside the harness, through UberScene (FFmpeg for what UberScene cannot do) | Typed, undoable timelines for agents exist (Cassette-Editor); whether typed actions beat editing the file as text is untested |
 | 3 | Reviewing the result by watching and hearing the render | No one has compared a watching critic with a reading one; model judges are reliable on checkable items and weak on craft |
 | 4 | Revisions: keeping approved material intact across notes | A code gate with rollback is the mechanism with evidence |
+| Hearing | Real sound, and short clips, in `observe`, for models and hosts that can take them | Agents judging from stills and transcripts cannot assess delivery or rhythm; this is the known cost of images only |
 | Other modules | Question answering, search, compliance review (which needs evidence of absence), action analysis | The base serves them without change; each needs its own module |
 | Later | Live streams; a fast decision model; training on the harness's own traces | In the archive |
 
@@ -510,9 +519,9 @@ Each is added only after the one before it has shown its value in an experiment.
 
 | Question | Recommendation |
 | --- | --- |
-| How does `observe` deliver media? | Open, and the most important one. As contact sheets and short sound clips returned by artifact id, sized by focus. It depends on what each host lets a tool result carry: images widely, sound and video rarely |
+| Which host harness? | Pydantic AI or Hermes. Decide in M0 on which returns images in tool results cleanly and is easiest to run tests through |
 | Which language does the model write? | TypeScript in an isolate, as Code Mode does, or Python in a restricted process. Decide in M0 on which is easier to isolate and which the models write more reliably |
-| Which models first? | One strong model that takes sound and video, and one strong text-and-image model. The second runs with sound-dependent judgments marked unverified |
+| Which models first? | Two strong models that take images and tool calls, from different providers, to see whether results hold across models |
 | Which footage? | Interviews and action-heavy material. Reuse labelled editing sets where licences allow; label a small set of candidate pairs and boundaries ourselves |
 | Very long sources | One cheap map to start, refined in parts and cached. Measure where it fails before adding more |
 | How is `purpose` given? | Free text, with an optional link to a line of a brief. No fixed taxonomy yet |
