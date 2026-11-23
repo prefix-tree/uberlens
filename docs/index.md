@@ -45,6 +45,26 @@ import { withBase } from "vitepress";
 
 </section>
 
+<section class="abstract" aria-labelledby="abstract-title">
+
+<p class="sec-label">Paper · in preparation</p>
+<h2 id="abstract-title" class="paper-title">Looking Where It Matters: Programmable, Decision-Led Video Exploration for Editorial Selection by AI Agents</h2>
+<p class="paper-meta">Working title · draft abstract · the experiments are planned, not run</p>
+
+<div class="abstract-body">
+<p class="abstract-head">Abstract</p>
+
+<p>Agents built on general-purpose models can already produce technically conforming video, yet they struggle with the editorial core of the task: choosing which moments to use and where to cut. On a recent editing benchmark, 857 of 863 delivered videos passed the format checks while only 14% of tasks were resolved. We argue that a central difficulty lies in how agents acquire and use visual evidence from long footage.</p>
+
+<p>We present UberSeek, a programmable environment for video exploration that runs inside existing agent harnesses. Instead of calling inspection tools one at a time, the agent writes short programs against a typed video API that search transcripts, measure signals and filter candidates in a sandbox, so intermediate data never enters the model's context. It asks to see images only where a judgment needs them, and the environment chooses how to show them from the purpose of the look. Every observation is recorded with the frames actually decoded and stays queryable by later programs.</p>
+
+<p>On this base we build a selection module that treats choosing as a decision under an editorial brief: the agent compares candidate moments directly and chooses each in and out point among alternatives, with a stated reason. We propose an evaluation that separates locating, choosing and trimming; holds the model and cost fixed across arms; includes a faithful reproduction of a strong range explorer and full-video inference as baselines; and scores against acceptable ranges labelled by several editors. Our central question is whether direct comparison of candidates against a brief yields better selections than retrieving and ranking them independently.</p>
+</div>
+
+<p class="paper-links"><a :href="withBase('/design#_6-proof')">Evaluation plan</a> · <a :href="withBase('/design#_8-what-is-new-and-what-is-not')">Related work and what is new</a></p>
+
+</section>
+
 <section>
 
 <p class="sec-label">Why</p>

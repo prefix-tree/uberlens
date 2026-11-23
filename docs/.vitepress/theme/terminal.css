@@ -629,3 +629,66 @@ body {
 .vp-doc div[class*="language-"] pre {
   overflow-x: auto;
 }
+
+/* Abstract: reads like the first page of a paper. */
+.home section.abstract {
+  margin-top: 80px;
+  padding-top: 40px;
+  border-top: 1px solid var(--us-line);
+}
+.home h2.paper-title {
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--vp-font-family-base);
+  font-size: clamp(22px, 3.2vw, 28px);
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  max-width: 34ch;
+  text-wrap: balance;
+}
+.home .paper-meta {
+  margin: 10px 0 0;
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  color: var(--us-fg-faint);
+}
+.home .abstract-body {
+  margin-top: 28px;
+  max-width: 70ch;
+  padding: 24px 28px;
+  border: 1px solid var(--us-line);
+  border-left: 2px solid var(--us-accent);
+  background: var(--us-bg-deep);
+}
+.home .abstract-head {
+  margin: 0 0 10px;
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--us-fg);
+}
+.home .abstract-body p:not(.abstract-head) {
+  margin: 0 0 14px;
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: var(--us-fg);
+  text-align: left;
+}
+.home .abstract-body p:last-child {
+  margin-bottom: 0;
+}
+.home .paper-links {
+  margin: 16px 0 0;
+  font-family: var(--vp-font-family-mono);
+  font-size: 13px;
+  color: var(--us-fg-faint);
+}
+@media (max-width: 640px) {
+  .home .abstract-body {
+    padding: 18px 16px;
+  }
+}
