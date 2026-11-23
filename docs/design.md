@@ -44,6 +44,21 @@ candidates with picture and sound is not new in itself (VEBench does it in one m
 picks the right clip 44% of the time and localises it at 0.11 overlap); the untested part is the agent controlling
 its own looking.
 
+### Editing is partly taste, not all of it
+
+An editor's harder problem is often not seeing the footage but deciding what it means for the result wanted.
+That judgment has three layers, and treating all of it as taste makes the problem harder than it is:
+
+| Layer | Examples | How it can be judged |
+| --- | --- | --- |
+| **Technical** | Is a word clipped? Is the caption legible? Does it fit the duration? | Mostly by code |
+| **Convention** | Does the cut feel abrupt? Is the speech clear? Does the reaction get enough time? | People largely agree on what is clearly bad; cut placement has been learned from edited film (section 8) |
+| **Taste, intention, audience** | Dramatic or understated opening? Keep the pause? | Only relative to a brief, its context and whose preference it is |
+
+So a moment has no quality score of its own. Its value is conditional: on the brief, on what surrounds it in the
+cut, and on the preferences of the editor or audience. A two-second silence is a fact; whether it is dead air or
+the strongest moment in the interview depends on what the piece is for.
+
 ## 2. The base: exploring video
 
 ### Three things that vary independently
@@ -94,6 +109,9 @@ nest.
 
 ### What the harness decides and enforces
 
+- **The model owns the strategy; the harness owns the invariants.** Which candidate deserves another look is the
+  model's call. Media validity, budgets, what fidelity was delivered and what is kept are the harness's. There is
+  no required route through the ladder.
 - **The harness sets fidelity; the agent sets extent and focus.** In SAVE, a harness rule for frame count and
   resolution beat the model's own choice by 3.7 to 5.8 points (`research-rres.md`). `focus` is a category, not a
   frame count, so that finding still holds here.
@@ -107,15 +125,72 @@ nest.
   can hear and models that cannot, since they are doing different tasks.
 - **Observations leave the model's context** after each step; the log stays (section 4).
 
-### Built once per source
+### Built once per source: signals
 
-By code, cached by the file's content hash: shots, loudness, speech and silence, and for speech footage a
-transcript with word timings. On speech-heavy video a transcript alone carries most of the locating (on
+By code, cached by the file's content hash. A **signal** is a measurement over time, kept with where it came from:
+
+| Family | Examples | Useful for | What it cannot tell |
+| --- | --- | --- | --- |
+| Speech | Word timings, pauses, repetitions, speech rate | Dialogue selects and trimming | Whether the delivery is good |
+| Sound | Loudness, clipping, silence, onsets | Clear speech, emphasis, rhythm | Loud is not important |
+| Motion | Cuts, camera and subject motion | Action timing | Still moments can be the strongest |
+| Picture | Faces, framing, text legibility | Whether a shot is usable | Style |
+| File | Bitrate, keyframes | Cheap hints of change | Mostly encoder behaviour |
+
+Rules for signals:
+
+- **Measured and estimated are kept apart.** A pause length is measured. "Speech clarity 0.88" from a model is an
+  estimate, recorded with the model and version that produced it, and never treated as a physical quantity.
+- **Signals guide where to look; they never decide.** The harness uses them to place the map, to offer boundary
+  alternatives, and to point at what has not been heard or seen yet. A selection is never made because a number
+  was high.
+- **Each signal has to earn its place** against doing without it (section 6). The first build has the cheap
+  measured ones: speech timing and pauses, loudness and silence, cuts.
+
+For speech footage the transcript is part of this. On speech-heavy video it carries most of the locating (on
 Video-MME long with a 7B model, subtitles score 65.4 and frames 52.0, `research-validation.md`), so `find` is the
-first move there. Activity marks from bitrate and keyframes can be drawn on the map; they are unproven and tested
-against a plain map. Cold-start cost is reported separately from the cost of each task.
+first move there. Cold-start cost is reported separately from the cost of each task.
 
 ## 3. The selection module
+
+The module turns exploring into an editorial decision: which moment, among the usable ones, for this purpose.
+
+### The brief and the profile
+
+A selection is always made for something. The module takes:
+
+```python
+class EditorialProfile(BaseModel):
+    intent: str                  # what the cut should communicate
+    audience: str | None
+    style: dict[str, str] = {}   # pacing, emotional intensity, how much explanation, tolerance for silence
+    constraints: list[str] = []  # duration, required content, source or brand rules
+    examples: list[str] = []     # preferred and rejected choices, with reasons
+    inferred: dict[str, str] = {}   # preferences guessed from behaviour, kept apart from stated ones
+```
+
+Stated preferences and inferred ones are separate. An editor accepting one dramatic cut does not mean they always
+want drama. Engagement (watch time, retention) is an objective only when the brief asks for it; it is not the
+definition of quality.
+
+### Candidates are the working artifact
+
+What persists between steps is not a summary of the video. It is the **candidate set**: the moments under
+consideration for each purpose, what is known about each (signals, observations, the agent's assessment), and
+what is still unknown.
+
+### The default decision loop
+
+1. Name the competing candidates for the purpose.
+2. Ask what evidence could reverse their order ("the second one's delivery has not been heard").
+3. Get the cheapest missing evidence, through the base.
+4. Compare again.
+5. Stop when more looking is unlikely to change the choice, or the budget is spent. Abstaining is allowed.
+
+This is a habit the prompt and the candidate set make easy, not a numeric optimiser. Estimating the value of a
+look in numbers needs a calibrated model of editorial utility, which nobody has; the archive's
+`research-rres.md` covers why one-step value estimates are weak. Whether this loop beats plain range exploration
+is experiment E4.
 
 Two actions on top of the base.
 
@@ -152,13 +227,28 @@ class Selection(BaseModel):
     source: str                  # content hash of the file
     start: Time                  # in point, in the source's own timebase
     end: Time                    # out point
-    purpose: str                 # free text, optionally tied to a line of a brief
-    why: str
-    alternates: list[str]        # other candidates considered, ranked
+    purpose: str                 # free text, optionally tied to a line of the brief
+    signals: dict[str, Signal]   # measurements, each with its provenance
+    assessment: Assessment       # the agent's judgment: strengths, weaknesses, why; separate from signals
     start_status: Literal["rough", "compared", "unverified"]   # unverified: decided from a degraded look
     end_status: Literal["rough", "compared", "unverified"]
     observations: list[str]      # the observations it rests on
+
+class Preference(BaseModel):     # one comparison, kept with its context
+    preferred: str               # candidate id
+    over: list[str]
+    purpose: str
+    profile: str                 # which brief and profile it was made under
+    context: str | None          # what surrounds it in the cut, if known
+    reason: str
+    by: Literal["agent", "editor"]
+    order_shown: list[str]
 ```
+
+A preference is conditional: it holds for that purpose, profile and context, and does not make a universal
+ranking. Preferences are stored as they were made. No preference model is trained from them until there are
+enough independent, repeated judgments to test one; editorial preferences can be cyclic and differ between
+people.
 
 Selections export as JSON, a cut list (EDL), or an UberScene file. In the first iteration another tool carries
 out the edit.
@@ -173,7 +263,9 @@ session and can continue with another model.
   cost and the model call that consumed it; and how it relates to earlier entries: `refines`, `compares`,
   `selected_from`. Agents jump between sources and revisit overlapping spans, so this is a graph, not a tree. A
   tree view is drawn from it when that is useful.
-- **Selections**, as above.
+- **Candidates, selections and preferences**, as above.
+- **Traces for improving the harness.** Which looks changed a decision and which were wasted is recorded, so
+  changes to the harness can be judged on held-out footage and not on impressions.
 - **Cost**, per observation and per task.
 
 **Time.** Positions are kept as presentation timestamps in the media's own timebase (a rational number), not as
@@ -185,7 +277,18 @@ labels or checked by something independent (`research-validation.md`).
 ## 5. The harness
 
 Kept thin until the method has shown a gain. The first build is a small loop and the pieces below, not a
-framework.
+framework. A harness is an engineered environment in which the model can make and check useful decisions, not a
+bigger orchestration layer:
+
+| Mechanism | In UberLens |
+| --- | --- |
+| Context kept small | Media and large outputs stay outside the model's context; only what the next decision needs is loaded |
+| Durable state | Observations, candidates, selections and preferences persist across calls and sessions |
+| A small tool surface | `zoom`, `back`, `find`, `compare`, `mark`, `done` |
+| Checks before "done" | By code: selections play, source versions and timestamps are valid, constraints of the brief are met |
+| Recovery | A long exploration resumes from the log |
+| Delegation, only where isolation helps | Indexing and retrieval can run apart from the deciding model |
+| Change by measurement | Harness changes are compared on held-out footage |
 
 - **The loop.** Task, observations, actions, budget, state. Model-agnostic.
 - **Model contract.** What each model can take: tool calls, images, sound, video. A missing capability is a
@@ -211,22 +314,24 @@ bench/          # tasks, scoring, cost report
 
 ## 6. Proof
 
-**The research question.** Can an agent that directly compares candidate video moments, with their surrounding
-picture and sound, select and trim better footage than an agent that retrieves and ranks the same candidates one
-by one?
+**The research question.** Can an agent make better editorial decisions by selectively acquiring picture and
+sound evidence and comparing alternatives against an editorial objective, than by retrieving and ranking
+candidates one by one?
 
-It is distinct from SAVE, which settles how to locate. If it fails, the ladder may still be a useful interface,
-but there is no new method.
+The question is not whether the agent finds the most relevant moment. It is whether it can tell why one relevant
+moment is editorially better than another, and what further look would help it decide. SAVE settles how to
+locate; if this fails, the ladder may still be a useful interface, but there is no new method.
 
-Three questions, each with its own data, because a system can be good at one and poor at another:
+| | Experiment | Compared | Primary measure | Dropped when |
+| --- | --- | --- | --- | --- |
+| E0 | Does adaptive exploration help **locate**? | Full-video inference; a static index; SAVE, reproduced faithfully; UberLens | Localization accuracy at equal total cost | It does not beat SAVE; then SAVE's loop is the base |
+| E1 | Do **signals** improve selection? | Excerpts alone vs excerpts plus selected speech, motion and semantic signals | Blind editor preference; observation cost | Signals improve neither |
+| E2 | Does **direct comparison** beat independent ranking? | Absolute scores; pairwise audiovisual comparison; ranking several at once; same candidates, context and budget, order randomised | Blind editor preference | Comparison is no better, or its verdicts flip with order |
+| E3 | Does the **brief** change which moments are right? | General relevance ranking vs ranking conditioned on the brief, same footage under several briefs | Agreement with editors working to each brief | Conditioning adds nothing over relevance |
+| E4 | Does **decision-led looking** beat the alternatives? | Free inspection (VIVID-style); SAVE; the ladder; the decision loop of section 3 | Editor preference, missed alternatives, cost, share of looks that changed a decision | It is no better than plain range exploration |
+| E5 | Does **boundary comparison** improve trimming? | Transcript boundaries; silence boundaries; boundary comparison | Blind preference between boundaries; speech left intact | It does no better than the simple boundaries |
 
-| Question | Compared | Primary measure |
-| --- | --- | --- |
-| Does adaptive exploration help **locate**? | Full-video inference; a static index (transcript and shot captions); SAVE, reproduced faithfully; UberLens | Localization accuracy at equal total cost |
-| Does comparison improve **choosing**? | Ranking candidates independently vs `compare` | Blind editor preference; usefulness of the chosen candidate |
-| Does boundary comparison improve **trimming**? | Transcript boundaries; silence-based boundaries; boundary comparison | Blind preference between boundaries; speech left intact; time error where one answer exists |
-
-Rules for all three:
+Rules for all of them:
 
 - The same model in every arm, matched budgets with reasoning tokens counted, repeated runs.
 - `compare` is ablated on its own, so a gain over SAVE can be traced to the ladder, to comparison, or to more
@@ -250,16 +355,14 @@ plus action-heavy material.
 runs about 10 (arithmetic under worst-case run noise, `research-validation.md`). The first run is a pilot that
 measures the real variance.
 
-**What would make us drop a part**
+**Other parts with a drop rule**
 
 | Part | Dropped or simplified when |
 | --- | --- |
-| The ladder | It does not beat SAVE at equal cost; then SAVE's loop is the base |
 | `focus` | Views chosen by focus do no better than the ladder's defaults |
 | Looking, on speech footage | Transcript only matches it; looking becomes an escalation |
-| `compare` | Direct comparison does no better than independent ranking, or its verdicts flip with order |
-| Boundary comparison | It does no better than transcript or silence boundaries |
-| Activity marks | A plain map does as well |
+| File signals (bitrate, keyframes) | A plain map does as well |
+| The profile's style fields | Free-text intent alone does as well |
 
 ## 7. Milestones
 
@@ -269,11 +372,11 @@ One vertical experiment before a broad harness.
    persistent log. Proof that an observation can be reproduced exactly.
 1. **M1, a minimal range explorer.** SAVE's loop reproduced with a small loop of our own, plus the ladder
    defaults and `focus`. No separate orchestration framework.
-2. **M2, candidate comparison.** `compare` with matched picture and sound and context, and selection reasons tied
-   to the brief.
+2. **M2, candidate comparison.** The brief and profile, the candidate set, the cheap measured signals, and
+   `compare` with matched picture and sound and context. Preferences recorded with their context.
 3. **M3, boundary comparison.** `mark` with alternative cut points shown with real sound and dense frames.
-4. **M4, controlled ablations.** Whether each added capability improves locating, choosing or trimming over its
-   simpler baseline.
+4. **M4, controlled experiments.** E0 to E5 of section 6: whether each added capability improves locating,
+   choosing or trimming over its simpler baseline. E2 first, since it carries the research question.
 
 Only after a gain is shown: robust adapters for many models, the second media backend, richer views of the state,
 wide benchmark coverage.
@@ -297,9 +400,13 @@ wide benchmark coverage.
     second and transcripts, no raw sound; fixed pipelines, no agent choosing what to look at.
   - VEBench (arXiv:2605.03276): pick the right footage among four candidates, then give its start and end, with
     sound, in one model pass.
-- **Ours to show:** an agent that controls its own looking and listening under a budget; comparison of several
-  takes of the same content; in and out points chosen among alternatives to sub-second error, each with a reason.
-  None of the works above tests these.
+- **Also published, named by a reviewer and being verified:** work on harness engineering for agents (context kept
+  small, durable artifacts, traces used to improve the harness); AdShot, on systematic biases in which shots
+  models select; TRINITY, on highlight quality having several dimensions.
+- **Ours to show:** an agent that controls its own looking and listening under a budget; that looks further
+  because a specific editorial choice is unresolved; comparison of several takes of the same content against a
+  brief; in and out points chosen among alternatives to sub-second error, each with a reason. None of the works
+  above tests these.
 
 The ladder is an engineering choice. The claim is about comparison, and it stands only if section 6 shows it.
 
