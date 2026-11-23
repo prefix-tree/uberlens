@@ -1,0 +1,155 @@
+# Locate tasks: a question, and the range of the video that answers it.
+#
+# DRAFT. These were written by a model from the transcript and from observations, so they cannot yet be
+# used to score a model: every task has verified = false until a person has watched it and confirmed
+# the question and the range. Known gaps to check: a "picture" task may have other shots that also match,
+# which would need a second range; a "words" range is the transcript's timing plus half a second each side.
+#
+# basis: "words" means the range comes from the transcript; "picture" means it is one shot, from the measured cuts.
+
+[[task]]
+video = "vertical"
+basis = "words"
+question = "Where does she say what the experiment is called?"
+ranges = [[17.7, 21.3]]
+verified = false
+
+[[task]]
+video = "vertical"
+basis = "words"
+question = "Where does she explain how the cells are made from a drop of blood?"
+ranges = [[31.1, 38.5]]
+verified = false
+
+[[task]]
+video = "vertical"
+basis = "words"
+question = "Where does a speaker say this will revolutionize medicine?"
+ranges = [[1.2, 7.0]]
+verified = false
+
+[[task]]
+video = "spacewalk"
+basis = "words"
+question = "Where are Christina and Jessica congratulated?"
+ranges = [[26.5, 33.6]]
+verified = false
+
+[[task]]
+video = "spacewalk"
+basis = "words"
+question = "Where is the 100 years of the right to vote mentioned?"
+ranges = [[73.8, 79.1]]
+verified = false
+
+[[task]]
+video = "spacewalk"
+basis = "picture"
+question = "Find the shot of officials seated at a desk on a call with the astronauts."
+ranges = [[26.5, 30.0]]
+verified = false
+
+[[task]]
+video = "spacewalk"
+basis = "picture"
+question = "Find the shot with the title 'Go Women!'."
+ranges = [[59.7, 61.0]]
+verified = false
+
+[[task]]
+video = "explainer"
+basis = "words"
+question = "Where does he say what EVA stands for?"
+ranges = [[11.0, 14.7]]
+verified = false
+
+[[task]]
+video = "explainer"
+basis = "words"
+question = "Where is the training pool described?"
+ranges = [[80.4, 86.4]]
+verified = false
+
+[[task]]
+video = "explainer"
+basis = "words"
+question = "Where is the pre-breathe explained?"
+ranges = [[122.7, 130.3]]
+verified = false
+
+[[task]]
+video = "explainer"
+basis = "words"
+question = "Where is the robotic arm compared to a crane?"
+ranges = [[165.2, 175.4]]
+verified = false
+
+[[task]]
+video = "interview"
+basis = "words"
+question = "Where does she say how many nights they slept in the cave?"
+ranges = [[505.7, 509.4]]
+verified = false
+
+[[task]]
+video = "interview"
+basis = "words"
+question = "Where does she give the temperature in the cave camp?"
+ranges = [[589.5, 594.8]]
+verified = false
+
+[[task]]
+video = "interview"
+basis = "words"
+question = "Where does she say what being the first means to her?"
+ranges = [[190.6, 198.2]]
+verified = false
+
+[[task]]
+video = "interview"
+basis = "words"
+question = "Where does she say how long she has been at NASA?"
+ranges = [[815.4, 818.3]]
+verified = false
+
+[[task]]
+video = "interview"
+basis = "words"
+question = "Where does she start her advice to a young woman who wants to be an astronaut?"
+ranges = [[1007.1, 1011.6]]
+verified = false
+
+[[task]]
+video = "reel"
+basis = "picture"
+question = "Find the shot of rocket engines firing, seen close."
+ranges = [[14.2, 15.6]]
+verified = false
+
+[[task]]
+video = "reel"
+basis = "picture"
+question = "Find the shot of two people with a telescope in silhouette at dusk."
+ranges = [[95.0, 99.0]]
+verified = false
+
+[[task]]
+video = "reel"
+basis = "picture"
+question = "Find the shot of a small rocket rising into a clear sky."
+ranges = [[116.0, 117.3]]
+verified = false
+
+[[task]]
+video = "reel"
+basis = "picture"
+question = "Find the shot of a person driving a pedal-powered rover on a course."
+ranges = [[119.8, 121.0]]
+verified = false
+
+[[task]]
+video = "reel"
+basis = "picture"
+question = "Find the shot of the sign that names the space flight centre."
+ranges = [[56.2, 57.8]]
+verified = false

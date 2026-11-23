@@ -231,9 +231,9 @@ tools.
 
 | Level | Span | What is shown |
 | --- | --- | --- |
-| **Map** | The whole source | One strip: a frame per section, the sound wave, where speech, silence and cuts are |
-| **Section** | Minutes | One frame per shot, with the gist of what is said |
-| **Passage** | 10–60 s | A frame every second or two, with the words |
+| **Map** | The whole source | A frame per equal slice of time, the words under each, and one strip of measured loudness with silences and cuts |
+| **Section** | Minutes | One frame per shot when the span holds eight shots or more, otherwise a frame per equal slice; the words under each |
+| **Passage** | 10–60 s | A frame every second or two, with the words under each |
 | **Moment** | 1–8 s | A dense run of frames, with the sound drawn as a strip |
 | **Frame** | One instant | Full resolution, or a crop |
 
@@ -573,12 +573,28 @@ One vertical experiment before a broad harness.
    - *Limits, on purpose.* One span per look. No transcript, shots or map yet, so long spans are sampled evenly
      in time. The picture is a PNG, which is exact but large. The frame index is read from packets without
      decoding, so a codec that stores frames it never shows fails the timestamp check and is not silently wrong.
-1. **M1, the environment and a minimal explorer.** First, a real model reads M0's pictures. Then the library
-   (`find` over the transcript, signals, `observe`), the bounded executor and
-   `video.observations` (where, coverage, search, re-show by id), wired into
-   the host harness and run end to end through it. SAVE's loop reproduced twice on the same core, once with plain tools and once as code, which is experiment E6 and
-   settles the surface early. Picture search is added to `find` only after text search and the ladder are measured.
-   No separate orchestration framework.
+1. **M1, the environment and a minimal explorer.** In progress.
+   - *Done: cuts and the upper ladder.* Cuts are measured once per source and land on exact frames. A Section
+     shows one frame per shot; a Map covers the whole source. The strip marks cuts.
+   - *Done: the transcript.* Whisper, kept as an estimate with its model. Once a source is transcribed, a look
+     writes under each frame the words said from that frame until the next, and marks words on the strip. There
+     is no separate "pause between words" signal: pauses stay one measurement, from the sound.
+   - *Done: real footage.* Six NASA videos (an interview, a briefing, an explainer, two action reels, a vertical
+     short), fetched by a manifest with hashes (`bench/footage`). 21 draft locate tasks, written by a model from
+     the transcript and the cuts, so **none can score a model until a person confirms it**.
+   - *Built, not yet run: the reading check* (`bench/reading`). 20 questions of five kinds on generated clips
+     whose answers are known, put to two models through the host; each answer is checked against the log. One
+     run went through end to end and was answered correctly. The full run waits for API credit.
+   - *What it cost on real footage* (CPU, no GPU): a 19-minute interview took 291 s to transcribe and 18 s to
+     scan for cuts, once. Six looks on real files were made again exactly in 14 s.
+   - *Found and fixed on the way.* Signals were measured on a timeline shifted by the file's start time, so on
+     a file that does not start at zero a pause was drawn in the wrong place. They now keep the file's own
+     timestamps.
+   - *Next.* The library (`find` over the transcript, signals, `observe`), the bounded executor and
+     `video.observations` (where, coverage, search, re-show by id), wired into the host harness and run end to
+     end through it. SAVE's loop reproduced twice on the same core, once with plain tools and once as code,
+     which is experiment E6 and settles the surface early. Picture search is added to `find` only after text
+     search and the ladder are measured. No separate orchestration framework.
 2. **M2, candidate comparison.** The brief and profile, the candidate set, the cheap measured signals, and
    `compare` with matched frames, sound strips and context. Preferences recorded with their context.
 3. **M3, boundary comparison.** `mark` with alternative cut points shown as dense frames with the sound strip.
@@ -659,7 +675,8 @@ Each is added only after the one before it has shown its value in an experiment.
 | --- | --- |
 | Which host harness? | Decided: Pydantic AI (section 5) |
 | Which language does the model write? | Decided: Python, run by Monty (section 5). M1 measures how often models write outside Monty's subset |
-| Does a real model read the pictures well? | Open. M0 checked that the picture arrives; reading needs an API key and a few labelled clips. First thing in M1 |
+| Does a real model read the pictures well? | Open. The check is built (`bench/reading`) and waits for API credit. If a kind of question scores under 90% for either model, the picture format changes and the check is run again |
+| Who confirms the locate tasks? | Open. The 21 drafts need a person to watch each one; until then they are not ground truth |
 | PNG or JPEG for what is shown? | PNG for now: exact and reproducible, but large. Measure the size on real footage before changing |
 | Which models first? | Two strong models that take images and tool calls, from different providers, to see whether results hold across models |
 | Which footage? | Interviews and action-heavy material. Reuse labelled editing sets where licences allow; label a small set of candidate pairs and boundaries ourselves |

@@ -32,11 +32,12 @@ uv sync --all-extras
 uv run uberseek observe interview.mp4 41:12 41:38 --focus delivery
 uv run uberseek observe interview.mp4 41:20.5 --focus boundary
 uv run uberseek reproduce          # make every logged observation again and compare
+uv run uberseek transcript interview.mp4   # once; later looks show the words under the frames
 uv run pytest
 ```
 
-`observe` writes one picture and says what it shows: which frames, how far apart, and where the sound has
-pauses. The log and the pictures are kept in `.uberseek/` in the current folder.
+`observe` writes one picture and says what it shows: which frames, how far apart, where the cuts and the
+pauses are, and what is said. The log and the pictures are kept in `.uberseek/` in the current folder.
 
 From an agent, with Pydantic AI as the host:
 
@@ -47,6 +48,15 @@ from uberseek.host.pydantic_ai import toolset
 
 agent = Agent("anthropic:claude-sonnet-5-5", toolsets=[toolset(Project("."))])
 ```
+
+## Measurements
+
+```sh
+uv run python -m bench.footage.fetch   # six open-licence videos into data/footage/, checked by hash
+uv run python -m bench.reading.run     # can a model read the pictures? needs an OpenRouter key
+```
+
+The locate tasks in `bench/footage/locate.toml` are drafts until a person confirms each one.
 
 ## Docs site
 

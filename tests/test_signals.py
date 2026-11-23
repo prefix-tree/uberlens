@@ -65,8 +65,14 @@ def test_cuts_already_made_are_shown_at_any_level(clips, tmp_path):
     assert project.reproduce(before.id).exact and project.reproduce(after.id).exact
 
 
-def test_words_are_given_to_the_frame_they_start_after():
-    words = [["1.0", "1.2", "one", 1], ["1.5", "1.7", "two", 1], ["2.0", "2.4", "three", 1], ["3.0", "3.1", "four", 1]]
+def test_every_word_in_the_span_is_under_some_frame():
+    words = [
+        ["0.5", "0.7", "zero", 1],
+        ["1.0", "1.2", "one", 1],
+        ["1.5", "1.7", "two", 1],
+        ["2.0", "2.4", "three", 1],
+        ["3.0", "3.1", "four", 1],
+    ]
     times = [Fraction(1), Fraction(2), Fraction(5, 2)]
-    assert transcript.by_frame(words, times, Fraction(3)) == ["one two", "three", "four"]
-    assert transcript.by_frame(words, times, Fraction(14, 5)) == ["one two", "three", ""]
+    assert transcript.by_frame(words, times, Fraction(0), Fraction(3)) == ["zero one two", "three", "four"]
+    assert transcript.by_frame(words, times, Fraction(1), Fraction(14, 5)) == ["one two", "three", ""]

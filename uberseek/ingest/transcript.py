@@ -48,13 +48,17 @@ def transcribe(path: Path, backend: MediaBackend, duration: Seconds, model: str 
     }
 
 
-def by_frame(words: list[list], times: list[Seconds], end: Seconds) -> list[str]:
-    """For each frame shown, the words that start from its time until the next frame's time."""
-    edges = [*times, max(end, times[-1])]
+def by_frame(words: list[list], times: list[Seconds], start: Seconds, end: Seconds) -> list[str]:
+    """For each frame shown, the words that start from its time until the next frame's time.
+
+    The first frame also takes the words from the start of the span, and the last takes them to its end,
+    so every word in the span is under some frame.
+    """
+    edges = [min(start, times[0]), *times[1:], max(end, times[-1])]
     out = []
-    for i, start in enumerate(times):
+    for i in range(len(times)):
         last = i == len(times) - 1
-        said = [w[2] for w in words if start <= Fraction(w[0]) < edges[i + 1] or (last and Fraction(w[0]) == edges[i + 1])]
+        said = [w[2] for w in words if edges[i] <= Fraction(w[0]) < edges[i + 1] or (last and Fraction(w[0]) == edges[i + 1])]
         out.append(" ".join(said))
     return out
 

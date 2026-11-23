@@ -183,7 +183,7 @@ class Project:
         if not sound:
             notes.append("sound samples differ")
         if frames and sound and not picture:
-            notes.append("same frames and sound, drawn differently: check the Pillow version")
+            notes.append("same frames and sound, drawn differently: the renderer or the Pillow version has changed")
         return Reproduction(id, frames, sound, picture, notes)
 
     def _render(self, source: Source, recipe: dict) -> tuple[bytes, dict]:
@@ -198,9 +198,10 @@ class Project:
         said, captions = [], None
         if recipe.get("words"):
             said = self.log.derived(source.hash, recipe["words"], _missing("the transcript"))
-            captions = transcript.by_frame(said["words"], times, span[1])
-            delivered["words"] = {"tool": said["tool"], "model": said["model"], "by_frame": captions}
-            delivered["drawn"].append("words")
+            captions = transcript.by_frame(said["words"], times, span[0], span[1])
+            captions = captions if any(captions) else None  # no room is kept for words when nothing is said
+            delivered["words"] = {"tool": said["tool"], "model": said["model"], "by_frame": captions or []}
+            delivered["drawn"] += ["words"] if captions else []
             said = said["words"]
         cuts = [index.time(pts) for pts in self._cuts(source)] if recipe.get("cuts") else []
         if recipe.get("cuts"):
@@ -275,7 +276,8 @@ def _describe(record: dict, source: Source | None) -> str:
     if words := delivered.get("words"):
         spoken = [f"{i}: {text[:200]}" for i, text in enumerate(words["by_frame"], start=1) if text]
         lines.append(
-            f"Words from each frame until the next (transcribed by {words['tool']} {words['model']}; an estimate, a word can be wrong): "
+            f"Words under each frame, said from that frame until the next "
+            f"(transcribed by {words['tool']} {words['model']}; an estimate, a word can be wrong): "
             + ("; ".join(spoken) if spoken else "none")
             + "."
         )

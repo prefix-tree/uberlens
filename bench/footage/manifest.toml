@@ -1,0 +1,48 @@
+# Real footage for measurements. Files are fetched into data/footage/ and are not stored in the repository.
+#
+# Everything here is from the NASA Image and Video Library (images.nasa.gov). NASA material is generally not
+# under copyright in the United States and may be used for educational and informational purposes; see
+# https://www.nasa.gov/nasa-brand-center/images-and-media/ . Credit: NASA. People who appear keep their own
+# rights of publicity, so this set is for research and measurement, not for republishing edits.
+
+[video.interview]
+sha256 = "e5f6cac540bc61f7fafa435a2e0ea4f803ea731a45d6f3bbc5c6bbabf8fb42b7"
+kind = "interview"
+title = "Artemis Interviews with NASA Astronaut Jeanette Epps - October 4, 2019"
+nasa_id = "iss061m2627771232_Live_Interviews_Jeanette_Epps_191004"
+url = "https://images-assets.nasa.gov/video/iss061m2627771232_Live_Interviews_Jeanette_Epps_191004/iss061m2627771232_Live_Interviews_Jeanette_Epps_191004~small.mp4"
+
+[video.briefing]
+sha256 = "fd15bab9467ce6788d9a91d841404cc0c951c58dd9f5cb558229fb226ddee270"
+kind = "long, several speakers"
+title = "U.S. Spacewalk 93 Preview News Conference"
+nasa_id = "U.S. Spacewalk 93 Preview News Conference_250424_2170644"
+url = "https://images-assets.nasa.gov/video/U.S.%20Spacewalk%2093%20Preview%20News%20Conference_250424_2170644/U.S.%20Spacewalk%2093%20Preview%20News%20Conference_250424_2170644~small.mp4"
+
+[video.explainer]
+sha256 = "78f590bb5877eebc4f05049417b0f91bcfaa0f17feaccace06fdcf7cbf3d7669"
+kind = "narration over edited pictures"
+title = "Spacewalk 101"
+nasa_id = "jsc2026m000932_Spacewalk_101_AVAIL1080p"
+url = "https://images-assets.nasa.gov/video/jsc2026m000932_Spacewalk_101_AVAIL1080p/jsc2026m000932_Spacewalk_101_AVAIL1080p~medium.mp4"
+
+[video.spacewalk]
+sha256 = "f88fc55479af4c58e23b98f7ed7927a349c2bab46fe4cbe16aec2d16fbbf301f"
+kind = "action"
+title = "First All-Woman Spacewalk"
+nasa_id = "NHQ_2019_1018_all woman spacewalk"
+url = "https://images-assets.nasa.gov/video/NHQ_2019_1018_all%20woman%20spacewalk/NHQ_2019_1018_all%20woman%20spacewalk~medium.mp4"
+
+[video.reel]
+sha256 = "a2cdda264a283fc8a6efc01aff7facd56995b77c989715d1e7b225f1937e2b8e"
+kind = "action, many cuts"
+title = "Marshall Space Flight Center 2024-2025 Highlight Reel"
+nasa_id = "MSFC_2025_March_CenterHighlightReel"
+url = "https://images-assets.nasa.gov/video/MSFC_2025_March_CenterHighlightReel/MSFC_2025_March_CenterHighlightReel~medium.mp4"
+
+[video.vertical]
+sha256 = "0f2c250f76c3746ab1df8a4b9837415c471c7a0eec7706758bda42fc5d4620e1"
+kind = "short, vertical"
+title = "Artemis II Science - AVATAR Vertical Video"
+nasa_id = "Artemis II Science - AVATAR Vertical Video"
+url = "https://images-assets.nasa.gov/video/Artemis%20II%20Science%20-%20AVATAR%20Vertical%20Video/Artemis%20II%20Science%20-%20AVATAR%20Vertical%20Video~medium.mp4"
