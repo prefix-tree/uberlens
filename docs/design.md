@@ -87,13 +87,14 @@ rule and not advice:
 
 The map and the sections are built once per source, by code, and cached by the file's content hash:
 
-- **Shots and sections** from cut detection.
+- **Shots and sections** from cut detection on small decoded frames.
 - **Sound**: loudness, speech and silence.
 - **Transcript** with word timings, for footage with speech. On speech-heavy video a transcript alone carries
   most of the locating: on Video-MME long with a 7B model, subtitles score 65.4 and frames 52.0
   (`research-validation.md`). So `find` is the first move there, and looking is for what words cannot show.
-- **Activity marks** (bitrate and keyframes read from the file, about 0.07 s per minute of video) drawn on the
-  map as hints. They are unproven and are tested against a plain map (section 6).
+- **Activity marks** (bitrate and keyframes read from the file) drawn on the map as hints. They are unproven,
+  need a packet listing the codec process does not have yet (section 5), and are tested against a plain map
+  (section 6). The first build can ship without them.
 
 Cold-start cost is reported separately from the cost of each task.
 
@@ -141,13 +142,30 @@ Correctness is only measured against labels or checked by something independent.
   loudness, and that weaker view is recorded.
 - **A core library** (the ladder, the views, the tree) with a thin runner on top. The same library is exposed as
   tools, so the ladder can also be used inside OpenCode or Claude Code.
-- **Python**. Frames and sound are read with PyAV (a decoding library; it only reads). The first iteration writes
-  no FFmpeg commands and cuts nothing. Transcription with Whisper.
+- **Python**.
+- **Reading media without FFmpeg.** Frames and sound come from `uberscene-codec`, UberScene's native codec
+  process, built in Rust on FilmCraft's craft-libs (craft-video, craft-media, craft-audio; MIT or Apache-2.0). It
+  already has the three commands the ladder needs:
+
+  | Command | Gives | Used for |
+  | --- | --- | --- |
+  | `probe <file>` | Size, duration, frame rate, codec, whether it decodes | Ingest |
+  | `decode --at <s>` | The one picture showing at that time, with its exact presentation time | Map, section and frame views |
+  | `decode --from <s> --to <s>` | Every picture in the range, in order, with times | Passage and moment views |
+  | `decode-audio --from --to` | The sound of the range as samples | The moment's sound, loudness, speech, and the transcript |
+
+  It reads H.264, HEVC, VP8, VP9, AV1, ProRes and DNxHR in MP4/MOV and Matroska/WebM, and AAC, Opus, MP3, AC-3,
+  ALAC and PCM sound. UberLens calls it as a subprocess, scales the pictures and builds the sheets in Python.
+  Limits to plan for: it is marked experimental in UberScene; FLAC and Vorbis sound are not decoded; it does not
+  yet list packet sizes and keyframes, which the activity marks need (a small `packets` command to add there, or
+  the marks wait). The first iteration writes no FFmpeg commands and cuts nothing.
+- **Transcription** with Whisper, fed the decoded samples directly.
 
 ```
 uberlens/
   ladder/     # levels, the view table, zoom / back / find / compare / mark
   views/      # rendering: strips, sheets, bursts, sound, crops
+  media/      # the uberscene-codec client: probe, pictures, sound
   ingest/     # content hash, shots, sound, transcript, activity marks
   state/      # tree, selections, log, budget
   runner/     # the agent loop, model adapters
