@@ -26,6 +26,15 @@ CREATE TRIGGER IF NOT EXISTS observations_keep BEFORE UPDATE ON observations
     BEGIN SELECT RAISE(ABORT, 'the observation log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS observations_stay BEFORE DELETE ON observations
     BEGIN SELECT RAISE(ABORT, 'the observation log is append-only'); END;
+CREATE TABLE IF NOT EXISTS executions (
+    seq INTEGER PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    record TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS executions_keep BEFORE UPDATE ON executions
+    BEGIN SELECT RAISE(ABORT, 'the execution log is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS executions_stay BEFORE DELETE ON executions
+    BEGIN SELECT RAISE(ABORT, 'the execution log is append-only'); END;
 CREATE TABLE IF NOT EXISTS derived (
     source TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -84,6 +93,20 @@ class Log:
         where, args = ("WHERE source = ?", (source,)) if source else ("", ())
         rows = self.db.execute(f"SELECT record FROM observations {where} ORDER BY seq", args)
         return [json.loads(r[0]) for r in rows]
+
+    # Executions: every program run, whether it worked or not
+
+    def append_execution(self, record: dict) -> dict:
+        created = datetime.now(UTC).isoformat(timespec="milliseconds")
+        with self.db:
+            self.db.execute("BEGIN IMMEDIATE")
+            seq = self.db.execute("SELECT COALESCE(MAX(seq), 0) + 1 FROM executions").fetchone()[0]
+            full = {"id": f"exec_{seq:06d}", "created_at": created, **record}
+            self.db.execute("INSERT INTO executions VALUES (?, ?, ?)", (seq, created, json.dumps(full, default=str)))
+        return full
+
+    def executions(self) -> list[dict]:
+        return [json.loads(r[0]) for r in self.db.execute("SELECT record FROM executions ORDER BY seq")]
 
     # Pictures, by content hash
 
