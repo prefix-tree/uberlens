@@ -2,21 +2,14 @@
 
 An agent harness for video: one reusable harness that brings together what an agent needs to work with video.
 
-It is built in iterations. The first is about understanding video moments. Agents can already execute an edit;
-where they fail is picking: looking in the wrong place, choosing a weaker take, cutting a beat early or late. So
-the harness starts there: given footage and what is needed, it finds the moment, chooses the best candidate and
-sets exactly where it starts and ends.
+It has two layers. The **base** is for exploring video: the agent says which span it wants to look at and what
+for, and the harness decides how to show it, from a map of the whole source down to a moment with real sound or a
+single frame. Everything shown is logged with exactly what was decoded. The base knows nothing about editing, so
+question answering, search and review can be built on it too.
 
-It works by zooming. The agent asks to see a span of time, and the harness decides how to show it:
-
-- **Map**: the whole source in one strip.
-- **Section**: minutes, one frame per shot.
-- **Passage**: 10 to 60 seconds, with the words.
-- **Moment**: 1 to 8 seconds, a dense run of frames with the real sound.
-- **Frame**: one instant at full resolution, or a crop.
-
-At each step the agent narrows, compares candidates, and marks a range. The result is a list of selections with
-in and out points and reasons, exported as JSON, a cut list or an
+**Modules** sit on top. The first is selection: finding the moment that is needed, comparing candidates directly
+with picture and sound, and choosing where the selection starts and ends among alternative cut points. The result
+is a list of selections with reasons, exported as JSON, a cut list or an
 [UberScene](https://github.com/prefix-tree/uberscene) file.
 
 Later iterations add carrying out edits, reviewing the render and handling revisions to the same harness.
