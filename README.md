@@ -16,7 +16,7 @@ It works by zooming. The agent asks to see a span of time, and the harness decid
 - **Frame**: one instant at full resolution, or a crop.
 
 At each step the agent narrows, compares candidates, and marks a range. The result is a list of selections with
-in and out points and reasons, exported as JSON, a cut list, FFmpeg commands or an
+in and out points and reasons, exported as JSON, a cut list or an
 [UberScene](https://github.com/prefix-tree/uberscene) file.
 
 Later iterations add carrying out edits, reviewing the render and handling revisions to the same harness.

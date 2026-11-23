@@ -113,7 +113,7 @@ class Selection(BaseModel):
     trace: list[str]          # the views that led to it
 ```
 
-Exporters turn selections into what an editor needs: JSON, a cut list (EDL), FFmpeg commands, or an UberScene
+Exporters turn selections into what an editor needs: JSON, a cut list (EDL), or an UberScene
 file. In the first iteration another tool carries out the edit; doing it inside the harness is the next iteration
 (section 9).
 
@@ -141,7 +141,8 @@ Correctness is only measured against labels or checked by something independent.
   loudness, and that weaker view is recorded.
 - **A core library** (the ladder, the views, the tree) with a thin runner on top. The same library is exposed as
   tools, so the ladder can also be used inside OpenCode or Claude Code.
-- **Python**; media through FFmpeg and PyAV; transcription with Whisper.
+- **Python**. Frames and sound are read with PyAV (a decoding library; it only reads). The first iteration writes
+  no FFmpeg commands and cuts nothing. Transcription with Whisper.
 
 ```
 uberlens/
@@ -150,7 +151,7 @@ uberlens/
   ingest/     # content hash, shots, sound, transcript, activity marks
   state/      # tree, selections, log, budget
   runner/     # the agent loop, model adapters
-  export/     # JSON, EDL, FFmpeg, UberScene
+  export/     # JSON, EDL, UberScene
   server/     # the same actions as tools (MCP, CLI)
 bench/        # tasks, scoring, cost report
 ```
@@ -227,7 +228,7 @@ there says where the evidence stands.
 | Iteration | Capability | What the research says so far |
 | --- | --- | --- |
 | 1 (this document) | Understanding moments: locate, choose, trim | Section 1 |
-| 2 | Carrying out edits inside the harness, through UberScene and FFmpeg | Typed, undoable timelines for agents exist (Cassette-Editor); whether typed actions beat editing the file as text is untested. The audit of UberScene lists what a bridge needs |
+| 2 | Carrying out edits inside the harness, through UberScene (FFmpeg only for what UberScene cannot do, such as audio clean-up) | Typed, undoable timelines for agents exist (Cassette-Editor); whether typed actions beat editing the file as text is untested. The audit of UberScene lists what a bridge needs |
 | 3 | Reviewing the result by watching and hearing the render | No one has compared a watching critic with a reading one; model judges are reliable on checkable items and weak on craft |
 | 4 | Revisions: keeping approved material intact across notes | A code gate with rollback is the mechanism with evidence; typed pass and decision records have none yet |
 | Later | Live streams; a fast decision model; training on the harness's own traces | In the archive |
