@@ -118,6 +118,45 @@ or loudness strip with the words marked on it). The model does not hear anything
 depends on hearing (hesitation, tone, clarity under music, the rhythm of a cut) is decided from signals, recorded
 as **not heard**, and left for the editor to confirm. Real sound in `observe` is a later capability (section 9).
 
+### Memory as part of the API
+
+VIVID keeps every look outside the model's context, pinned to the file version it came from, and lets the agent
+search it with one `retrieve` tool (`research-editing.md`). UberLens keeps the same store, and makes it an object
+in the API, so a program can query and reuse past observations like any other data:
+
+```ts
+const seen = await video.observations.where({ source, focus: "visual" });
+
+// Coverage: what has not been looked at closely yet?
+const gaps = source.span.minus(seen.filter(o => o.gap < 2).spans());
+
+// Show an earlier look again by id, without decoding the footage again
+await video.observe({ ids: [best.obsId] });
+
+// Notes are searchable, but they are the model's interpretation, not ground truth
+const mentions = await video.observations.search("hands over the document");
+```
+
+| Operation | Does |
+| --- | --- |
+| `observations.where(...)` | Filters past looks by source, version, span, focus, time or relation |
+| `observations.coverage(span)` | Says what was looked at, how densely, and what was not looked at at all |
+| `observations.search(text)` | Searches the model's notes on past looks |
+| `observe({ ids })` | Shows a past look again, from its stored images |
+| `observations.across(versions)` | Pairs looks at the same moment in two versions of a file or render |
+
+- **Notes are interpretations.** A search over notes is a search over the model's own captions, so a wrong caption
+  comes back looking like a fact. Only the stored images are what was shown.
+- **Re-showing is cheap to make, not free to see.** No decoding is needed, but the images go to the model again
+  and count against the budget of views.
+- **Usage is measured, not assumed.** In VIVID, agents called `retrieve` in only 10 to 32% of tasks, and its
+  memory ablation removed the working files at the same time, so how much the searchable store itself helps is
+  unknown.
+- **Working files stay the host's job.** The brief, the plan and continuing in a fresh context belong to the host
+  harness; UberLens supplies a compact index of the observations and candidates for it to load.
+- **Bounded requests.** A program or `observe` asking for more than its caps returns a bounded part and the next
+  request to make, pinned to the same version (VIVID).
+
 **The simple actions remain, as a library.** `zoom(span, focus)`, `back`, `find(text)` and `done` are functions
 built on the same API, and can be exposed as plain tools for a model that does better with a small vocabulary.
 Whether code beats those tools is an experiment (E6), not an assumption: writing and debugging programs costs
@@ -301,7 +340,7 @@ out the edit.
 Everything lives outside the model's context, in the project folder, so a task survives a full context or a new
 session and can continue with another model.
 
-- **An append-only observation log.** Each entry: the source and its content version; the span asked for and the
+- **An append-only observation log**, readable from programs through `video.observations` (section 2). Each entry: the source and its content version; the span asked for and the
   timestamps decoded; the exact artifact shown (stored by content hash, with image size, sampling and sound); its
   cost and the model call that consumed it; and how it relates to earlier entries: `refines`, `compares`,
   `selected_from`. Agents jump between sources and revisit overlapping spans, so this is a graph, not a tree. A
@@ -430,6 +469,7 @@ measures the real variance.
 | Looking, on speech footage | Transcript only matches it; looking becomes an escalation |
 | File signals (bitrate, keyframes) | A plain map does as well |
 | The profile's style fields | Free-text intent alone does as well |
+| `video.observations` | Agents rarely query it, or tasks go as well without it; keep the log for audit and drop it from the API |
 
 ## 7. Milestones
 
@@ -438,7 +478,8 @@ One vertical experiment before a broad harness.
 0. **M0, the observation contract.** FFmpeg-backed media services: frames, sound signals, timestamps. The
    simplest persistent log. Proof that an observation can be reproduced exactly. Choose the host harness
    (Pydantic AI or Hermes) and confirm it returns images in tool results. Decide the API language and the sandbox.
-1. **M1, the environment and a minimal explorer.** The typed API, the bounded executor and `observe`, wired into
+1. **M1, the environment and a minimal explorer.** The typed API, the bounded executor, `observe` and
+   `video.observations` (where, coverage, search, re-show by id), wired into
    the host harness and run end to end through it. SAVE's loop reproduced twice on the same core, once with plain tools and once as code, which is experiment E6 and
    settles the surface early. No separate orchestration framework.
 2. **M2, candidate comparison.** The brief and profile, the candidate set, the cheap measured signals, and
