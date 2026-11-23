@@ -1,0 +1,410 @@
+/* A terminal-style look: one monospace face, warm near-black and off-white, hairline borders, square corners,
+   no shadows and no gradients. Everything is set through VitePress's own variables where one exists. */
+
+:root {
+  --ul-bg: #fdfcfc;
+  --ul-bg-soft: #f8f7f7;
+  --ul-bg-strong: #f1eeee;
+  --ul-fg: #201d1d;
+  --ul-fg-soft: #4a4646;
+  --ul-fg-muted: #6f6b6b;
+  --ul-line: rgba(32, 29, 29, 0.14);
+  --ul-line-strong: rgba(32, 29, 29, 0.32);
+  --ul-accent: #201d1d;
+  --ul-mark: #b0562a;
+
+  --vp-font-family-base: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --vp-font-family-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --vp-c-bg: var(--ul-bg);
+  --vp-c-bg-alt: var(--ul-bg-soft);
+  --vp-c-bg-elv: var(--ul-bg);
+  --vp-c-bg-soft: var(--ul-bg-soft);
+  --vp-c-text-1: var(--ul-fg);
+  --vp-c-text-2: var(--ul-fg-soft);
+  --vp-c-text-3: var(--ul-fg-muted);
+  --vp-c-divider: var(--ul-line);
+  --vp-c-border: var(--ul-line-strong);
+  --vp-c-gutter: var(--ul-line);
+
+  --vp-c-brand-1: var(--ul-accent);
+  --vp-c-brand-2: var(--ul-fg-soft);
+  --vp-c-brand-3: var(--ul-accent);
+  --vp-c-brand-soft: var(--ul-bg-strong);
+  --vp-c-default-soft: var(--ul-bg-strong);
+
+  --vp-nav-height: 52px;
+  --vp-sidebar-bg-color: var(--ul-bg);
+  --vp-code-bg: var(--ul-bg-strong);
+  --vp-code-color: var(--ul-fg);
+  --vp-code-block-bg: var(--ul-bg-soft);
+  --vp-code-font-size: 0.95em;
+  --vp-button-brand-bg: var(--ul-fg);
+  --vp-button-brand-text: var(--ul-bg);
+  --vp-button-brand-hover-bg: var(--ul-fg-soft);
+  --vp-button-brand-hover-text: var(--ul-bg);
+  --vp-custom-block-tip-bg: var(--ul-bg-soft);
+  --vp-shadow-1: none;
+  --vp-shadow-2: none;
+  --vp-shadow-3: none;
+  --vp-shadow-4: none;
+  --vp-shadow-5: none;
+}
+
+.dark {
+  --ul-bg: #131010;
+  --ul-bg-soft: #1b1818;
+  --ul-bg-strong: #252121;
+  --ul-fg: #f1ecec;
+  --ul-fg-soft: #cfc9c9;
+  --ul-fg-muted: #9a9494;
+  --ul-line: rgba(241, 236, 236, 0.14);
+  --ul-line-strong: rgba(241, 236, 236, 0.34);
+  --ul-accent: #f1ecec;
+  --ul-mark: #e8a06f;
+}
+
+/* Type: small, even, one family. */
+body {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+.vp-doc {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3,
+.vp-doc h4 {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.vp-doc h1 {
+  font-size: 22px;
+  line-height: 1.35;
+}
+.vp-doc h2 {
+  font-size: 17px;
+  margin-top: 44px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ul-line);
+}
+.vp-doc h3 {
+  font-size: 15px;
+  margin-top: 28px;
+}
+.vp-doc strong {
+  font-weight: 700;
+}
+.vp-doc a {
+  color: var(--ul-fg);
+  font-weight: 400;
+  text-decoration: underline;
+  text-decoration-color: var(--ul-line-strong);
+  text-underline-offset: 3px;
+}
+.vp-doc a:hover {
+  color: var(--ul-fg);
+  text-decoration-color: var(--ul-fg);
+}
+
+/* Square corners everywhere. */
+.vp-doc div[class*="language-"],
+.vp-doc :not(pre) > code,
+.vp-doc .custom-block,
+.VPButton,
+.VPLocalSearchBox .shell,
+.DocSearch-Button,
+.VPNavBarSearch .DocSearch-Button,
+.VPSwitch,
+.vp-doc table,
+.vp-doc blockquote {
+  border-radius: 0 !important;
+}
+.vp-doc div[class*="language-"] {
+  border: 1px solid var(--ul-line);
+}
+.vp-doc :not(pre) > code {
+  padding: 1px 5px;
+  font-size: 0.95em;
+  color: var(--ul-fg);
+}
+.vp-doc blockquote {
+  border-left: 2px solid var(--ul-fg);
+  color: var(--ul-fg);
+  background: var(--ul-bg-soft);
+  padding: 10px 16px;
+}
+.vp-doc blockquote > p {
+  color: var(--ul-fg);
+  font-size: 14px;
+}
+
+/* Tables: hairlines, no zebra, scroll inside themselves. */
+.vp-doc table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.vp-doc tr,
+.vp-doc tr:nth-child(2n) {
+  background: transparent;
+  border-top: 1px solid var(--ul-line);
+}
+.vp-doc th,
+.vp-doc td {
+  border: 1px solid var(--ul-line);
+  padding: 7px 12px;
+  vertical-align: top;
+}
+.vp-doc th {
+  background: var(--ul-bg-soft);
+  color: var(--ul-fg-muted);
+  font-weight: 500;
+  text-align: left;
+}
+
+/* List markers in the page's own ink. */
+.vp-doc ul > li::marker {
+  color: var(--ul-fg-muted);
+}
+
+/* Chrome: nav, sidebar, outline. */
+.VPNavBar,
+.VPNavBar.has-sidebar .content-body,
+.VPNavBar .divider-line {
+  background: var(--ul-bg) !important;
+}
+.VPNavBar .divider-line,
+.VPNavBar.has-sidebar .divider-line {
+  background: var(--ul-line) !important;
+}
+.VPNavBarTitle .title {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0;
+  border-bottom: 0;
+}
+.VPNavBarTitle .title::before {
+  content: "[\25C9]";
+  margin-right: 8px;
+  font-weight: 400;
+  color: var(--ul-fg-muted);
+}
+.VPNavBarMenuLink,
+.VPNavBarMenuGroup .text {
+  font-size: 13px;
+  font-weight: 400;
+}
+.VPNavBarMenuLink.active {
+  color: var(--ul-fg);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+.VPSidebar {
+  border-right: 1px solid var(--ul-line);
+}
+.VPSidebarItem.level-0 > .item > .text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ul-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.VPSidebarItem .link .text {
+  font-size: 13px;
+}
+.VPSidebarItem.is-active > .item .link > .text {
+  color: var(--ul-fg);
+  font-weight: 700;
+}
+.VPDocAsideOutline .outline-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ul-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.VPDocAsideOutline .outline-link {
+  font-size: 12px;
+}
+.VPDocAsideOutline .outline-marker {
+  background: var(--ul-fg);
+  border-radius: 0;
+}
+.VPFooter {
+  border-top: 1px solid var(--ul-line);
+  font-size: 12px;
+}
+:focus-visible {
+  outline: 2px solid var(--ul-fg);
+  outline-offset: 2px;
+}
+
+/* ---------- The landing page ---------- */
+
+.home {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 40px max(16px, env(safe-area-inset-right, 0px)) 72px max(16px, env(safe-area-inset-left, 0px));
+}
+.home h1.home-title {
+  font-size: 30px;
+  line-height: 1.25;
+  font-weight: 500;
+  margin: 18px 0 14px;
+  border: 0;
+  padding: 0;
+}
+.home .home-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--ul-fg-muted);
+}
+.home .home-tags span {
+  border: 1px solid var(--ul-line);
+  padding: 2px 8px;
+}
+.home .home-lead {
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 68ch;
+  margin: 0 0 22px;
+  color: var(--ul-fg-soft);
+}
+.home .home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.home a.home-button {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid var(--ul-fg);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 13px;
+}
+.home a.home-button.primary {
+  background: var(--ul-fg);
+  color: var(--ul-bg);
+}
+.home a.home-button:hover {
+  background: var(--ul-fg-soft);
+  color: var(--ul-bg);
+  border-color: var(--ul-fg-soft);
+}
+
+.home .home-box {
+  border: 1px solid var(--ul-line);
+  margin-top: 32px;
+}
+.home .home-box > .home-box-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--ul-line);
+  background: var(--ul-bg-soft);
+  font-size: 12px;
+  color: var(--ul-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.home .home-box > .home-box-body {
+  padding: 16px;
+}
+.home .home-box-body > :first-child {
+  margin-top: 0;
+}
+.home .home-box-body > :last-child {
+  margin-bottom: 0;
+}
+.home .home-box div[class*="language-"] {
+  margin: 0;
+  border: 0;
+}
+
+.home ul.home-points {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.home ul.home-points > li {
+  position: relative;
+  padding: 0 0 0 36px;
+  margin: 0 0 12px;
+}
+.home ul.home-points > li:last-child {
+  margin-bottom: 0;
+}
+.home ul.home-points > li::before {
+  content: "[*]";
+  position: absolute;
+  left: 0;
+  color: var(--ul-mark);
+}
+
+.home .home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  border-top: 1px solid var(--ul-line);
+  border-left: 1px solid var(--ul-line);
+  margin-top: 32px;
+}
+.home .home-grid > div {
+  border-right: 1px solid var(--ul-line);
+  border-bottom: 1px solid var(--ul-line);
+  padding: 16px;
+  min-width: 0;
+}
+.home .home-grid h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.home .home-grid p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ul-fg-soft);
+}
+.home .home-steps {
+  counter-reset: step;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.home .home-steps > li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 44px;
+  margin-bottom: 10px;
+}
+.home .home-steps > li::before {
+  content: "M" counter(step, decimal);
+  position: absolute;
+  left: 0;
+  color: var(--ul-fg-muted);
+}
+.home .home-steps {
+  counter-reset: step -1;
+}
+.home .home-note {
+  margin-top: 32px;
+  font-size: 12px;
+  color: var(--ul-fg-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -22,6 +22,19 @@ Later iterations add carrying out edits, reviewing the render and handling revis
 > **Design stage.** There is no code yet. [docs/design.md](docs/design.md) is the design. Earlier research is
 > frozen in [docs/archive](docs/archive).
 
+## Docs site
+
+The site is built with VitePress from `docs/`: the home page is `docs/index.md` and the design is
+`docs/design.md`, the one maintained document.
+
+```sh
+pnpm install
+pnpm docs:dev      # local preview
+pnpm docs:build    # static site in docs/.vitepress/dist
+```
+
+Pushing to `main` deploys it to GitHub Pages (`.github/workflows/docs.yml`).
+
 ## License
 
 [Mozilla Public License 2.0](LICENSE).

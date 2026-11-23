@@ -17,3 +17,8 @@ data/
 *.mp4
 *.mkv
 *.webm
+
+# Docs site
+node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/

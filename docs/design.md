@@ -17,7 +17,7 @@ It is built in iterations. The first iteration is the base plus the selection mo
 carrying out edits, reviewing the result and handling revisions (section 9).
 
 This is the one maintained document. Everything earlier (the research reports, the activity-prior notes, previous
-designs) is frozen in [archive/](archive) and is cited here by file name where a number comes from it.
+designs) is frozen in [archive/](https://github.com/prefix-tree/uberlens/tree/main/docs/archive) and is cited here by file name where a number comes from it.
 
 ## 1. Why moments come first
 
@@ -500,7 +500,7 @@ The ladder is an engineering choice. The claim is about comparison, and it stand
 
 ## 9. Later iterations
 
-The same base, more modules. Research on each is in [archive/](archive); `research-validation.md` there says
+The same base, more modules. Research on each is in [archive/](https://github.com/prefix-tree/uberlens/tree/main/docs/archive); `research-validation.md` there says
 where the evidence stands.
 
 | Iteration | Capability | What the research says so far |
