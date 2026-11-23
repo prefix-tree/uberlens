@@ -22,3 +22,6 @@ data/
 node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+
+# UberSeek project state
+.uberseek/

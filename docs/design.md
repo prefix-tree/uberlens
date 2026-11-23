@@ -1,8 +1,8 @@
 # UberSeek: design
 
 UberSeek is a harness for video work: one reusable environment that brings together what an agent needs to work
-with video. It does not have an agent loop of its own. It runs inside an existing agent harness, such as Pydantic
-AI or Hermes, which drives the model and calls UberSeek; that is also how it is tested end to end.
+with video. It does not have an agent loop of its own. It runs inside an existing agent harness, Pydantic AI,
+which drives the model and calls UberSeek; that is also how it is tested end to end.
 
 It has two layers:
 
@@ -15,6 +15,10 @@ It has two layers:
 
 It is built in iterations. The first iteration is the base plus the selection module. Later iterations add
 carrying out edits, reviewing the result and handling revisions (section 9).
+
+**Status.** M0 is built: exact frames and sound from FFmpeg, the observation log, `observe` as a tool in
+Pydantic AI, and the proof that an observation can be made again exactly (section 7). The typed API and the
+executor come next, in M1.
 
 This is the one maintained document. Everything earlier (the research reports, the activity-prior notes, previous
 designs) is frozen in [archive/](https://github.com/prefix-tree/uberseek/tree/main/docs/archive) and is cited here by file name where a number comes from it.
@@ -91,20 +95,22 @@ Three primitives:
 | `execute(program)` | Runs a bounded program against the API and returns its result |
 | `observe(spans, focus)` | Delivers images of the footage to the model as an observation, by artifact id |
 
-```ts
-const source = await video.open("interview.mp4");
-const hits = await source.transcript.search("company almost failed");
-const candidates = await Promise.all(hits.map(async h => {
-  const span = h.span.expand({ before: 5, after: 8 });
-  return { span,
-           words: await source.transcript.get(span),
-           pauses: await source.signals.pauses(span),
-           shots: await source.shots.in(span) };
-}));
-return candidates.filter(c => c.words.length > 0);
+```python
+source = await video.open("interview.mp4")
+hits = await source.transcript.search("company almost failed")
+
+async def candidate(hit):
+    span = hit.span.expand(before=5, after=8)
+    return {"span": span,
+            "words": await source.transcript.get(span),
+            "pauses": await source.signals.pauses(span),
+            "shots": await source.shots.within(span)}
+
+candidates = await asyncio.gather(*[candidate(h) for h in hits])
+[c for c in candidates if c["words"]]
 ```
 
-(Illustrative; the API does not exist yet.) The model then decides which of the returned candidates need to be
+(Illustrative; this API is M1. The program is Python, run in a sandbox: section 5.) The model then decides which of the returned candidates need to be
 seen or heard, and asks for that with `observe`.
 
 **Code computes; only the model perceives.** A program can search, measure, filter and rank on timings, words
@@ -124,17 +130,17 @@ VIVID keeps every look outside the model's context, pinned to the file version i
 search it with one `retrieve` tool (`research-editing.md`). UberSeek keeps the same store, and makes it an object
 in the API, so a program can query and reuse past observations like any other data:
 
-```ts
-const seen = await video.observations.where({ source, focus: "visual" });
+```python
+seen = await video.observations.where(source=source, focus="visual")
 
-// Coverage: what has not been looked at closely yet?
-const gaps = source.span.minus(seen.filter(o => o.gap < 2).spans());
+# Coverage: what has not been looked at closely yet?
+gaps = source.span.minus([o.span for o in seen if o.gap < 2])
 
-// Show an earlier look again by id, without decoding the footage again
-await video.observe({ ids: [best.obsId] });
+# Show an earlier look again by id, without decoding the footage again
+await video.observe(ids=[best.obs_id])
 
-// Notes are searchable, but they are the model's interpretation, not ground truth
-const mentions = await video.observations.search("hands over the document");
+# Notes are searchable, but they are the model's interpretation, not ground truth
+mentions = await video.observations.search("hands over the document")
 ```
 
 | Operation | Does |
@@ -375,19 +381,47 @@ bigger orchestration layer:
 | Delegation, only where isolation helps | Indexing and retrieval can run apart from the deciding model |
 | Change by measurement | Harness changes are compared on held-out footage |
 
-- **An environment, hosted by an existing harness** (decided). The core is the typed video API, the bounded
-  executor and the `observe` gateway. UberSeek has no loop of its own: an existing agent harness drives the model
-  and calls it. Pydantic AI and Hermes are the candidates; one is chosen in M0 and used for all end-to-end tests.
+- **An environment, hosted by Pydantic AI** (decided in M0). The core is the typed video API, the bounded
+  executor and the `observe` gateway. UberSeek has no loop of its own: Pydantic AI drives the model and calls it.
   The same tools can be offered to Claude Code, Codex or OpenCode. The host model keeps the exploration strategy.
-- **Model contract.** A model needs tool calls and images. The host must be able to return images in a tool
-  result; M0 confirms that for the chosen host.
-- **Media, behind one interface.** FFmpeg is the reference implementation and an inner tool of the harness, run by
-  trusted host-side services. FilmCraft's codecs (through `uberscene-codec`) are an optional second
-  implementation, to be used only after it matches FFmpeg on: the frame returned for a requested timestamp,
-  variable-frame-rate seeking, sound and picture sync, colour conversion, behaviour around keyframes, and damaged
-  files. What the model sees must be identical across backends in any experiment.
-- **Media services in Python**, Whisper for transcription. The language of the API the model writes against
-  (TypeScript as in Code Mode, or Python) is open (section 10).
+  - *Why Pydantic AI.* A tool returns a picture as a typed value, and a scripted model can stand in for a real
+    one in tests and receives the actual picture. It is a library, so UberSeek's tools are one small adapter
+    (`uberseek/host/pydantic_ai.py`).
+  - *Why not Hermes.* It can carry a picture in a tool result, through an internal convention, but it is a
+    command-line application with a global tool registry, its own configuration and no stand-in model for tests.
+- **Model contract.** A model needs tool calls and images, and the picture must arrive inside the tool result.
+  Checked in M0 by capturing the request the host would send, with no model called:
+
+  | Provider API | Where the picture goes |
+  | --- | --- |
+  | Anthropic Messages | Inside the tool result, after the text. Checked |
+  | OpenAI Responses | Inside the tool output, after the text. Checked |
+  | OpenAI Chat Completions | Not inside: in a user message after the tool result. Use Responses |
+  | Google, Gemini 3 and later | Inside the function response, by the adapter's source. Not checked |
+
+  What is not yet checked: that a real model reads the picture correctly. That needs an API key (section 10).
+- **Media, behind one interface** of four calls: the file's facts, the index of every frame with its timestamp,
+  the frames at given timestamps, and the sound samples for a span. Signals and pictures are computed above it,
+  so a second backend only has to match those four. FFmpeg is the reference implementation and an inner tool of
+  the harness, run by trusted host-side services. FilmCraft's codecs (through `uberscene-codec`) are an optional
+  second implementation, to be used only after it matches FFmpeg on: the frame returned for a requested
+  timestamp, variable-frame-rate seeking, sound and picture sync, colour conversion, behaviour around keyframes,
+  and damaged files. What the model sees must be identical across backends in any experiment.
+- **Exact frames.** A frame is chosen by its presentation timestamp, never by counting or by rounding seconds.
+  Every decode reports the timestamps it produced, and they are checked against the ones asked for, so a wrong
+  seek fails loudly and never returns a neighbouring frame.
+- **Media services in Python**, Whisper for transcription.
+- **The model writes Python, run by Monty** (decided in M0). Monty is Pydantic's interpreter for a subset of
+  Python, built for running model-written code: it runs in separate worker processes, has no files, network or
+  environment unless the host passes them in, and takes limits on time and memory. Host functions can be async,
+  and a run can be paused and resumed.
+  - *Why Python and not TypeScript.* The services and the host are Python, so there is one language and no
+    second runtime; and Pydantic AI already has a code mode on Monty to compare against.
+  - *The cost.* It is a subset: no class inheritance, no generators, no `@property`, no `del`, no third-party
+    imports. The API is therefore plain functions and simple values, and M1 measures how often models write
+    outside the subset.
+  - *What it is not.* Monty's isolation is an interpreter without those capabilities plus a process boundary. It
+    is not an operating-system sandbox; a container around the worker stays an option if that is ever needed.
 
 **Safe execution.** Programs written by a model run in a real isolation boundary (a separate restricted process,
 container or isolate), never in the same process as the media services. A restricted `exec()` is not a sandbox.
@@ -412,7 +446,7 @@ uberseek/
   state/        # observation log, executions, cost
   actions/      # zoom, back, find, done as a library and as plain tools
   select/       # the selection module: compare, mark, selections, export
-  host/         # the adapter for the chosen host harness (Pydantic AI or Hermes); model contracts
+  host/         # the adapter for Pydantic AI; model contracts
 bench/          # tasks, scoring, cost report
 ```
 
@@ -475,9 +509,21 @@ measures the real variance.
 
 One vertical experiment before a broad harness.
 
-0. **M0, the observation contract.** FFmpeg-backed media services: frames, sound signals, timestamps. The
-   simplest persistent log. Proof that an observation can be reproduced exactly. Choose the host harness
-   (Pydantic AI or Hermes) and confirm it returns images in tool results. Decide the API language and the sandbox.
+0. **M0, the observation contract. Built.**
+   - *Media.* FFmpeg behind the four-call interface. Tests fetch every frame of seven clips one at a time, each
+     with its own seek, and compare it with the same frame from playing the file through: B-frames, variable
+     frame rate, HEVC, VP9, timestamps that do not start at zero, a cut that hides frames, and a rotated file.
+     All match. Sound is cut where asked and placed correctly when it starts late.
+   - *Observation.* `observe(video, start, end, focus)` picks the frames by the ladder, draws one picture
+     (numbered frames, and the sound as a strip with measured pauses shaded) and states what it delivered.
+   - *Log.* SQLite in the project folder, append-only by trigger; pictures stored under their content hash.
+   - *Proof.* `reproduce` makes an observation again from its log entry alone, in a new session, and compares:
+     the same frames by pixel hash, the same sound samples, the same picture byte for byte. It refuses a file
+     whose content has changed.
+   - *Decisions.* Pydantic AI as the host; Python run by Monty as what the model writes (section 5).
+   - *Limits, on purpose.* One span per look. No transcript, shots or map yet, so long spans are sampled evenly
+     in time. The picture is a PNG, which is exact but large. The frame index is read from packets without
+     decoding, so a codec that stores frames it never shows fails the timestamp check and is not silently wrong.
 1. **M1, the environment and a minimal explorer.** The typed API, the bounded executor, `observe` and
    `video.observations` (where, coverage, search, re-show by id), wired into
    the host harness and run end to end through it. SAVE's loop reproduced twice on the same core, once with plain tools and once as code, which is experiment E6 and
@@ -560,8 +606,10 @@ Each is added only after the one before it has shown its value in an experiment.
 
 | Question | Recommendation |
 | --- | --- |
-| Which host harness? | Pydantic AI or Hermes. Decide in M0 on which returns images in tool results cleanly and is easiest to run tests through |
-| Which language does the model write? | TypeScript in an isolate, as Code Mode does, or Python in a restricted process. Decide in M0 on which is easier to isolate and which the models write more reliably |
+| Which host harness? | Decided: Pydantic AI (section 5) |
+| Which language does the model write? | Decided: Python, run by Monty (section 5). M1 measures how often models write outside Monty's subset |
+| Does a real model read the pictures well? | Open. M0 checked that the picture arrives; reading needs an API key and a few labelled clips. First thing in M1 |
+| PNG or JPEG for what is shown? | PNG for now: exact and reproducible, but large. Measure the size on real footage before changing |
 | Which models first? | Two strong models that take images and tool calls, from different providers, to see whether results hold across models |
 | Which footage? | Interviews and action-heavy material. Reuse labelled editing sets where licences allow; label a small set of candidate pairs and boundaries ourselves |
 | Very long sources | One cheap map to start, refined in parts and cached. Measure where it fails before adding more |

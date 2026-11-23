@@ -589,6 +589,10 @@ body {
 .home ol.steps .now .n {
   color: var(--us-accent);
 }
+.home ol.steps .done .n::after {
+  content: " ✓";
+  color: var(--us-accent);
+}
 
 .home .foot {
   margin-top: 64px;

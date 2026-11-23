@@ -14,7 +14,7 @@ import { withBase } from "vitepress";
 
 <section>
 
-<p class="eyebrow"><span class="dot"></span>Design stage · no code yet · MPL-2.0</p>
+<p class="eyebrow"><span class="dot"></span>Early · first milestone built · MPL-2.0</p>
 
 <pre class="wordmark" aria-label="UberSeek">█ █ █▀▄ █▀▀ █▀█ <span class="seek">█▀▀ █▀▀ █▀▀ █ █</span>
 █ █ █▀▄ █▀▀ █▀▄ <span class="seek">▀▀█ █▀▀ █▀▀ █▀▄</span>
@@ -22,7 +22,7 @@ import { withBase } from "vitepress";
 
 <h1 class="hero-title">Video exploration for AI agents.</h1>
 
-<p class="hero-lead">The agent writes small programs to search and measure footage, asks to see images only where a judgment needs eyes, and picks the right moments. UberSeek runs inside an agent harness you already use.</p>
+<p class="hero-lead">The agent writes small programs to search and measure footage, asks to see images only where a judgment needs eyes, and picks the right moments. UberSeek runs inside an agent harness, Pydantic AI first.</p>
 
 <div class="actions">
 <a class="btn primary" :href="withBase('/design')">Read the design →</a>
@@ -100,18 +100,18 @@ import { withBase } from "vitepress";
 </div>
 
 <div class="code-panel">
-<div class="head"><span>program.ts</span><span>illustrative API</span></div>
+<div class="head"><span>program.py</span><span>illustrative API</span></div>
 
-```ts
-const source = await video.open("interview.mp4");
-const hits = await source.transcript.search("company almost failed");
+```python
+source = await video.open("interview.mp4")
+hits = await source.transcript.search("company almost failed")
 
-const candidates = await Promise.all(hits.map(async (h) => {
-  const span = h.span.expand({ before: 5, after: 8 });
-  return { span, pauses: await source.signals.pauses(span) };
-}));
+async def candidate(hit):
+    span = hit.span.expand(before=5, after=8)
+    return {"span": span, "pauses": await source.signals.pauses(span)}
 
-return video.observe({ spans: candidates.map((c) => c.span), focus: "delivery" });
+candidates = await asyncio.gather(*[candidate(h) for h in hits])
+await video.observe(spans=[c["span"] for c in candidates], focus="delivery")
 ```
 
 </div>
@@ -154,8 +154,8 @@ return video.observe({ spans: candidates.map((c) => c.span), focus: "delivery" }
 <h2 class="sec-title">Milestones.</h2>
 
 <ol class="steps">
-<li class="now"><span class="n">M0</span><span>The observation contract: frames, sound signals and timestamps, reproducible. Choose the host harness.</span></li>
-<li><span class="n">M1</span><span>The environment and a minimal explorer, run end to end through the host.</span></li>
+<li class="done"><span class="n">M0</span><span>Built. Exact frames and sound, the observation log, and proof that an observation can be made again exactly. Host: Pydantic AI.</span></li>
+<li class="now"><span class="n">M1</span><span>The environment and a minimal explorer, run end to end through the host.</span></li>
 <li><span class="n">M2</span><span>Candidate comparison against a brief.</span></li>
 <li><span class="n">M3</span><span>Boundary comparison.</span></li>
 <li><span class="n">M4</span><span>Controlled experiments: does each part beat its simpler baseline?</span></li>
