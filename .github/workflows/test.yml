@@ -3,7 +3,7 @@ name: Test
 on:
   push:
     branches: [main]
-    paths: ["uberseek/**", "tests/**", "pyproject.toml", "uv.lock", ".github/workflows/test.yml"]
+    paths: ["uberseek/**", "tests/**", "bench/**", "pyproject.toml", "uv.lock", ".github/workflows/test.yml"]
   pull_request:
 
 permissions:

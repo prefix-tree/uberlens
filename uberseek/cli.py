@@ -5,11 +5,13 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from fractions import Fraction
 from pathlib import Path
 
 from uberseek import Project
 from uberseek.media import MediaError
 from uberseek.observe.plan import FOCUSES
+from uberseek.timecode import clock
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -28,6 +30,9 @@ def main(argv: list[str] | None = None) -> int:
     reproduce = commands.add_parser("reproduce", help="make a logged observation again and compare")
     reproduce.add_argument("id", nargs="*", help="observation ids (default: all)")
 
+    transcribe = commands.add_parser("transcript", help="transcribe a video once; later looks show its words")
+    transcribe.add_argument("video")
+
     log = commands.add_parser("log", help="list observations")
     log.add_argument("--json", action="store_true")
 
@@ -42,6 +47,9 @@ def main(argv: list[str] | None = None) -> int:
                 path = Path(args.out)
                 path.write_bytes(seen.image)
             print(f"Picture: {path}")
+        elif args.command == "transcript":
+            words = project.transcribe(args.video)["words"]
+            print(" ".join(f"[{clock(Fraction(w[0]))}] {w[2]}" if i % 12 == 0 else w[2] for i, w in enumerate(words)))
         elif args.command == "reproduce":
             ids = args.id or [record["id"] for record in project.log.observations()]
             failed = 0

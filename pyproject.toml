@@ -10,12 +10,13 @@ dependencies = ["pillow>=10.1"]
 [project.optional-dependencies]
 pydantic-ai = ["pydantic-ai-slim>=2.71"]
 sandbox = ["pydantic-monty>=1.6"]
+transcript = ["faster-whisper>=1.1"]
 
 [project.scripts]
 uberseek = "uberseek.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.8", "pydantic-ai-slim[anthropic,openai]>=2.71", "pydantic-monty>=1.6"]
+dev = ["pytest>=8", "ruff>=0.8", "pydantic-ai-slim[anthropic,openai]>=2.71", "pydantic-monty>=1.6", "faster-whisper>=1.1"]
 
 [build-system]
 requires = ["hatchling"]
@@ -29,7 +30,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 140
-include = ["uberseek/**/*.py", "tests/**/*.py"]
+include = ["uberseek/**/*.py", "tests/**/*.py", "bench/**/*.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

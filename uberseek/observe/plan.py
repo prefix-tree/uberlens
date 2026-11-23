@@ -37,6 +37,7 @@ class Plan:
     in_span: int  # how many frames the span holds
     tile_long: int
     sound: tuple[Seconds, Seconds] | None  # the stretch of sound to draw
+    shots: int | None  # how many shots the span holds, when frames were chosen one per shot
     mark: Seconds | None  # an instant to mark on the sound strip
 
 
@@ -52,7 +53,31 @@ def _spread(first: int, last: int, count: int) -> list[int]:
     return sorted({first + round(i * (size - 1) / (count - 1)) for i in range(count)})
 
 
-def plan(index: FrameIndex, duration: Seconds, has_sound: bool, start: Seconds, end: Seconds, focus: str) -> Plan:
+def _slices(first: int, last: int, count: int) -> list[int]:
+    """The middle position of each of up to `count` equal slices of first..last."""
+    size = last - first + 1
+    count = min(count, size)
+    return [first + (2 * i + 1) * size // (2 * count) for i in range(count)]
+
+
+def _shots(index: FrameIndex, first: int, last: int, cuts: list[int]) -> list[tuple[int, int]]:
+    """The shots inside first..last, as position ranges. A cut is the first frame of a new shot."""
+    starts = [first, *(p for pts in cuts if first < (p := index.position(index.time(pts))) <= last)]
+    return list(zip(starts, [*(s - 1 for s in starts[1:]), last], strict=True))
+
+
+MIN_SHOTS = 8  # with fewer shots than this, one frame per shot shows too little
+
+
+def plan(
+    index: FrameIndex,
+    duration: Seconds,
+    has_sound: bool,
+    start: Seconds,
+    end: Seconds,
+    focus: str,
+    cuts: list[int] | None = None,
+) -> Plan:
     if focus not in FOCUSES:
         raise ValueError(f"focus must be one of {', '.join(FOCUSES)}")
     if end < start:
@@ -63,7 +88,7 @@ def plan(index: FrameIndex, duration: Seconds, has_sound: bool, start: Seconds, 
     level = _level(span)
     _, most, tile_long = LADDER[level]
     first, last = index.position(start), index.position(end)
-    sound, mark = (start, end), None
+    sound, mark, shots = (start, end), None, None
 
     if focus == "boundary":
         # Consecutive frames around one instant, and two seconds of sound centred on it.
@@ -81,10 +106,20 @@ def plan(index: FrameIndex, duration: Seconds, has_sound: bool, start: Seconds, 
         positions = _spread(first, last, min(most, 12))
     elif level == "passage":
         positions = _spread(first, last, min(most, max(4, math.ceil(span / 2))))
+    elif level in ("section", "map"):
+        # One frame per shot where there are enough shots; otherwise one per equal slice of time.
+        found = _shots(index, first, last, cuts or [])
+        if level == "section" and len(found) >= MIN_SHOTS:
+            shots = len(found)
+            found = [found[i] for i in _spread(0, shots - 1, most)]
+            positions = [(a + b) // 2 for a, b in found]
+        else:
+            positions = _slices(first, last, most)
     else:
         positions = _spread(first, last, most)
 
-    drawn = has_sound and sound[1] > sound[0] and (focus in ("speech", "delivery", "boundary") or level == "moment")
+    wide = level in ("moment", "section", "map")
+    drawn = has_sound and sound[1] > sound[0] and (focus in ("speech", "delivery", "boundary") or wide)
     return Plan(
         level=level,
         start=start,
@@ -93,6 +128,7 @@ def plan(index: FrameIndex, duration: Seconds, has_sound: bool, start: Seconds, 
         in_span=last - first + 1,
         tile_long=tile_long,
         sound=sound if drawn else None,
+        shots=shots,
         mark=mark,
     )
 
@@ -105,7 +141,7 @@ def tile_size(display: tuple[int, int], long_side: int, count: int) -> tuple[tup
     scale = min(
         Fraction(long_side, max(width, height)),
         Fraction(MAX_SIDE, columns * width),
-        Fraction(MAX_SIDE - 160, rows * height),  # room for the sound strip
+        Fraction(MAX_SIDE - 160 - rows * 40, rows * height),  # room for the sound strip and the words
         1,
     )
     return (max(2, int(width * scale)), max(2, int(height * scale))), columns

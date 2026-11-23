@@ -18,7 +18,8 @@ from uberseek.timecode import Seconds, clock
 
 GAP = 4
 STRIP_HEIGHT = 120
-_INK, _PAPER, _DIM, _WAVE, _QUIET, _MARK = "#f2f2f2", "#161616", "#8a8a8a", "#7698fd", "#2a2a2a", "#ffb000"
+_INK, _PAPER, _DIM, _WAVE, _QUIET, _MARK, _CUT = "#f2f2f2", "#161616", "#8a8a8a", "#7698fd", "#2a2a2a", "#ffb000", "#ff5c5c"
+CAPTION_LINES = 2
 
 
 def _font(size: int) -> ImageFont.FreeTypeFont:
@@ -32,17 +33,43 @@ def _label(draw: ImageDraw.ImageDraw, xy: tuple[int, int], text: str, size: int)
     draw.text(xy, text, font=font, fill=_INK)
 
 
-def sheet(frames: list[Frame], times: list[Seconds], columns: int) -> Image.Image:
-    """Frames in time order, left to right and top to bottom, each with its number and time."""
+def _wrap(draw: ImageDraw.ImageDraw, text: str, font, width: int, lines: int) -> list[str]:
+    """Break text into at most `lines` lines that fit `width`, ending with an ellipsis when it is cut."""
+    out, words = [""], text.split()
+    for i, word in enumerate(words):
+        longer = f"{out[-1]} {word}".strip()
+        if draw.textlength(longer, font=font) <= width:
+            out[-1] = longer
+        elif len(out) < lines:
+            out.append(word)
+        else:
+            while out[-1] and draw.textlength(out[-1] + "…", font=font) > width:
+                out[-1] = out[-1][:-1]
+            out[-1] += "…" if i < len(words) else ""
+            break
+    return out
+
+
+def sheet(frames: list[Frame], times: list[Seconds], columns: int, captions: list[str] | None = None) -> Image.Image:
+    """Frames in time order, left to right and top to bottom, each with its number and time.
+
+    With captions, the words said from each frame until the next are written under it.
+    """
     width, height = frames[0].width, frames[0].height
     rows = -(-len(frames) // columns)
-    image = Image.new("RGB", (columns * width + (columns - 1) * GAP, rows * height + (rows - 1) * GAP), _PAPER)
-    draw = ImageDraw.Draw(image)
     size = max(11, min(20, width // 22))
+    small = _font(max(11, min(15, width // 26)))
+    line = small.size + 4
+    below = CAPTION_LINES * line + 4 if captions else 0
+    image = Image.new("RGB", (columns * width + (columns - 1) * GAP, rows * (height + below) + (rows - 1) * GAP), _PAPER)
+    draw = ImageDraw.Draw(image)
     for i, (frame, time) in enumerate(zip(frames, times, strict=True)):
-        x, y = (i % columns) * (width + GAP), (i // columns) * (height + GAP)
+        x, y = (i % columns) * (width + GAP), (i // columns) * (height + below + GAP)
         image.paste(Image.frombytes("RGB", (width, height), frame.rgb), (x, y))
         _label(draw, (x + 6, y + 5), f"{i + 1}  {clock(time)}", size)
+        if captions:
+            for n, text in enumerate(_wrap(draw, captions[i], small, width - 8, CAPTION_LINES)):
+                draw.text((x + 4, y + height + 3 + n * line), text, font=small, fill=_INK)
     return image
 
 
@@ -96,9 +123,14 @@ def strip(
     ticks: list[Seconds],
     mark: Seconds | None,
     caption: str,
+    cuts: list[Seconds] = (),
+    words: list[tuple[Seconds, Seconds, str]] = (),
 ) -> Image.Image:
-    """The sound over the window: the wave, silences shaded, a numbered tick for each frame shown."""
-    image = Image.new("RGB", (width, STRIP_HEIGHT), _PAPER)
+    """The sound over the window: the wave, silences shaded, a numbered tick for each frame shown.
+
+    Cuts are red lines. Words are marked where they start, and written out when there is room.
+    """
+    image = Image.new("RGB", (width, STRIP_HEIGHT + (18 if words else 0)), _PAPER)
     draw = ImageDraw.Draw(image)
     start, end = window
     top, bottom = 22, STRIP_HEIGHT - 22
@@ -111,6 +143,9 @@ def strip(
         draw.rectangle((x(a), top, x(b), bottom), fill=_QUIET)
     for column, (low, high) in enumerate(wave):
         draw.line((column, middle - int(high * half), column, middle - int(low * half)), fill=_WAVE)
+    for t in cuts:
+        if start <= t <= end:
+            draw.line((x(t), top, x(t), bottom), fill=_CUT, width=2)
     for number, t in enumerate(ticks, start=1):
         if start <= t <= end:
             draw.line((x(t), top - 6, x(t), top), fill=_INK)
@@ -120,6 +155,13 @@ def strip(
     draw.text((0, bottom + 5), f"{clock(start)}  {caption}", font=_font(12), fill=_DIM)
     right = clock(end)
     draw.text((width - draw.textlength(right, font=_font(12)), bottom + 5), right, font=_font(12), fill=_DIM)
+    free = 0  # words are written left to right; one that would overlap the last is only marked
+    for a, _, text in words:
+        if start <= a <= end:
+            draw.line((x(a), bottom - 5, x(a), bottom), fill=_INK)
+            if x(a) >= free:
+                draw.text((x(a), STRIP_HEIGHT - 2), text, font=_font(12), fill=_INK)
+                free = x(a) + draw.textlength(text, font=_font(12)) + 6
     return image
 
 

@@ -11,12 +11,13 @@ import statistics
 import time
 from dataclasses import dataclass, field
 from fractions import Fraction
+from functools import partial
 from itertools import pairwise
 from pathlib import Path
 
 import PIL
 
-from uberseek.ingest import signals
+from uberseek.ingest import signals, transcript
 from uberseek.media import FFmpegBackend, FrameIndex, FrameRef, MediaBackend, MediaError, SourceInfo
 from uberseek.observe import render
 from uberseek.observe.plan import SAMPLE_RATE, WAVEFORM_MAX, plan, tile_size
@@ -64,9 +65,10 @@ def _fraction(value: Fraction) -> str:
 class Project:
     """A folder holding the log, the pictures shown and what was derived from each source."""
 
-    def __init__(self, root: Path | str = ".", backend: MediaBackend | None = None):
+    def __init__(self, root: Path | str = ".", backend: MediaBackend | None = None, transcript_model: str = transcript.MODEL):
         self.log = Log(Path(root))
         self.backend = backend or FFmpegBackend()
+        self.transcript_model = transcript_model
 
     def open(self, path: Path | str) -> Source:
         path = Path(path)
@@ -94,10 +96,13 @@ class Project:
         """Show a span of the footage. The caller sets the span and the focus; the harness sets the rest."""
         source = self.open(path)
         start = seconds(start)
-        made = plan(
-            source.index, source.info.duration, source.info.audio is not None,
-            start, start if end is None else seconds(end), focus,
-        )  # fmt: skip
+        asked = (source.index, source.info.duration, source.info.audio is not None, start, start if end is None else seconds(end), focus)
+        # Cuts cost a pass over the whole picture, so they are made only for a look that is planned by shots,
+        # and used elsewhere when they already exist. The recipe says which, so the look can be made again.
+        use_cuts = plan(*asked).level in ("section", "map") or self.log.has_derived(source.hash, "cuts")
+        made = plan(*asked, cuts=self._cuts(source) if use_cuts else None)
+        words = transcript.name(self.transcript_model)
+        words = words if self.log.has_derived(source.hash, words) else None
         size, columns = tile_size((source.info.video.width, source.info.video.height), made.tile_long, len(made.targets))
         request = {
             "start": _fraction(made.start),
@@ -112,6 +117,11 @@ class Project:
             "columns": columns,
             "sound": [_fraction(t) for t in made.sound] if made.sound else None,
             "mark": _fraction(made.mark) if made.mark is not None else None,
+            "span": [_fraction(made.start), _fraction(made.end)],
+            "focus": focus,
+            "cuts": use_cuts,
+            "shots": made.shots,
+            "words": words,
         }
         began = time.perf_counter()
         image, delivered = self._render(source, recipe)
@@ -138,6 +148,18 @@ class Project:
             }
         )
         return Observation(record["id"], image, _describe(record, source), record)
+
+    def transcribe(self, path: Path | str) -> dict:
+        """Make the transcript of a source, once. Later looks at that source show its words."""
+        source = self.open(path)
+        if source.info.audio is None:
+            raise MediaError(f"{source.path.name} has no sound to transcribe")
+        model = self.transcript_model
+        make = partial(transcript.transcribe, source.path, self.backend, source.info.duration, model)
+        return self.log.derived(source.hash, transcript.name(model), make)
+
+    def _cuts(self, source: Source) -> list[int]:
+        return self.log.derived(source.hash, "cuts", lambda: signals.cuts(source.path))["pts"]
 
     def show(self, id: str) -> Observation:
         """A past observation again, from its stored picture. Nothing is decoded."""
@@ -169,14 +191,22 @@ class Project:
         index, targets = source.index, recipe["targets"]
         frames = self.backend.frames(source.path, index, targets, tuple(recipe["frame_size"]))
         times = [index.time(pts) for pts in targets]
-        picture = render.sheet(frames, times, recipe["columns"])
-        delivered: dict = {
-            "time_base": _fraction(index.time_base),
-            "frames": [{"pts": f.pts, "pixels_sha256": f.pixel_hash} for f in frames],
-            "size": None,
-            "drawn": ["frames"],
-            "sound": None,
-        }
+        span = [Fraction(t) for t in recipe.get("span") or (times[0], times[-1])]
+        delivered: dict = {"time_base": _fraction(index.time_base), "frames": [], "size": None, "drawn": ["frames"], "sound": None}
+        delivered["frames"] = [{"pts": f.pts, "pixels_sha256": f.pixel_hash} for f in frames]
+
+        said, captions = [], None
+        if recipe.get("words"):
+            said = self.log.derived(source.hash, recipe["words"], _missing("the transcript"))
+            captions = transcript.by_frame(said["words"], times, span[1])
+            delivered["words"] = {"tool": said["tool"], "model": said["model"], "by_frame": captions}
+            delivered["drawn"].append("words")
+            said = said["words"]
+        cuts = [index.time(pts) for pts in self._cuts(source)] if recipe.get("cuts") else []
+        if recipe.get("cuts"):
+            delivered["cuts"] = [_fraction(t) for t in cuts if span[0] < t <= span[1]]
+        picture = render.sheet(frames, times, recipe["columns"], captions)
+
         if recipe["sound"]:
             start, end = (Fraction(t) for t in recipe["sound"])
             quiet = self.log.derived(source.hash, "silences", lambda: signals.silences(source.path))
@@ -197,10 +227,22 @@ class Project:
             }
             delivered["drawn"] += [delivered["sound"]["kind"], "silences"]
             mark = Fraction(recipe["mark"]) if recipe["mark"] else None
-            caption += ", silences shaded, ticks are the numbered frames" + (", the line is the instant asked about" if mark else "")
-            picture = render.stack(picture, render.strip(picture.width, (start, end), wave, pauses, times, mark, caption))
+            on_strip = recipe.get("focus") in ("speech", "delivery", "boundary") and end - start <= WAVEFORM_MAX
+            spoken = transcript.within(said, start, end) if on_strip else []
+            caption += ", silences shaded, ticks are the numbered frames"
+            caption += ", red lines are cuts" if cuts else ""
+            caption += ", the yellow line is the instant asked about" if mark else ""
+            strip = render.strip(picture.width, (start, end), wave, pauses, times, mark, caption, cuts, spoken)
+            picture = render.stack(picture, strip)
         delivered["size"] = list(picture.size)
         return render.png(picture), delivered
+
+
+def _missing(what: str):
+    def fail():
+        raise MediaError(f"{what} this observation used is not in this project")
+
+    return fail
 
 
 def _describe(record: dict, source: Source | None) -> str:
@@ -222,6 +264,20 @@ def _describe(record: dict, source: Source | None) -> str:
         lines.append(
             f"{count} frames from {clock(times[0])} to {clock(times[-1])}, {apart}, {width}x{height} each, "
             f"numbered in time order. The span holds {delivered['frames_in_span']} frames."
+        )
+    if recipe.get("shots"):
+        lines.append(f"One frame per shot: the span holds {recipe['shots']} shots.")
+    if cuts := delivered.get("cuts"):
+        shown = ", ".join(clock(Fraction(t)) for t in cuts[:12])
+        lines.append(f"{len(cuts)} cut{'s' if len(cuts) > 1 else ''} in the span, at {shown}{' and later' if len(cuts) > 12 else ''}.")
+    elif "cuts" in delivered:
+        lines.append("No cuts in the span.")
+    if words := delivered.get("words"):
+        spoken = [f"{i}: {text[:200]}" for i, text in enumerate(words["by_frame"], start=1) if text]
+        lines.append(
+            f"Words from each frame until the next (transcribed by {words['tool']} {words['model']}; an estimate, a word can be wrong): "
+            + ("; ".join(spoken) if spoken else "none")
+            + "."
         )
     sound = delivered["sound"]
     if sound:

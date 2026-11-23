@@ -108,6 +108,10 @@ class Log:
             self.db.execute("INSERT OR REPLACE INTO derived VALUES (?, ?, ?)", (source, name, json.dumps(data)))
         return data
 
+    def has_derived(self, source: str, name: str) -> bool:
+        row = self.db.execute("SELECT 1 FROM derived WHERE source = ? AND name = ?", (source, name)).fetchone()
+        return row is not None
+
     def content_hash(self, path: Path) -> str:
         """SHA-256 of the file. Reused while the file's size and modification time are unchanged."""
         stat = path.stat()

@@ -42,7 +42,37 @@ def clips(tmp_path_factory) -> dict[str, Path]:
     clips["late_sound"] = make(
         d / "late_sound.mkv", *video, "-itsoffset", "1", "-f", "lavfi", "-i", "sine=frequency=440:duration=3", *h264, "-c:a", "aac"
     )
+    # Three shots: cuts at 2.5 s and 4.5 s.
+    parts = [
+        "smptebars=size=320x180:rate=30:duration=2.5",
+        "testsrc=size=320x180:rate=30:duration=2",
+        "gradients=size=320x180:rate=30:duration=1.5",
+    ]
+    clips["three_shots"] = make(d / "three_shots.mp4", *lavfi(parts), "-filter_complex", "concat=n=3:v=1:a=0", *h264)
+    # Eighty seconds in ten shots of eight seconds, small and at five frames a second so it is quick to make.
+    parts = [f"{'smptebars' if i % 2 else 'testsrc'}=size=160x90:rate=5:duration=8" for i in range(10)]
+    clips["ten_shots"] = make(d / "ten_shots.mp4", *lavfi(parts), "-filter_complex", "concat=n=10:v=1:a=0", *h264, "-g", "10")
+    # Twelve minutes, one shot.
+    clips["long"] = make(d / "long.mp4", "-f", "lavfi", "-i", "testsrc=size=160x90:rate=2:duration=720", *h264, "-g", "20")
     return clips
+
+
+def lavfi(sources: list[str]) -> list[str]:
+    return [arg for source in sources for arg in ("-f", "lavfi", "-i", source)]
+
+
+SPOKEN = "The company almost failed in the second year. We had no money left and nobody believed in us."
+
+
+@pytest.fixture(scope="session")
+def speech(tmp_path_factory) -> Path:
+    """A synthetic voice saying SPOKEN from 1.5 s, over a moving picture. Skipped where FFmpeg cannot speak."""
+    filters = subprocess.run(["ffmpeg", "-hide_banner", "-filters"], capture_output=True, text=True).stdout
+    if " flite " not in filters:
+        pytest.skip("this FFmpeg has no speech synthesis (flite)")
+    inputs = ["-f", "lavfi", "-i", f"flite=text='{SPOKEN}':voice=slt", "-f", "lavfi", "-i", "testsrc2=size=320x180:rate=25:duration=9"]
+    encode = ["-af", "adelay=1500,apad=pad_dur=2", "-shortest", "-c:v", "libx264", "-c:a", "aac"]
+    return make(tmp_path_factory.mktemp("speech") / "speech.mp4", *inputs, *encode)
 
 
 @pytest.fixture(scope="session")
