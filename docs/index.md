@@ -47,7 +47,7 @@ import { withBase } from "vitepress";
 
 <section class="abstract" aria-labelledby="abstract-title">
 
-<p class="sec-label">Paper · in preparation</p>
+<p class="sec-label">Abstract </p>
 <h2 id="abstract-title" class="paper-title">Looking Where It Matters: Programmable, Decision-Led Video Exploration for Editorial Selection by AI Agents</h2>
 <p class="paper-meta">Working title · draft abstract · the experiments are planned, not run</p>
 
