@@ -87,13 +87,24 @@ and read every result. It writes a short program against a typed video API; the 
 intermediate data (transcripts, timings, signals, a hundred candidates) stays there; only a compact result comes
 back. This is Cloudflare's Code Mode idea applied to video.
 
-Three primitives:
+**A shell for video.** A coding agent is effective because a few general operations (search, read, combine) let
+it explore any codebase, with no special tool for each kind of analysis. The base follows the same principle:
 
-| Primitive | Does |
-| --- | --- |
-| `discover` | Returns the parts of the API relevant to the task, so the whole API never sits in context |
-| `execute(program)` | Runs a bounded program against the API and returns its result |
-| `observe(spans, focus)` | Delivers images of the footage to the model as an observation, by artifact id |
+| Operation | Like | Does |
+| --- | --- | --- |
+| `find(query)` | `grep` | Returns candidate spans that may match a description in words, or that resemble an earlier span |
+| `observe(span, focus)` | `cat` | Delivers images of the footage to the model as an observation, by artifact id |
+| `execute(program)` | A shell script | Runs a bounded program that combines searches, measurements and looks, and returns its result |
+
+- **The API is a small library, and `execute` is one way to run it.** A host that is itself a coding agent can
+  import the library and write ordinary Python; a host without a shell calls `execute`, which runs the same
+  program in the sandbox. There is no query language.
+- **No `discover` for now.** A catalogue that small fits in the tool description. `discover` comes back only if
+  the API grows past what a model can hold.
+- **Memory is part of the runtime, not a tool to remember to call.** Every `find` and `observe` is logged as it
+  happens, and a program can read the log (below).
+- **The base does not know the creative task.** `ripgrep` does not know why a line is wanted. The base supplies
+  operations that compose; the agent, and the modules above, supply the purpose.
 
 ```python
 source = await video.open("interview.mp4")
@@ -112,6 +123,43 @@ candidates = await asyncio.gather(*[candidate(h) for h in hits])
 
 (Illustrative; this API is M1. The program is Python, run in a sandbox: section 5.) The model then decides which of the returned candidates need to be
 seen or heard, and asks for that with `observe`.
+
+**`find` returns candidates, never answers.** Search in video is not `grep`:
+
+| | `grep` in code | `find` in video |
+| --- | --- | --- |
+| Match | Exact | A similarity score; "looks as if she lost trust in him" is not a predicate anything can test |
+| No results means | It is not there | Nothing: the moment may exist and have been missed |
+| Cost | Negligible | An index built once per source, then cheap |
+
+So the rules for `find` are:
+
+- **What it searches.** The transcript, and frames indexed by an image-and-text embedding model. Each candidate
+  says how it was found (words, picture, or both) and with what score. A score is an estimate (see signals), kept
+  with the model and version that produced it.
+- **Results feed the next search.** `after`, `before` and `within` restrict a search in time, and `like` searches
+  for what resembles an earlier span. "The same book appears again" is then two calls joined by a program:
+
+  ```python
+  opened = await video.find("someone opens a red book")
+  later = await video.find(like=opened[0].span, after=opened[0].span.end)
+  ```
+
+- **It does not plan.** `find` is one retrieval, not an agent inside a tool. A composite question is composed by
+  the agent in a program, where its cost and the reason for a failure stay visible.
+- **A candidate is not seen.** It counts as found only after an `observe` of it.
+- **An empty result needs a fallback.** The map and the ladder are how the agent looks where search found
+  nothing, and `observations.coverage` says what has not been looked at.
+- **It has to earn its place.** Picture search costs an index per source. If it does not locate better than the
+  transcript plus the ladder, it is dropped and `find` stays text-only (E0).
+
+**No answers from a hidden model.** `observe` could take a question and return a caption written by a second
+model. It does not: that caption would come back looking like a fact, and the agent that decides would not have
+seen the footage. `purpose` records what a look is for; the pictures go to the deciding model. Delegating a look
+to a cheaper model is a possible later arm, logged as an estimate.
+
+**Measurements are the exact part.** Word timings, pauses, loudness and cuts are deterministic and cheap, as
+`grep` is. Programs use them freely (signals, below).
 
 **Code computes; only the model perceives.** A program can search, measure, filter and rank on timings, words
 and signals. It cannot judge framing, expression or whether a cut lands. Any decision of that kind needs an
@@ -163,7 +211,7 @@ mentions = await video.observations.search("hands over the document")
 - **Bounded requests.** A program or `observe` asking for more than its caps returns a bounded part and the next
   request to make, pinned to the same version (VIVID).
 
-**The simple actions remain, as a library.** `zoom(span, focus)`, `back`, `find(text)` and `done` are functions
+**The simple actions remain, as a library.** `zoom(span, focus)`, `back` and `done` are functions
 built on the same API, and can be exposed as plain tools for a model that does better with a small vocabulary.
 Whether code beats those tools is an experiment (E6), not an assumption: writing and debugging programs costs
 output tokens, and Code Mode's published savings are for very large tool catalogues, not for a handful of video
@@ -375,7 +423,7 @@ bigger orchestration layer:
 | --- | --- |
 | Context kept small | Media and large outputs stay outside the model's context; only what the next decision needs is loaded |
 | Durable state | Observations, candidates, selections and preferences persist across calls and sessions |
-| A small surface | Three primitives (`discover`, `execute`, `observe`); the simple actions as a library on top |
+| A small surface | Three operations (`find`, `observe`, `execute`); the simple actions as a library on top |
 | Checks before "done" | By code: selections play, source versions and timestamps are valid, constraints of the brief are met |
 | Recovery | A long exploration resumes from the log |
 | Delegation, only where isolation helps | Indexing and retrieval can run apart from the deciding model |
@@ -468,6 +516,7 @@ locate; if this fails, the ladder may still be a useful interface, but there is 
 | E3 | Does the **brief** change which moments are right? | General relevance ranking vs ranking conditioned on the brief, same footage under several briefs | Agreement with editors working to each brief | Conditioning adds nothing over relevance |
 | E4 | Does **decision-led looking** beat the alternatives? | Free inspection (VIVID-style); SAVE; the ladder; the decision loop of section 3 | Editor preference, missed alternatives, cost, share of looks that changed a decision | It is no better than plain range exploration |
 | E6 | Does **code** beat plain tools? | A: plain tools (`find`, `zoom`, `compare`, `mark`); B: the API through `execute` only; C: `execute` plus `observe` | Accuracy on locate, choose and trim; tokens in and out; round trips; wall time; failed or invalid programs | The model spends more writing and fixing programs than it saves; then plain tools are the surface |
+| E7 | Are three operations **enough**? | The same surface on tasks of different kinds: short clips, long video, motion, sound, relations between events | Share of tasks solved with no new operation; which missing operation each failure would have needed | A kind of task fails for lack of an operation; then that operation is added and named |
 | E5 | Does **boundary comparison** improve trimming? | Transcript boundaries; silence boundaries; boundary comparison | Blind preference between boundaries; speech left intact | It does no better than the simple boundaries |
 
 Rules for all of them:
@@ -524,10 +573,12 @@ One vertical experiment before a broad harness.
    - *Limits, on purpose.* One span per look. No transcript, shots or map yet, so long spans are sampled evenly
      in time. The picture is a PNG, which is exact but large. The frame index is read from packets without
      decoding, so a codec that stores frames it never shows fails the timestamp check and is not silently wrong.
-1. **M1, the environment and a minimal explorer.** The typed API, the bounded executor, `observe` and
+1. **M1, the environment and a minimal explorer.** First, a real model reads M0's pictures. Then the library
+   (`find` over the transcript, signals, `observe`), the bounded executor and
    `video.observations` (where, coverage, search, re-show by id), wired into
    the host harness and run end to end through it. SAVE's loop reproduced twice on the same core, once with plain tools and once as code, which is experiment E6 and
-   settles the surface early. No separate orchestration framework.
+   settles the surface early. Picture search is added to `find` only after text search and the ladder are measured.
+   No separate orchestration framework.
 2. **M2, candidate comparison.** The brief and profile, the candidate set, the cheap measured signals, and
    `compare` with matched frames, sound strips and context. Preferences recorded with their context.
 3. **M3, boundary comparison.** `mark` with alternative cut points shown as dense frames with the sound strip.

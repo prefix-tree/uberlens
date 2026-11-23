@@ -82,20 +82,20 @@ import { withBase } from "vitepress";
 
 <p class="sec-label">How</p>
 <h2 class="sec-title">Code computes. The model looks.</h2>
-<p class="sec-lead">Three primitives, called from any agent harness that supports tools. Transcripts, timings and signals stay in a sandbox; only what a decision needs reaches the model.</p>
+<p class="sec-lead">A shell for video: three operations, called from any agent harness that supports tools. Transcripts, timings and signals stay in a sandbox; only what a decision needs reaches the model.</p>
 
 <div class="grid3">
 <div>
-<code class="name">discover</code>
-<p>Returns the parts of the video API a task needs, so the whole API never sits in context.</p>
-</div>
-<div>
-<code class="name">execute</code>
-<p>Runs a bounded program against the API in a sandbox and returns a compact result.</p>
+<code class="name">find</code>
+<p>Returns candidate spans that may match a description, or that resemble an earlier span. Candidates, never answers.</p>
 </div>
 <div>
 <code class="name">observe</code>
 <p>Shows images of the footage: frames, contact sheets, crops, with sound drawn as a strip. The harness decides how much.</p>
+</div>
+<div>
+<code class="name">execute</code>
+<p>Runs a bounded program that combines searches, measurements and looks, and returns a compact result.</p>
 </div>
 </div>
 
@@ -104,7 +104,7 @@ import { withBase } from "vitepress";
 
 ```python
 source = await video.open("interview.mp4")
-hits = await source.transcript.search("company almost failed")
+hits = await source.find("she admits the company almost failed")
 
 async def candidate(hit):
     span = hit.span.expand(before=5, after=8)
