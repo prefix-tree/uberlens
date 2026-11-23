@@ -155,7 +155,7 @@ await video.observe(spans=[c["span"] for c in candidates], focus="delivery")
 
 <ol class="steps">
 <li class="done"><span class="n">M0</span><span>Built. Exact frames and sound, the observation log, and proof that an observation can be made again exactly. Host: Pydantic AI.</span></li>
-<li class="now"><span class="n">M1</span><span>The environment and a minimal explorer, run end to end through the host.</span></li>
+<li class="now"><span class="n">M1</span><span>Under way. Cuts, the transcript and real footage are in, and two models read the pictures correctly. Next: the library and the executor, run end to end through the host.</span></li>
 <li><span class="n">M2</span><span>Candidate comparison against a brief.</span></li>
 <li><span class="n">M3</span><span>Boundary comparison.</span></li>
 <li><span class="n">M4</span><span>Controlled experiments: does each part beat its simpler baseline?</span></li>

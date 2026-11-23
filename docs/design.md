@@ -16,7 +16,8 @@ It has two layers:
 It is built in iterations. The first iteration is the base plus the selection module. Later iterations add
 carrying out edits, reviewing the result and handling revisions (section 9).
 
-**Status.** M0 is built: exact frames and sound from FFmpeg, the observation log, `observe` as a tool in
+**Status.** M0 is built, and M1 is under way (cuts, the transcript, real footage, and a check that two models
+read the pictures correctly). M0 gave: exact frames and sound from FFmpeg, the observation log, `observe` as a tool in
 Pydantic AI, and the proof that an observation can be made again exactly (section 7). The typed API and the
 executor come next, in M1.
 
@@ -582,9 +583,18 @@ One vertical experiment before a broad harness.
    - *Done: real footage.* Six NASA videos (an interview, a briefing, an explainer, two action reels, a vertical
      short), fetched by a manifest with hashes (`bench/footage`). 21 draft locate tasks, written by a model from
      the transcript and the cuts, so **none can score a model until a person confirms it**.
-   - *Built, not yet run: the reading check* (`bench/reading`). 20 questions of five kinds on generated clips
-     whose answers are known, put to two models through the host; each answer is checked against the log. One
-     run went through end to end and was answered correctly. The full run waits for API credit.
+   - *Done: the reading check* (`bench/reading`). Two models (Claude Sonnet 5.5 and GPT 5.6 Terra, through
+     OpenRouter) each answered 20 questions three times on generated clips whose answers are known; each answer
+     is checked against the log. All five kinds of question scored 12/12 for both: reading the grid in time
+     order, the printed times, a scene change between neighbours, the sound strip against the ticks, and the
+     boundary view. The picture format stays.
+   - *What the check caught.* Asked for "the two consecutive frames" around a cut, GPT scored 0/12: it found
+     the cut and answered in frame numbers of the video. "Frame" meant two things. Every observation now says
+     that a number means a picture on the sheet.
+   - *Words: under the pictures, in the text, or both.* On real footage, "which picture is on screen when this
+     word is said" scored 24/24 for both models all three ways, so that question does not separate them. Text
+     only used about a fifth fewer input tokens than both. The default stays both until a question that needs
+     word and picture together is measured.
    - *What it cost on real footage* (CPU, no GPU): a 19-minute interview took 291 s to transcribe and 18 s to
      scan for cuts, once. Six looks on real files were made again exactly in 14 s.
    - *Found and fixed on the way.* Signals were measured on a timeline shifted by the file's start time, so on
@@ -675,7 +685,8 @@ Each is added only after the one before it has shown its value in an experiment.
 | --- | --- |
 | Which host harness? | Decided: Pydantic AI (section 5) |
 | Which language does the model write? | Decided: Python, run by Monty (section 5). M1 measures how often models write outside Monty's subset |
-| Does a real model read the pictures well? | Open. The check is built (`bench/reading`) and waits for API credit. If a kind of question scores under 90% for either model, the picture format changes and the check is run again |
+| Does a real model read the pictures well? | Yes on generated clips: 12/12 on five kinds of question for two models (section 7, `bench/reading/results`). Not yet measured on hard real footage |
+| Where do the words go? | Open. Under the pictures, in the text and both all read correctly; text is cheapest. Needs a question where word and picture must be judged together |
 | Who confirms the locate tasks? | Open. The 21 drafts need a person to watch each one; until then they are not ground truth |
 | PNG or JPEG for what is shown? | PNG for now: exact and reproducible, but large. Measure the size on real footage before changing |
 | Which models first? | Two strong models that take images and tool calls, from different providers, to see whether results hold across models |

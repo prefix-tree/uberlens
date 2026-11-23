@@ -65,10 +65,17 @@ def _fraction(value: Fraction) -> str:
 class Project:
     """A folder holding the log, the pictures shown and what was derived from each source."""
 
-    def __init__(self, root: Path | str = ".", backend: MediaBackend | None = None, transcript_model: str = transcript.MODEL):
+    def __init__(
+        self,
+        root: Path | str = ".",
+        backend: MediaBackend | None = None,
+        transcript_model: str = transcript.MODEL,
+        words_in: tuple[str, ...] = ("picture", "text"),
+    ):
         self.log = Log(Path(root))
         self.backend = backend or FFmpegBackend()
         self.transcript_model = transcript_model
+        self.words_in = words_in  # where a look puts the words: under the pictures, in the text, or both
 
     def open(self, path: Path | str) -> Source:
         path = Path(path)
@@ -122,6 +129,7 @@ class Project:
             "cuts": use_cuts,
             "shots": made.shots,
             "words": words,
+            "words_in": list(self.words_in),
         }
         began = time.perf_counter()
         image, delivered = self._render(source, recipe)
@@ -199,8 +207,9 @@ class Project:
         if recipe.get("words"):
             said = self.log.derived(source.hash, recipe["words"], _missing("the transcript"))
             captions = transcript.by_frame(said["words"], times, span[0], span[1])
-            captions = captions if any(captions) else None  # no room is kept for words when nothing is said
-            delivered["words"] = {"tool": said["tool"], "model": said["model"], "by_frame": captions or []}
+            delivered["words"] = {"tool": said["tool"], "model": said["model"], "by_frame": captions}
+            # No room is kept for words when nothing is said, or when the words go in the text only.
+            captions = captions if any(captions) and "picture" in recipe.get("words_in", ["picture"]) else None
             delivered["drawn"] += ["words"] if captions else []
             said = said["words"]
         cuts = [index.time(pts) for pts in self._cuts(source)] if recipe.get("cuts") else []
@@ -264,7 +273,9 @@ def _describe(record: dict, source: Source | None) -> str:
         apart = f"{gap['median']:.3f} s apart" + (f" (at most {gap['max']:.3f} s)" if gap["max"] > gap["median"] * 1.01 else "")
         lines.append(
             f"{count} frames from {clock(times[0])} to {clock(times[-1])}, {apart}, {width}x{height} each, "
-            f"numbered in time order. The span holds {delivered['frames_in_span']} frames."
+            f"in time order. Each picture has its number and its time printed in its corner; "
+            f"a number in this text or on the strip means that picture, not a frame count of the video. "
+            f"The span holds {delivered['frames_in_span']} frames."
         )
     if recipe.get("shots"):
         lines.append(f"One frame per shot: the span holds {recipe['shots']} shots.")
@@ -273,7 +284,7 @@ def _describe(record: dict, source: Source | None) -> str:
         lines.append(f"{len(cuts)} cut{'s' if len(cuts) > 1 else ''} in the span, at {shown}{' and later' if len(cuts) > 12 else ''}.")
     elif "cuts" in delivered:
         lines.append("No cuts in the span.")
-    if words := delivered.get("words"):
+    if (words := delivered.get("words")) and "text" in recipe.get("words_in", ["text"]):
         spoken = [f"{i}: {text[:200]}" for i, text in enumerate(words["by_frame"], start=1) if text]
         lines.append(
             f"Words under each frame, said from that frame until the next "

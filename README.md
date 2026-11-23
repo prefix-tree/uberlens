@@ -56,7 +56,7 @@ uv run python -m bench.footage.fetch   # six open-licence videos into data/foota
 uv run python -m bench.reading.run     # can a model read the pictures? needs an OpenRouter key
 ```
 
-The locate tasks in `bench/footage/locate.toml` are drafts until a person confirms each one.
+Results so far are in [bench/reading/results](bench/reading/results/README.md). The locate tasks in `bench/footage/locate.toml` are drafts until a person confirms each one.
 
 ## Docs site
 

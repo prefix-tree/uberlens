@@ -1,0 +1,512 @@
+{
+ "at": "2026-11-23T160123",
+ "note": "M0 picture format, first full run: change, question reworded to say pictures on the sheet",
+ "repeats": 3,
+ "rows": [
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": true,
+   "answer": [
+    4,
+    5
+   ],
+   "expected": [
+    4,
+    5
+   ],
+   "observations": [
+    "obs_000004"
+   ],
+   "tokens": {
+    "input": 5147,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": true,
+   "answer": [
+    4,
+    5
+   ],
+   "expected": [
+    4,
+    5
+   ],
+   "observations": [
+    "obs_000003"
+   ],
+   "tokens": {
+    "input": 5147,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": true,
+   "answer": [
+    4,
+    5
+   ],
+   "expected": [
+    4,
+    5
+   ],
+   "observations": [
+    "obs_000005"
+   ],
+   "tokens": {
+    "input": 5145,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": true,
+   "answer": [
+    8,
+    9
+   ],
+   "expected": [
+    8,
+    9
+   ],
+   "observations": [
+    "obs_000007"
+   ],
+   "tokens": {
+    "input": 5143,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": true,
+   "answer": [
+    8,
+    9
+   ],
+   "expected": [
+    8,
+    9
+   ],
+   "observations": [
+    "obs_000009"
+   ],
+   "tokens": {
+    "input": 5146,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": true,
+   "answer": [
+    8,
+    9
+   ],
+   "expected": [
+    8,
+    9
+   ],
+   "observations": [
+    "obs_000011"
+   ],
+   "tokens": {
+    "input": 5144,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": true,
+   "answer": [
+    11,
+    12
+   ],
+   "expected": [
+    11,
+    12
+   ],
+   "observations": [
+    "obs_000014"
+   ],
+   "tokens": {
+    "input": 5151,
+    "output": 185
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": true,
+   "answer": [
+    11,
+    12
+   ],
+   "expected": [
+    11,
+    12
+   ],
+   "observations": [
+    "obs_000013"
+   ],
+   "tokens": {
+    "input": 5149,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": true,
+   "answer": [
+    11,
+    12
+   ],
+   "expected": [
+    11,
+    12
+   ],
+   "observations": [
+    "obs_000016"
+   ],
+   "tokens": {
+    "input": 5148,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": true,
+   "answer": [
+    15,
+    16
+   ],
+   "expected": [
+    15,
+    16
+   ],
+   "observations": [
+    "obs_000018"
+   ],
+   "tokens": {
+    "input": 5148,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": true,
+   "answer": [
+    15,
+    16
+   ],
+   "expected": [
+    15,
+    16
+   ],
+   "observations": [
+    "obs_000023"
+   ],
+   "tokens": {
+    "input": 5147,
+    "output": 180
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": true,
+   "answer": [
+    15,
+    16
+   ],
+   "expected": [
+    15,
+    16
+   ],
+   "observations": [
+    "obs_000024"
+   ],
+   "tokens": {
+    "input": 5151,
+    "output": 185
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": true,
+   "answer": [
+    4,
+    5
+   ],
+   "expected": [
+    4,
+    5
+   ],
+   "observations": [
+    "obs_000002"
+   ],
+   "tokens": {
+    "input": 3093,
+    "output": 128
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": true,
+   "answer": [
+    4,
+    5
+   ],
+   "expected": [
+    4,
+    5
+   ],
+   "observations": [
+    "obs_000001"
+   ],
+   "tokens": {
+    "input": 3100,
+    "output": 134
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": true,
+   "answer": [
+    4,
+    5
+   ],
+   "expected": [
+    4,
+    5
+   ],
+   "observations": [
+    "obs_000006"
+   ],
+   "tokens": {
+    "input": 3103,
+    "output": 133
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": true,
+   "answer": [
+    8,
+    9
+   ],
+   "expected": [
+    8,
+    9
+   ],
+   "observations": [
+    "obs_000008"
+   ],
+   "tokens": {
+    "input": 3089,
+    "output": 106
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": true,
+   "answer": [
+    8,
+    9
+   ],
+   "expected": [
+    8,
+    9
+   ],
+   "observations": [
+    "obs_000010"
+   ],
+   "tokens": {
+    "input": 3095,
+    "output": 148
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": true,
+   "answer": [
+    8,
+    9
+   ],
+   "expected": [
+    8,
+    9
+   ],
+   "observations": [
+    "obs_000012"
+   ],
+   "tokens": {
+    "input": 3091,
+    "output": 160
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": true,
+   "answer": [
+    11,
+    12
+   ],
+   "expected": [
+    11,
+    12
+   ],
+   "observations": [
+    "obs_000015"
+   ],
+   "tokens": {
+    "input": 3104,
+    "output": 157
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": true,
+   "answer": [
+    11,
+    12
+   ],
+   "expected": [
+    11,
+    12
+   ],
+   "observations": [
+    "obs_000017"
+   ],
+   "tokens": {
+    "input": 3105,
+    "output": 121
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": true,
+   "answer": [
+    11,
+    12
+   ],
+   "expected": [
+    11,
+    12
+   ],
+   "observations": [
+    "obs_000019",
+    "obs_000019"
+   ],
+   "tokens": {
+    "input": 7874,
+    "output": 175
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": true,
+   "answer": [
+    15,
+    16
+   ],
+   "expected": [
+    15,
+    16
+   ],
+   "observations": [
+    "obs_000020"
+   ],
+   "tokens": {
+    "input": 3094,
+    "output": 126
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": true,
+   "answer": [
+    15,
+    16
+   ],
+   "expected": [
+    15,
+    16
+   ],
+   "observations": [
+    "obs_000021"
+   ],
+   "tokens": {
+    "input": 3090,
+    "output": 128
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": true,
+   "answer": [
+    15,
+    16
+   ],
+   "expected": [
+    15,
+    16
+   ],
+   "observations": [
+    "obs_000022"
+   ],
+   "tokens": {
+    "input": 3105,
+    "output": 152
+   }
+  }
+ ]
+}

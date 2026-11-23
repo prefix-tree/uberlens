@@ -1,0 +1,511 @@
+{
+ "at": "2026-11-23T160323",
+ "note": "M0 picture format, first full run: sound",
+ "repeats": 3,
+ "rows": [
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": true,
+   "answer": [
+    3,
+    5
+   ],
+   "expected": [
+    3,
+    5
+   ],
+   "observations": [
+    "obs_000004"
+   ],
+   "tokens": {
+    "input": 4762,
+    "output": 340
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": true,
+   "answer": [
+    3,
+    5
+   ],
+   "expected": [
+    3,
+    5
+   ],
+   "observations": [
+    "obs_000003"
+   ],
+   "tokens": {
+    "input": 4755,
+    "output": 321
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": true,
+   "answer": [
+    3,
+    5
+   ],
+   "expected": [
+    3,
+    5
+   ],
+   "observations": [
+    "obs_000006"
+   ],
+   "tokens": {
+    "input": 4756,
+    "output": 319
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": true,
+   "answer": [
+    6,
+    9
+   ],
+   "expected": [
+    6,
+    9
+   ],
+   "observations": [
+    "obs_000008"
+   ],
+   "tokens": {
+    "input": 4757,
+    "output": 377
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": true,
+   "answer": [
+    6,
+    9
+   ],
+   "expected": [
+    6,
+    9
+   ],
+   "observations": [
+    "obs_000009"
+   ],
+   "tokens": {
+    "input": 4761,
+    "output": 388
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": true,
+   "answer": [
+    6,
+    9
+   ],
+   "expected": [
+    6,
+    9
+   ],
+   "observations": [
+    "obs_000011"
+   ],
+   "tokens": {
+    "input": 4762,
+    "output": 407
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": true,
+   "answer": [
+    8,
+    10
+   ],
+   "expected": [
+    8,
+    10
+   ],
+   "observations": [
+    "obs_000012"
+   ],
+   "tokens": {
+    "input": 4756,
+    "output": 330
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": true,
+   "answer": [
+    8,
+    10
+   ],
+   "expected": [
+    8,
+    10
+   ],
+   "observations": [
+    "obs_000015"
+   ],
+   "tokens": {
+    "input": 4754,
+    "output": 328
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": true,
+   "answer": [
+    8,
+    10
+   ],
+   "expected": [
+    8,
+    10
+   ],
+   "observations": [
+    "obs_000017"
+   ],
+   "tokens": {
+    "input": 4762,
+    "output": 326
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": true,
+   "answer": [
+    5,
+    6
+   ],
+   "expected": [
+    5,
+    6
+   ],
+   "observations": [
+    "obs_000019"
+   ],
+   "tokens": {
+    "input": 4750,
+    "output": 327
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": true,
+   "answer": [
+    5,
+    6
+   ],
+   "expected": [
+    5,
+    6
+   ],
+   "observations": [
+    "obs_000021"
+   ],
+   "tokens": {
+    "input": 4756,
+    "output": 323
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": true,
+   "answer": [
+    5,
+    6
+   ],
+   "expected": [
+    5,
+    6
+   ],
+   "observations": [
+    "obs_000023"
+   ],
+   "tokens": {
+    "input": 4750,
+    "output": 327
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": true,
+   "answer": [
+    3,
+    5
+   ],
+   "expected": [
+    3,
+    5
+   ],
+   "observations": [
+    "obs_000001"
+   ],
+   "tokens": {
+    "input": 2727,
+    "output": 170
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": true,
+   "answer": [
+    3,
+    5
+   ],
+   "expected": [
+    3,
+    5
+   ],
+   "observations": [
+    "obs_000002"
+   ],
+   "tokens": {
+    "input": 2729,
+    "output": 146
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": true,
+   "answer": [
+    3,
+    5
+   ],
+   "expected": [
+    3,
+    5
+   ],
+   "observations": [
+    "obs_000005"
+   ],
+   "tokens": {
+    "input": 2723,
+    "output": 199
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": true,
+   "answer": [
+    6,
+    9
+   ],
+   "expected": [
+    6,
+    9
+   ],
+   "observations": [
+    "obs_000007"
+   ],
+   "tokens": {
+    "input": 2726,
+    "output": 257
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": true,
+   "answer": [
+    6,
+    9
+   ],
+   "expected": [
+    6,
+    9
+   ],
+   "observations": [
+    "obs_000010"
+   ],
+   "tokens": {
+    "input": 2720,
+    "output": 163
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": true,
+   "answer": [
+    6,
+    9
+   ],
+   "expected": [
+    6,
+    9
+   ],
+   "observations": [
+    "obs_000013"
+   ],
+   "tokens": {
+    "input": 2717,
+    "output": 154
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": true,
+   "answer": [
+    8,
+    10
+   ],
+   "expected": [
+    8,
+    10
+   ],
+   "observations": [
+    "obs_000014"
+   ],
+   "tokens": {
+    "input": 2738,
+    "output": 173
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": true,
+   "answer": [
+    8,
+    10
+   ],
+   "expected": [
+    8,
+    10
+   ],
+   "observations": [
+    "obs_000016"
+   ],
+   "tokens": {
+    "input": 2733,
+    "output": 180
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": true,
+   "answer": [
+    8,
+    10
+   ],
+   "expected": [
+    8,
+    10
+   ],
+   "observations": [
+    "obs_000018"
+   ],
+   "tokens": {
+    "input": 2724,
+    "output": 186
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": true,
+   "answer": [
+    5,
+    6
+   ],
+   "expected": [
+    5,
+    6
+   ],
+   "observations": [
+    "obs_000020"
+   ],
+   "tokens": {
+    "input": 2728,
+    "output": 174
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": true,
+   "answer": [
+    5,
+    6
+   ],
+   "expected": [
+    5,
+    6
+   ],
+   "observations": [
+    "obs_000022"
+   ],
+   "tokens": {
+    "input": 2726,
+    "output": 187
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": true,
+   "answer": [
+    5,
+    6
+   ],
+   "expected": [
+    5,
+    6
+   ],
+   "observations": [
+    "obs_000024"
+   ],
+   "tokens": {
+    "input": 2733,
+    "output": 188
+   }
+  }
+ ]
+}

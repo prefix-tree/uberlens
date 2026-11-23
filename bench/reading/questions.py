@@ -2,13 +2,23 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
 
+from pydantic import BaseModel
+
 from bench.reading import clips
 from uberseek.timecode import clock
+
+
+class Pair(BaseModel):
+    """Two frame numbers. A plain pair is not a schema every provider accepts, so the answer has named parts."""
+
+    first: int
+    second: int
 
 
 @dataclass(frozen=True)
@@ -42,6 +52,47 @@ def _at_mark(record: dict) -> int:
     return max(i for i, t in enumerate(_times(record), start=1) if t <= mark)
 
 
+def _said_under(record: dict, word: str) -> int:
+    by_frame = record["delivered"]["words"]["by_frame"]
+    return next((i for i, text in enumerate(by_frame, start=1) if word in _plain(text).split()), 0)  # 0: not in this look
+
+
+def _plain(text: str) -> str:
+    return re.sub(r"[^a-z0-9 ]", "", text.lower())
+
+
+# Spans of real footage with speech (bench/footage). One word is asked about in each.
+SPOKEN = [
+    ("vertical", 20, 40),
+    ("vertical", 43, 63),
+    ("explainer", 10, 40),
+    ("explainer", 80, 110),
+    ("explainer", 120, 150),
+    ("spacewalk", 26, 56),
+    ("interview", 505, 535),
+    ("interview", 585, 615),
+]
+
+
+def spoken(project, folder: Path) -> list[Question]:
+    """On real footage: which picture is on screen when a word is said? Needs the footage and its transcript."""
+    out = []
+    for video, start, end in SPOKEN:
+        path = folder / f"{video}.mp4"
+        words = [_plain(w[2]) for w in project.transcribe(path)["words"] if start + 1 <= float(w[0]) < end - 1]
+        once = [w for w in words if len(w) >= 6 and words.count(w) == 1]
+        word = once[len(once) // 2]  # one that is said once in the span, taken from its middle
+        out.append(
+            Question(
+                "spoken", f"{video} {start}-{end}: {word}", path,
+                f"from {start} to {end} seconds, focus visual",
+                f"Which numbered picture is on screen when the word '{word}' is said? Give its number.",
+                int, lambda r, w=word: _said_under(r, w),
+            )
+        )  # fmt: skip
+    return out
+
+
 def questions(folder: Path) -> list[Question]:
     out: list[Question] = []
 
@@ -73,8 +124,9 @@ def questions(folder: Path) -> list[Question]:
             Question(
                 "change", f"cut at {at}", clips.cut(folder, at),
                 "from 1 to 4 seconds, focus visual",
-                "The scene changes once. Give the numbers of the two consecutive frames it changes between, lower first.",
-                tuple[int, int], lambda r, t=at: (_first_at_or_after(r, t) - 1, _first_at_or_after(r, t)),
+                "The scene changes once. Between which two neighbouring pictures on the sheet does it change? "
+                "Give the numbers printed in their corners, lower first.",
+                Pair, lambda r, t=at: (_first_at_or_after(r, t) - 1, _first_at_or_after(r, t)),
             )
         )  # fmt: skip
 
@@ -86,7 +138,7 @@ def questions(folder: Path) -> list[Question]:
                 "from 1 to 4 seconds, focus delivery",
                 "The strip under the frames shows the sound, with one silent stretch shaded. Which numbered frames have their "
                 "tick inside the shaded stretch? Give the first and the last such frame number.",
-                tuple[int, int], _inside_pause,
+                Pair, _inside_pause,
             )
         )  # fmt: skip
 

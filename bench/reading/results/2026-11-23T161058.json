@@ -1,0 +1,734 @@
+{
+ "at": "2026-11-23T161058",
+ "note": "spoken words on real footage, words in: text",
+ "words_in": [
+  "text"
+ ],
+ "repeats": 3,
+ "rows": [
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "vertical 20-40: themselves",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000011"
+   ],
+   "tokens": {
+    "input": 4009,
+    "output": 234
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "vertical 20-40: themselves",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000015"
+   ],
+   "tokens": {
+    "input": 4012,
+    "output": 351
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "vertical 20-40: themselves",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000020"
+   ],
+   "tokens": {
+    "input": 4014,
+    "output": 279
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "vertical 43-63: tissue",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000031"
+   ],
+   "tokens": {
+    "input": 4021,
+    "output": 446
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "vertical 43-63: tissue",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000036"
+   ],
+   "tokens": {
+    "input": 4022,
+    "output": 476
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "vertical 43-63: tissue",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000043"
+   ],
+   "tokens": {
+    "input": 4020,
+    "output": 524
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "explainer 10-40: vacuum",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000055"
+   ],
+   "tokens": {
+    "input": 4594,
+    "output": 318
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "explainer 10-40: vacuum",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000059"
+   ],
+   "tokens": {
+    "input": 4591,
+    "output": 278
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "explainer 10-40: vacuum",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000065"
+   ],
+   "tokens": {
+    "input": 4596,
+    "output": 281
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "explainer 80-110: certain",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000071"
+   ],
+   "tokens": {
+    "input": 4551,
+    "output": 232
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "explainer 80-110: certain",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000073"
+   ],
+   "tokens": {
+    "input": 4549,
+    "output": 263
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "explainer 80-110: certain",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000077"
+   ],
+   "tokens": {
+    "input": 4549,
+    "output": 291
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "explainer 120-150: divers",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000095",
+    "obs_000099"
+   ],
+   "tokens": {
+    "input": 9047,
+    "output": 506
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "explainer 120-150: divers",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000105"
+   ],
+   "tokens": {
+    "input": 4543,
+    "output": 338
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "explainer 120-150: divers",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000108"
+   ],
+   "tokens": {
+    "input": 4542,
+    "output": 332
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "spacewalk 26-56: achievement",
+   "correct": true,
+   "answer": 10,
+   "expected": 10,
+   "observations": [
+    "obs_000115"
+   ],
+   "tokens": {
+    "input": 4541,
+    "output": 264
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "spacewalk 26-56: achievement",
+   "correct": true,
+   "answer": 10,
+   "expected": 10,
+   "observations": [
+    "obs_000119"
+   ],
+   "tokens": {
+    "input": 4533,
+    "output": 267
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "spacewalk 26-56: achievement",
+   "correct": true,
+   "answer": 10,
+   "expected": 10,
+   "observations": [
+    "obs_000123"
+   ],
+   "tokens": {
+    "input": 4536,
+    "output": 292
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "interview 505-535: through",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000126"
+   ],
+   "tokens": {
+    "input": 4488,
+    "output": 238
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "interview 505-535: through",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000129"
+   ],
+   "tokens": {
+    "input": 4490,
+    "output": 211
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "interview 505-535: through",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000134"
+   ],
+   "tokens": {
+    "input": 4492,
+    "output": 209
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "interview 585-615: because",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000138"
+   ],
+   "tokens": {
+    "input": 4499,
+    "output": 254
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "interview 585-615: because",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000143"
+   ],
+   "tokens": {
+    "input": 4496,
+    "output": 232
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "spoken",
+   "question": "interview 585-615: because",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000145"
+   ],
+   "tokens": {
+    "input": 4494,
+    "output": 239
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "vertical 20-40: themselves",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000012"
+   ],
+   "tokens": {
+    "input": 2120,
+    "output": 184
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "vertical 20-40: themselves",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000017"
+   ],
+   "tokens": {
+    "input": 2115,
+    "output": 175
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "vertical 20-40: themselves",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000024"
+   ],
+   "tokens": {
+    "input": 2116,
+    "output": 169
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "vertical 43-63: tissue",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000032"
+   ],
+   "tokens": {
+    "input": 2116,
+    "output": 163
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "vertical 43-63: tissue",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000037"
+   ],
+   "tokens": {
+    "input": 2117,
+    "output": 157
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "vertical 43-63: tissue",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000049"
+   ],
+   "tokens": {
+    "input": 2117,
+    "output": 189
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "explainer 10-40: vacuum",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000054"
+   ],
+   "tokens": {
+    "input": 2580,
+    "output": 171
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "explainer 10-40: vacuum",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000061"
+   ],
+   "tokens": {
+    "input": 2594,
+    "output": 233
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "explainer 10-40: vacuum",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000079"
+   ],
+   "tokens": {
+    "input": 2568,
+    "output": 153
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "explainer 80-110: certain",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000085"
+   ],
+   "tokens": {
+    "input": 2519,
+    "output": 170
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "explainer 80-110: certain",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000089"
+   ],
+   "tokens": {
+    "input": 2512,
+    "output": 157
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "explainer 80-110: certain",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000091"
+   ],
+   "tokens": {
+    "input": 2516,
+    "output": 128
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "explainer 120-150: divers",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000093"
+   ],
+   "tokens": {
+    "input": 2514,
+    "output": 202
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "explainer 120-150: divers",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000100"
+   ],
+   "tokens": {
+    "input": 2519,
+    "output": 148
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "explainer 120-150: divers",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000112"
+   ],
+   "tokens": {
+    "input": 2519,
+    "output": 178
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "spacewalk 26-56: achievement",
+   "correct": true,
+   "answer": 10,
+   "expected": 10,
+   "observations": [
+    "obs_000116"
+   ],
+   "tokens": {
+    "input": 2499,
+    "output": 167
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "spacewalk 26-56: achievement",
+   "correct": true,
+   "answer": 10,
+   "expected": 10,
+   "observations": [
+    "obs_000120"
+   ],
+   "tokens": {
+    "input": 2496,
+    "output": 124
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "spacewalk 26-56: achievement",
+   "correct": true,
+   "answer": 10,
+   "expected": 10,
+   "observations": [
+    "obs_000125",
+    "obs_000125"
+   ],
+   "tokens": {
+    "input": 6221,
+    "output": 292
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "interview 505-535: through",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000135"
+   ],
+   "tokens": {
+    "input": 2474,
+    "output": 177
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "interview 505-535: through",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000139"
+   ],
+   "tokens": {
+    "input": 2482,
+    "output": 157
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "interview 505-535: through",
+   "correct": true,
+   "answer": 9,
+   "expected": 9,
+   "observations": [
+    "obs_000142",
+    "obs_000142"
+   ],
+   "tokens": {
+    "input": 6128,
+    "output": 191
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "interview 585-615: because",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000147"
+   ],
+   "tokens": {
+    "input": 2472,
+    "output": 149
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "interview 585-615: because",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000149",
+    "obs_000149"
+   ],
+   "tokens": {
+    "input": 6103,
+    "output": 195
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "spoken",
+   "question": "interview 585-615: because",
+   "correct": true,
+   "answer": 7,
+   "expected": 7,
+   "observations": [
+    "obs_000151"
+   ],
+   "tokens": {
+    "input": 2498,
+    "output": 211
+   }
+  }
+ ]
+}

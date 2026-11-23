@@ -1,0 +1,1428 @@
+{
+ "at": "2026-11-23T155626",
+ "note": "M0 picture format, first full run",
+ "repeats": 3,
+ "rows": [
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 1.5",
+   "correct": true,
+   "answer": 4,
+   "expected": 4,
+   "observations": [
+    "obs_000004"
+   ],
+   "tokens": {
+    "input": 5079,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 1.5",
+   "correct": true,
+   "answer": 4,
+   "expected": 4,
+   "observations": [
+    "obs_000003"
+   ],
+   "tokens": {
+    "input": 5081,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 1.5",
+   "correct": true,
+   "answer": 4,
+   "expected": 4,
+   "observations": [
+    "obs_000006"
+   ],
+   "tokens": {
+    "input": 5081,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 2.3",
+   "correct": true,
+   "answer": 8,
+   "expected": 8,
+   "observations": [
+    "obs_000007"
+   ],
+   "tokens": {
+    "input": 5086,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 2.3",
+   "correct": true,
+   "answer": 8,
+   "expected": 8,
+   "observations": [
+    "obs_000010"
+   ],
+   "tokens": {
+    "input": 5081,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 2.3",
+   "correct": true,
+   "answer": 8,
+   "expected": 8,
+   "observations": [
+    "obs_000012"
+   ],
+   "tokens": {
+    "input": 5086,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 2.9",
+   "correct": true,
+   "answer": 11,
+   "expected": 11,
+   "observations": [
+    "obs_000013"
+   ],
+   "tokens": {
+    "input": 5085,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 2.9",
+   "correct": true,
+   "answer": 11,
+   "expected": 11,
+   "observations": [
+    "obs_000016"
+   ],
+   "tokens": {
+    "input": 5085,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 2.9",
+   "correct": true,
+   "answer": 11,
+   "expected": 11,
+   "observations": [
+    "obs_000017"
+   ],
+   "tokens": {
+    "input": 5085,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 3.7",
+   "correct": true,
+   "answer": 15,
+   "expected": 15,
+   "observations": [
+    "obs_000019"
+   ],
+   "tokens": {
+    "input": 5088,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 3.7",
+   "correct": true,
+   "answer": 15,
+   "expected": 15,
+   "observations": [
+    "obs_000021"
+   ],
+   "tokens": {
+    "input": 5081,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "first frame",
+   "question": "square at 3.7",
+   "correct": true,
+   "answer": 15,
+   "expected": 15,
+   "observations": [
+    "obs_000022"
+   ],
+   "tokens": {
+    "input": 5087,
+    "output": 183
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 3",
+   "correct": true,
+   "answer": "Frame 3 is stamped **0:02.400**.",
+   "expected": "0:02.400",
+   "observations": [
+    "obs_000025"
+   ],
+   "tokens": {
+    "input": 4732,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 3",
+   "correct": true,
+   "answer": "Frame 3 is printed as **0:02.400**.",
+   "expected": "0:02.400",
+   "observations": [
+    "obs_000026"
+   ],
+   "tokens": {
+    "input": 4733,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 3",
+   "correct": true,
+   "answer": "Frame 3 is printed as **0:02.400**.",
+   "expected": "0:02.400",
+   "observations": [
+    "obs_000027"
+   ],
+   "tokens": {
+    "input": 4734,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 7",
+   "correct": true,
+   "answer": "Frame 7 shows **0:03.200**.",
+   "expected": "0:03.200",
+   "observations": [
+    "obs_000030"
+   ],
+   "tokens": {
+    "input": 4733,
+    "output": 195
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 7",
+   "correct": true,
+   "answer": "Frame 7 shows the time **0:03.200**.",
+   "expected": "0:03.200",
+   "observations": [
+    "obs_000031"
+   ],
+   "tokens": {
+    "input": 4733,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 7",
+   "correct": true,
+   "answer": "Frame 7 is printed as **0:03.200**.",
+   "expected": "0:03.200",
+   "observations": [
+    "obs_000034"
+   ],
+   "tokens": {
+    "input": 4734,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 11",
+   "correct": true,
+   "answer": "Frame 11 is printed as **0:04.000**.",
+   "expected": "0:04.000",
+   "observations": [
+    "obs_000040"
+   ],
+   "tokens": {
+    "input": 4734,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 11",
+   "correct": true,
+   "answer": "Frame 11 is printed as **0:04.000**.",
+   "expected": "0:04.000",
+   "observations": [
+    "obs_000042"
+   ],
+   "tokens": {
+    "input": 4732,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 11",
+   "correct": true,
+   "answer": "Frame 11 is printed as **0:04.000**.",
+   "expected": "0:04.000",
+   "observations": [
+    "obs_000044"
+   ],
+   "tokens": {
+    "input": 4734,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 16",
+   "correct": true,
+   "answer": "Frame 16 is printed as **0:05.000**.",
+   "expected": "0:05.000",
+   "observations": [
+    "obs_000046"
+   ],
+   "tokens": {
+    "input": 4733,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 16",
+   "correct": true,
+   "answer": "Frame 16 is printed as **0:05.000**.",
+   "expected": "0:05.000",
+   "observations": [
+    "obs_000047"
+   ],
+   "tokens": {
+    "input": 4732,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "label",
+   "question": "time on frame 16",
+   "correct": true,
+   "answer": "Frame 16 is printed as **0:05.000**.",
+   "expected": "0:05.000",
+   "observations": [
+    "obs_000050"
+   ],
+   "tokens": {
+    "input": 4733,
+    "output": 197
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: anthropic/claude-sonnet-5.5, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"output_config.format.schema: For \\'array\\' type, property \\'prefixIt"
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 2.0",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000054"
+   ],
+   "tokens": {
+    "input": 4261,
+    "output": 171
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 2.0",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000055"
+   ],
+   "tokens": {
+    "input": 4259,
+    "output": 169
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 2.0",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000062"
+   ],
+   "tokens": {
+    "input": 4260,
+    "output": 171
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 3.5",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000056",
+    "obs_000056",
+    "obs_000057"
+   ],
+   "tokens": {
+    "input": 14979,
+    "output": 379
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 3.5",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000058",
+    "obs_000058"
+   ],
+   "tokens": {
+    "input": 8827,
+    "output": 220
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 3.5",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000059",
+    "obs_000059"
+   ],
+   "tokens": {
+    "input": 8811,
+    "output": 218
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 4.2",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000063"
+   ],
+   "tokens": {
+    "input": 4257,
+    "output": 169
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 4.2",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000064"
+   ],
+   "tokens": {
+    "input": 4254,
+    "output": 168
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 4.2",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000067"
+   ],
+   "tokens": {
+    "input": 4257,
+    "output": 168
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 5.1",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000078"
+   ],
+   "tokens": {
+    "input": 4253,
+    "output": 167
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 5.1",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000081"
+   ],
+   "tokens": {
+    "input": 4256,
+    "output": 167
+   }
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "kind": "boundary",
+   "question": "instant 5.1",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000080"
+   ],
+   "tokens": {
+    "input": 4260,
+    "output": 171
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 1.5",
+   "correct": true,
+   "answer": 4,
+   "expected": 4,
+   "observations": [
+    "obs_000002"
+   ],
+   "tokens": {
+    "input": 3081,
+    "output": 151
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 1.5",
+   "correct": true,
+   "answer": 4,
+   "expected": 4,
+   "observations": [
+    "obs_000001"
+   ],
+   "tokens": {
+    "input": 3081,
+    "output": 148
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 1.5",
+   "correct": true,
+   "answer": 4,
+   "expected": 4,
+   "observations": [
+    "obs_000005"
+   ],
+   "tokens": {
+    "input": 3079,
+    "output": 132
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 2.3",
+   "correct": true,
+   "answer": 8,
+   "expected": 8,
+   "observations": [
+    "obs_000008"
+   ],
+   "tokens": {
+    "input": 3082,
+    "output": 124
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 2.3",
+   "correct": true,
+   "answer": 8,
+   "expected": 8,
+   "observations": [
+    "obs_000009"
+   ],
+   "tokens": {
+    "input": 3077,
+    "output": 136
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 2.3",
+   "correct": true,
+   "answer": 8,
+   "expected": 8,
+   "observations": [
+    "obs_000011"
+   ],
+   "tokens": {
+    "input": 3081,
+    "output": 143
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 2.9",
+   "correct": true,
+   "answer": 11,
+   "expected": 11,
+   "observations": [
+    "obs_000014"
+   ],
+   "tokens": {
+    "input": 3081,
+    "output": 136
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 2.9",
+   "correct": true,
+   "answer": 11,
+   "expected": 11,
+   "observations": [
+    "obs_000015"
+   ],
+   "tokens": {
+    "input": 3086,
+    "output": 118
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 2.9",
+   "correct": true,
+   "answer": 11,
+   "expected": 11,
+   "observations": [
+    "obs_000018"
+   ],
+   "tokens": {
+    "input": 3072,
+    "output": 127
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 3.7",
+   "correct": true,
+   "answer": 15,
+   "expected": 15,
+   "observations": [
+    "obs_000020"
+   ],
+   "tokens": {
+    "input": 3081,
+    "output": 160
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 3.7",
+   "correct": true,
+   "answer": 15,
+   "expected": 15,
+   "observations": [
+    "obs_000023"
+   ],
+   "tokens": {
+    "input": 3062,
+    "output": 134
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "first frame",
+   "question": "square at 3.7",
+   "correct": true,
+   "answer": 15,
+   "expected": 15,
+   "observations": [
+    "obs_000024"
+   ],
+   "tokens": {
+    "input": 3067,
+    "output": 164
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 3",
+   "correct": true,
+   "answer": "0:02.400",
+   "expected": "0:02.400",
+   "observations": [
+    "obs_000028"
+   ],
+   "tokens": {
+    "input": 3040,
+    "output": 75
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 3",
+   "correct": true,
+   "answer": "0:02.400",
+   "expected": "0:02.400",
+   "observations": [
+    "obs_000029"
+   ],
+   "tokens": {
+    "input": 3040,
+    "output": 75
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 3",
+   "correct": true,
+   "answer": "0:02.400",
+   "expected": "0:02.400",
+   "observations": [
+    "obs_000032"
+   ],
+   "tokens": {
+    "input": 3052,
+    "output": 86
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 7",
+   "correct": true,
+   "answer": "0:03.200",
+   "expected": "0:03.200",
+   "observations": [
+    "obs_000033"
+   ],
+   "tokens": {
+    "input": 3061,
+    "output": 94
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 7",
+   "correct": true,
+   "answer": "0:03.200",
+   "expected": "0:03.200",
+   "observations": [
+    "obs_000036"
+   ],
+   "tokens": {
+    "input": 3053,
+    "output": 87
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 7",
+   "correct": true,
+   "answer": "0:03.200",
+   "expected": "0:03.200",
+   "observations": [
+    "obs_000038"
+   ],
+   "tokens": {
+    "input": 3052,
+    "output": 87
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 11",
+   "correct": true,
+   "answer": "0:04.000",
+   "expected": "0:04.000",
+   "observations": [
+    "obs_000043"
+   ],
+   "tokens": {
+    "input": 3053,
+    "output": 86
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 11",
+   "correct": true,
+   "answer": "0:04.000",
+   "expected": "0:04.000",
+   "observations": [
+    "obs_000041"
+   ],
+   "tokens": {
+    "input": 3052,
+    "output": 87
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 11",
+   "correct": true,
+   "answer": "0:04.000",
+   "expected": "0:04.000",
+   "observations": [
+    "obs_000045"
+   ],
+   "tokens": {
+    "input": 3052,
+    "output": 87
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 16",
+   "correct": true,
+   "answer": "0:05.000",
+   "expected": "0:05.000",
+   "observations": [
+    "obs_000048"
+   ],
+   "tokens": {
+    "input": 3071,
+    "output": 106
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 16",
+   "correct": true,
+   "answer": "0:05.000",
+   "expected": "0:05.000",
+   "observations": [
+    "obs_000049"
+   ],
+   "tokens": {
+    "input": 3061,
+    "output": 94
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "label",
+   "question": "time on frame 16",
+   "correct": true,
+   "answer": "0:05.000",
+   "expected": "0:05.000",
+   "observations": [
+    "obs_000051"
+   ],
+   "tokens": {
+    "input": 3050,
+    "output": 88
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 1.7",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.1",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "change",
+   "question": "cut at 3.9",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.5-2.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.1-3.3",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 2.7-3.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "sound",
+   "question": "silence 1.9-2.5",
+   "correct": false,
+   "error": "ModelRequestRejectedError: status_code: 400, model_name: openai/gpt-5.6-terra, body: {'message': 'Provider returned error', 'code': 400, 'metadata': {'raw': '{\\n  \"error\": {\\n    \"message\": \"Invalid schema for function \\'final_result\\': In context=(\\'properties\\', \\'response\\'), array schema missing"
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 2.0",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000060"
+   ],
+   "tokens": {
+    "input": 2326,
+    "output": 166
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 2.0",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000061"
+   ],
+   "tokens": {
+    "input": 2331,
+    "output": 218
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 2.0",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000065"
+   ],
+   "tokens": {
+    "input": 2327,
+    "output": 198
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 3.5",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000066"
+   ],
+   "tokens": {
+    "input": 2338,
+    "output": 300
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 3.5",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000070"
+   ],
+   "tokens": {
+    "input": 2317,
+    "output": 203
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 3.5",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000071"
+   ],
+   "tokens": {
+    "input": 2315,
+    "output": 194
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 4.2",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000072"
+   ],
+   "tokens": {
+    "input": 2315,
+    "output": 172
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 4.2",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000073"
+   ],
+   "tokens": {
+    "input": 2324,
+    "output": 192
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 4.2",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000074"
+   ],
+   "tokens": {
+    "input": 2322,
+    "output": 227
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 5.1",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000076"
+   ],
+   "tokens": {
+    "input": 2314,
+    "output": 166
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 5.1",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000077"
+   ],
+   "tokens": {
+    "input": 2313,
+    "output": 154
+   }
+  },
+  {
+   "model": "openai/gpt-5.6-terra",
+   "kind": "boundary",
+   "question": "instant 5.1",
+   "correct": true,
+   "answer": 5,
+   "expected": 5,
+   "observations": [
+    "obs_000079",
+    "obs_000079"
+   ],
+   "tokens": {
+    "input": 5676,
+    "output": 314
+   }
+  }
+ ]
+}
