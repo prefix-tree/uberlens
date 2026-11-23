@@ -114,7 +114,9 @@ nest.
   no required route through the ladder.
 - **The harness sets fidelity; the agent sets extent and focus.** In SAVE, a harness rule for frame count and
   resolution beat the model's own choice by 3.7 to 5.8 points (`research-rres.md`). `focus` is a category, not a
-  frame count, so that finding still holds here.
+  frame count, so that finding still holds here. This is a real tension with the principle above: Anthropic's
+  guidance would give observation decisions to the model. The split is a starting position; letting the model set
+  fidelity is an arm of E0.
 - **Caps**, whatever the focus: frames per view, pixels, seconds of sound, and a budget of views, tokens and time
   per task. The model never writes media commands.
 - **Every observation states what it delivered:** the span asked for, the presentation timestamps actually
@@ -265,7 +267,9 @@ session and can continue with another model.
   tree view is drawn from it when that is useful.
 - **Candidates, selections and preferences**, as above.
 - **Traces for improving the harness.** Which looks changed a decision and which were wasted is recorded, so
-  changes to the harness can be judged on held-out footage and not on impressions.
+  changes to the harness can be judged on held-out footage and not on impressions. Held-out matters: the one
+  published method that tunes a harness from its traces gains 7 points on the tasks it tuned on and 0.4 on others
+  (section 8).
 - **Cost**, per observation and per task.
 
 **Time.** Positions are kept as presentation timestamps in the media's own timebase (a rational number), not as
@@ -400,9 +404,23 @@ wide benchmark coverage.
     second and transcripts, no raw sound; fixed pipelines, no agent choosing what to look at.
   - VEBench (arXiv:2605.03276): pick the right footage among four candidates, then give its start and end, with
     sound, in one model pass.
-- **Also published, named by a reviewer and being verified:** work on harness engineering for agents (context kept
-  small, durable artifacts, traces used to improve the harness); AdShot, on systematic biases in which shots
-  models select; TRINITY, on highlight quality having several dimensions.
+- **Harness engineering** (verified; OpenAI's post read as snippets only). A source-code study of eleven coding
+  agents (arXiv:2609.00006) finds none uses a general agent framework and that a more elaborate loop "does not
+  predict benchmark performance". Anthropic's guidance covers just-in-time context, clearing tool results, and
+  durable handoff artifacts; one of its posts argues that a harness should not take decisions the model is better
+  placed to make. Agentic Harness Engineering (arXiv:2604.25850) improves a harness from its own traces, but its
+  headline gain is on the tasks it tuned on; on held-out tasks the gain is 0.4 points, and it predicts its own
+  regressions poorly.
+- **Selection biases and dimensions** (verified). AdShot (arXiv:2610.33377; 823 pairs of a 30 s advert and its
+  15 s cut) finds models favour information-rich and emotional shots and under-select action and imagery, and six
+  of its fifteen models score below a random baseline; its labels are automatic and it measures whole-shot
+  keep-or-drop only. TRINITY (arXiv:2608.29577) splits highlight quality into several dimensions, for personal
+  videos, with automatic labels and no brief.
+- **Nearest work on each idea here.** Take selection for a stated style, by rules (Leake et al., 2017, read as a
+  snippet); ranking learned from pairwise preferences, on whole edits with a model judge (Crayotter) or on user
+  highlights (Video2GIF); agents that choose what to look at in video, for question answering, which stop when
+  they have enough to answer (LensWalk, AVP, OmniAgent). Not found: these joined for an editorial choice, or a
+  rule for looking tied to which pending choice it could change. The search was not exhaustive.
 - **Ours to show:** an agent that controls its own looking and listening under a budget; that looks further
   because a specific editorial choice is unresolved; comparison of several takes of the same content against a
   brief; in and out points chosen among alternatives to sub-second error, each with a reason. None of the works
