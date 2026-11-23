@@ -130,7 +130,9 @@ verified = false
 video = "reel"
 basis = "picture"
 question = "Find the shot of two people with a telescope in silhouette at dusk."
-ranges = [[95.0, 99.0]]
+# Corrected by looking: the measured cuts put this shot at 95.0, but the shot before it ends in a flash to white
+# that the cut detector missed. The silhouette is on screen from about 96.8.
+ranges = [[96.8, 99.0]]
 verified = false
 
 [[task]]

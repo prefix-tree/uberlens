@@ -19,8 +19,8 @@ is a list of selections with reasons, exported as JSON, a cut list or an
 Later iterations add carrying out edits, reviewing the render and handling revisions to the same harness.
 
 > [!NOTE]
-> **Early.** The first milestone (M0) is built: exact frames and sound, the observation log, and `observe`
-> as a tool. The typed API, the executor and the selection module are not. [docs/design.md](docs/design.md)
+> **Early.** Built so far: exact frames and sound, the observation log, cuts, the transcript, a small library
+> with `find` over the transcript, and a sandboxed executor. The selection module is not. [docs/design.md](docs/design.md)
 > is the design. Earlier research is frozen in [docs/archive](docs/archive).
 
 ## Try it
@@ -46,14 +46,29 @@ from pydantic_ai import Agent
 from uberseek import Project
 from uberseek.host.pydantic_ai import toolset
 
-agent = Agent("anthropic:claude-sonnet-5-5", toolsets=[toolset(Project("."))])
+tools = toolset(Project("."), videos=["interview.mp4"])   # find, observe, execute
+agent = Agent("anthropic:claude-sonnet-5.5", toolsets=[tools])
 ```
+
+With `execute`, the model writes a short Python program against the library; it runs in a sandbox and only
+its result comes back, with the pictures of anything it looked at:
+
+```python
+hits = find("interview.mp4", "company almost failed")
+span = expand([hits[0]["start"], hits[0]["end"]], before=5, after=8)
+observe("interview.mp4", span[0], span[1], "delivery")
+{"candidates": len(hits), "best": hits[0]["text"]}
+```
+
+`toolset(..., surface="tools")` offers the same operations one call at a time instead. `find` searches the
+transcript and matches words, not meaning.
 
 ## Measurements
 
 ```sh
 uv run python -m bench.footage.fetch   # six open-licence videos into data/footage/, checked by hash
 uv run python -m bench.reading.run     # can a model read the pictures? needs an OpenRouter key
+uv run python -m bench.locate.run      # trial of the locate tasks on both tool surfaces
 ```
 
 Results so far are in [bench/reading/results](bench/reading/results/README.md). The locate tasks in `bench/footage/locate.toml` are drafts until a person confirms each one.

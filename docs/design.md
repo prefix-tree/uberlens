@@ -108,22 +108,27 @@ it explore any codebase, with no special tool for each kind of analysis. The bas
   operations that compose; the agent, and the modules above, supply the purpose.
 
 ```python
-source = await video.open("interview.mp4")
-hits = await source.transcript.search("company almost failed")
+hits = find("interview.mp4", "company almost failed", limit=20)
 
-async def candidate(hit):
-    span = hit.span.expand(before=5, after=8)
-    return {"span": span,
-            "words": await source.transcript.get(span),
-            "pauses": await source.signals.pauses(span),
-            "shots": await source.shots.within(span)}
+candidates = []
+for hit in hits:
+    span = expand([hit["start"], hit["end"]], before=5, after=8)
+    candidates.append({
+        "span": span,
+        "text": hit["text"],
+        "pauses": pauses("interview.mp4", span[0], span[1]),
+        "shots": len(shots("interview.mp4", span[0], span[1])),
+    })
 
-candidates = await asyncio.gather(*[candidate(h) for h in hits])
-[c for c in candidates if c["words"]]
+best = [c for c in candidates if c["shots"] == 1][:3]
+for c in best:
+    observe("interview.mp4", c["span"][0], c["span"][1], "delivery", "is the admission clear and unread?")
+best
 ```
 
-(Illustrative; this API is M1. The program is Python, run in a sandbox: section 5.) The model then decides which of the returned candidates need to be
-seen or heard, and asks for that with `observe`.
+This runs as written (`uberseek/api`, `uberseek/exec`). The program is Python, run in a sandbox (section 5). Its
+functions return plain values and times are seconds. The three pictures come back to the model beside the result;
+the program itself never sees them.
 
 **`find` returns candidates, never answers.** Search in video is not `grep`:
 
@@ -135,15 +140,16 @@ seen or heard, and asks for that with `observe`.
 
 So the rules for `find` are:
 
-- **What it searches.** The transcript, and frames indexed by an image-and-text embedding model. Each candidate
-  says how it was found (words, picture, or both) and with what score. A score is an estimate (see signals), kept
-  with the model and version that produced it.
-- **Results feed the next search.** `after`, `before` and `within` restrict a search in time, and `like` searches
-  for what resembles an earlier span. "The same book appears again" is then two calls joined by a program:
+- **What it searches.** Today, the transcript: passages ranked by the words they share with the query. It
+  matches words, not meaning. Later, if it earns its place, frames indexed by an image-and-text embedding model.
+  Each candidate says how it was found and with what score. A score is an estimate (see signals).
+- **Results feed the next search.** `after` and `before` restrict a search in time, so one result bounds the
+  next. `like` will search for what resembles an earlier span, once pictures are indexed. "The same book appears
+  again" is then two calls joined by a program:
 
   ```python
-  opened = await video.find("someone opens a red book")
-  later = await video.find(like=opened[0].span, after=opened[0].span.end)
+  opened = find("film.mp4", "opens the red book")
+  later = find("film.mp4", like=opened[0], after=opened[0]["end"])   # needs the picture index: not built
   ```
 
 - **It does not plan.** `find` is one retrieval, not an agent inside a tool. A composite question is composed by
@@ -180,25 +186,21 @@ search it with one `retrieve` tool (`research-editing.md`). UberSeek keeps the s
 in the API, so a program can query and reuse past observations like any other data:
 
 ```python
-seen = await video.observations.where(source=source, focus="visual")
+seen = observations("interview.mp4", focus="visual")
 
-# Coverage: what has not been looked at closely yet?
-gaps = source.span.minus([o.span for o in seen if o.gap < 2])
-
-# Show an earlier look again by id, without decoding the footage again
-await video.observe(ids=[best.obs_id])
-
-# Notes are searchable, but they are the model's interpretation, not ground truth
-mentions = await video.observations.search("hands over the document")
+# Coverage: what has not been looked at yet, and what only from far away?
+covered = coverage("interview.mp4")
+never = covered["never"]
+far = [look for look in covered["looked"] if look["gap"] > 2]
 ```
 
-| Operation | Does |
-| --- | --- |
-| `observations.where(...)` | Filters past looks by source, version, span, focus, time or relation |
-| `observations.coverage(span)` | Says what was looked at, how densely, and what was not looked at at all |
-| `observations.search(text)` | Searches the model's notes on past looks |
-| `observe({ ids })` | Shows a past look again, from its stored images |
-| `observations.across(versions)` | Pairs looks at the same moment in two versions of a file or render |
+| Operation | Does | Built |
+| --- | --- | --- |
+| `observations(video, focus, start, end)` | Filters past looks by source, focus and time | Yes |
+| `coverage(video, start, end)` | Says what was looked at, how closely, and what was not looked at at all | Yes |
+| `show_again(id)` | Shows a past look again, from its stored picture | Yes, as a tool |
+| Search over notes | Searches the model's notes on past looks | No: the model writes no notes yet. `purpose` is kept with each look |
+| Pairing looks across versions | Pairs looks at the same moment in two versions of a file or render | No: needs a render to compare |
 
 - **Notes are interpretations.** A search over notes is a search over the model's own captions, so a wrong caption
   comes back looking like a fact. Only the stored images are what was shown.
@@ -600,11 +602,30 @@ One vertical experiment before a broad harness.
    - *Found and fixed on the way.* Signals were measured on a timeline shifted by the file's start time, so on
      a file that does not start at zero a pause was drawn in the wrong place. They now keep the file's own
      timestamps.
-   - *Next.* The library (`find` over the transcript, signals, `observe`), the bounded executor and
-     `video.observations` (where, coverage, search, re-show by id), wired into the host harness and run end to
-     end through it. SAVE's loop reproduced twice on the same core, once with plain tools and once as code,
-     which is experiment E6 and settles the surface early. Picture search is added to `find` only after text
-     search and the ladder are measured. No separate orchestration framework.
+   - *Done: the library* (`uberseek/api`). Thirteen operations that return plain values: `find`, `words`,
+     `pauses`, `loudness`, `cuts`, `shots`, `observe`, `observations`, `coverage`, `info`, and span arithmetic
+     (`expand`, `merge`, `minus`). An agent may use only the videos it is given, by name.
+   - *Done: `find` over the transcript.* Passages are cut at sentence ends and where the speaker stops, and
+     ranked by the words they share with the query. **It matches words, not meaning**: a paraphrase finds
+     nothing. `find(like=...)` says plainly that the picture index is not built.
+   - *Done: the executor* (`uberseek/exec`). A program runs in Monty with the library as its only way out, under
+     limits on time, memory, library calls, looks per program and the size of what comes back. An error returns
+     with the line that caused it. Every run is logged with its calls. Pictures a program makes are handed to
+     the model beside its result.
+   - *Done: two surfaces in the host*, over the same library: `code` (`find`, `observe`, `execute`) and `tools`
+     (one operation per call). The reference inside `execute` is generated from the library itself.
+   - *Every picture now carries a title* with its video and span, so pictures from one program cannot be mixed
+     up.
+   - *Tried with real models, not measured.* One spoken and one picture-only locate task, two cheap models
+     (Claude Haiku 5.5, GPT 5.6 Luna), both surfaces: every run finished and named a span. Single runs varied,
+     and the code surface used two to three times the tokens on the picture task. That is what E6 measures;
+     nothing here decides it.
+   - *What the trial exposed.* A draft label was wrong: the cut detector missed a flash to white, so "the shot"
+     began two seconds early. Looking at the picture showed it. Cut detection misses flashes and dissolves, and
+     draft labels do need a person.
+   - *Next.* The explorer of E6: SAVE's loop reproduced twice on the same core, once with plain tools and once
+     as code, on confirmed locate tasks. That settles the surface early. Picture search is added to `find` only
+     after text search and the ladder are measured. No separate orchestration framework.
 2. **M2, candidate comparison.** The brief and profile, the candidate set, the cheap measured signals, and
    `compare` with matched frames, sound strips and context. Preferences recorded with their context.
 3. **M3, boundary comparison.** `mark` with alternative cut points shown as dense frames with the sound strip.

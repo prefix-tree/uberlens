@@ -165,6 +165,13 @@ def strip(
     return image
 
 
+def header(width: int, text: str) -> Image.Image:
+    """One line that says which video and span the picture shows, so a picture identifies itself."""
+    image = Image.new("RGB", (width, 24), _PAPER)
+    ImageDraw.Draw(image).text((4, 4), text, font=_font(14), fill=_INK)
+    return image
+
+
 def stack(*images: Image.Image) -> Image.Image:
     width = max(i.width for i in images)
     out = Image.new("RGB", (width, sum(i.height for i in images) + GAP * (len(images) - 1)), _PAPER)

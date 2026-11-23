@@ -105,8 +105,8 @@ class Executor:
             parts.append(_clip(json.dumps(result, default=str), limits.result, "result"))
         if out:
             parts.append("Printed:\n" + _clip(out, limits.printed, "printed text"))
-        for seen in library.looks:
-            parts.append(seen.text)
+        for number, seen in enumerate(library.looks, start=1):
+            parts.append(f"Picture {number} of {len(library.looks)}, titled with its video and span:\n{seen.text}")
         record = self.project.log.append_execution(
             {
                 "program": program,

@@ -130,6 +130,7 @@ class Project:
             "shots": made.shots,
             "words": words,
             "words_in": list(self.words_in),
+            "title": f"{source.path.name} · {_span(made.start, made.end)} · {focus}",
         }
         began = time.perf_counter()
         image, delivered = self._render(source, recipe)
@@ -244,8 +245,14 @@ class Project:
             caption += ", the yellow line is the instant asked about" if mark else ""
             strip = render.strip(picture.width, (start, end), wave, pauses, times, mark, caption, cuts, spoken)
             picture = render.stack(picture, strip)
+        if recipe.get("title"):  # the picture names its video and span, so several pictures cannot be mixed up
+            picture = render.stack(render.header(picture.width, recipe["title"]), picture)
         delivered["size"] = list(picture.size)
         return render.png(picture), delivered
+
+
+def _span(start: Fraction, end: Fraction) -> str:
+    return clock(start) if start == end else f"{clock(start)} to {clock(end)}"
 
 
 def _missing(what: str):
@@ -261,7 +268,7 @@ def _describe(record: dict, source: Source | None) -> str:
     base = Fraction(delivered["time_base"])
     times = [frame["pts"] * base for frame in delivered["frames"]]
     start, end = Fraction(request["start"]), Fraction(request["end"])
-    span = clock(start) if start == end else f"{clock(start)} to {clock(end)}"
+    span = _span(start, end)
     lines = [
         f"{record['id']}: {Path(record['source']['path']).name}, {span}, focus {request['focus']}, level {recipe['level']}.",
     ]

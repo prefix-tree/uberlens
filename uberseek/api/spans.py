@@ -7,7 +7,7 @@ Span = list[float]
 
 def expand(span: Span, before: float = 0, after: float = 0) -> Span:
     """Widen a span by `before` seconds at its start and `after` at its end. Never starts before zero."""
-    return [max(0.0, span[0] - before), span[1] + after]
+    return [round(max(0.0, span[0] - before), 3), round(span[1] + after, 3)]
 
 
 def merge(spans: list[Span], gap: float = 0) -> list[Span]:
