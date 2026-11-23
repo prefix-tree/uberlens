@@ -34,13 +34,15 @@ Picking has three levels:
 | Level | Question | Research so far |
 | --- | --- | --- |
 | **Locate** | Where in the footage is what I need? | Heavily studied (SAVE, ForeSeek, T\*, VideoTree) |
-| **Choose** | Of several candidates, which is best for this purpose? | Studied as ranking and highlight selection; see below |
-| **Trim** | Exactly where does it start and end? | Studied as cut-point prediction; see below |
+| **Choose** | Of several candidates, which is best for this purpose? | Benchmarked: picking one clip among candidates (VEBench), selected ranges by several professionals (MEDit-Bench) |
+| **Trim** | Exactly where does it start and end? | Studied as cut-point prediction (Pardo et al., Huang et al., 2021) and as highlight and deletion spans (RoughCut-Bench) |
 
-Choose and trim have prior work (cut placement learned from edited videos; benchmarks of selection and trimming
-named in section 8, being verified). What is not yet evaluated, as far as we have found, is a general agent that
-**compares candidates directly, with picture and sound and their surrounding context, under one observation
-budget, and justifies each boundary**. That is the gap this iteration aims at.
+Choose and trim have public work and labels (section 8). What none of it tests is an agent that **decides what to
+look at and listen to under a stated budget, compares several takes of the same content, sets in and out points
+to sub-second error, and gives a reason for each boundary**. That is the gap this iteration aims at. Comparing
+candidates with picture and sound is not new in itself (VEBench does it in one model pass, and the best model
+picks the right clip 44% of the time and localises it at 0.11 overlap); the untested part is the agent controlling
+its own looking.
 
 ## 2. The base: exploring video
 
@@ -231,13 +233,18 @@ Rules for all three:
   reasoning.
 - Results for models that can hear are separate from those that cannot.
 - Full-video inference is always an arm: where evidence is not sparse it can make exploration unnecessary.
-- Human cut points are not treated as the only right answer; several professional edits of the same material
-  differ.
+- Human cut points are not treated as the only right answer. On MEDit-Bench, professionals editing the same
+  video for the same message agree at only 0.42 F1. So labels are **acceptable ranges from several annotators**,
+  not one best candidate and one in/out pair, and agreement between humans is the ceiling a system is measured
+  against.
 
-**Data.** Locate has public sets with labelled moments. For choose and trim, existing sets are reused where their
-licences allow (section 8, being verified), and a small set is labelled for what they lack: pairs of candidates
-with a preferred one, and boundaries with acceptable alternatives. Footage is interviews plus action-heavy
-material.
+**Data.** Locate has public sets with labelled moments. For choose and trim, two public sets are candidates,
+licences permitting: VEBench's task of picking footage among four candidates and then localising it (with sound),
+and RoughCut-Bench's highlight boundaries and transcript deletion spans (its media is redistributed; no raw
+sound). MEDit-Bench was labelled with sound ignored on purpose, so it cannot test the sound level. No public set
+was found with several takes of the same line or action and a preferred take, or with hand-marked acceptable cut
+ranges on raw footage. That is the small set to label ourselves, with several annotators. Footage is interviews
+plus action-heavy material.
 
 **Size.** Small sets only show large effects: 20 tasks with 5 runs each detect about 17 points, 56 tasks with 5
 runs about 10 (arithmetic under worst-case run noise, `research-validation.md`). The first run is a pilot that
@@ -277,12 +284,22 @@ wide benchmark coverage.
   scene detection that adapts to the range and higher fidelity for narrow ranges, and it is the baseline to
   reproduce faithfully. Coarse-to-fine search (VideoTree, T\*), looking on demand (VIVID) and choosing what and
   where to observe (AVP) are also published.
-- **Not new either:** choosing and trimming as tasks. Named by a reviewer and being verified: cut placement
-  learned from edited videos, MEDit-Bench (selection and sequencing for different editorial objectives, with
-  several professional edits each), RoughCut-Bench (highlight selection, transcript-driven trimming), VEBench
-  (candidate selection and temporal localization).
-- **Ours to show:** direct, context-preserving comparison of candidates with picture and sound by a general agent;
-  boundaries chosen among alternatives with a reason; both under one observation budget and one log.
+- **Not new either:** choosing and trimming as tasks, with labels (`archive/` notes; verified against the papers
+  except where marked).
+  - *Learning to Cut by Watching Movies* (Pardo et al., ICCV 2021): ranks cut points between two shots, with
+    sound; 257,064 cuts, labels taken from where films cut; scored within 0.33 to 1 s.
+  - *Learning Where to Cut from Edited Videos* (Huang et al., ICCV 2021 workshops): predicts good start and end
+    cut points. Read as an abstract only.
+  - MEDit-Bench (arXiv:2607.25300): 60 videos, 3 messages, 3 professional editors, 540 edits with selected source
+    ranges; sound ignored on purpose; best model below human agreement. Its model judge picks the human edit
+    55.6% of the time when shown first and 20.2% when shown second.
+  - RoughCut-Bench (arXiv:2611.24098): 1,476 highlight spans and transcript deletion spans; frames at 1 per
+    second and transcripts, no raw sound; fixed pipelines, no agent choosing what to look at.
+  - VEBench (arXiv:2605.03276): pick the right footage among four candidates, then give its start and end, with
+    sound, in one model pass.
+- **Ours to show:** an agent that controls its own looking and listening under a budget; comparison of several
+  takes of the same content; in and out points chosen among alternatives to sub-second error, each with a reason.
+  None of the works above tests these.
 
 The ladder is an engineering choice. The claim is about comparison, and it stands only if section 6 shows it.
 
