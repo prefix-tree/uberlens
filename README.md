@@ -1,4 +1,4 @@
-# UberLens
+# UberSeek
 
 An agent harness for video: one reusable harness that brings together what an agent needs to work with video.
 
@@ -8,7 +8,7 @@ its context. Where a judgment needs eyes, it asks to be shown a span and says wh
 how to show it as images, from a map of the whole source down to a dense run of frames or a single frame. Sound
 reaches the model as measurements and as drawn waveform strips; it does not hear yet.
 Everything shown is logged with exactly what was decoded. The base knows nothing about editing, so question
-answering, search and review can be built on it too. UberLens has no agent loop of its own: it runs inside an
+answering, search and review can be built on it too. UberSeek has no agent loop of its own: it runs inside an
 existing agent harness such as Pydantic AI or Hermes.
 
 **Modules** sit on top. The first is selection: finding the moment that is needed, comparing candidates directly

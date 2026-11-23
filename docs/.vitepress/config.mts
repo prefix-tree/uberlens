@@ -5,7 +5,7 @@ const base = process.env.DOCS_BASE ? `${process.env.DOCS_BASE.replace(/\/$/, "")
 const repo = "https://github.com/prefix-tree/uberlens";
 
 export default defineConfig({
-  title: "UberLens",
+  title: "UberSeek",
   description:
     "A programmable environment for exploring video: an agent writes small programs to search and measure footage, asks to be shown images where a judgment needs eyes, and picks the right moments.",
   base,
@@ -21,12 +21,12 @@ export default defineConfig({
       "link",
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;450;500;600&display=swap",
       },
     ],
   ],
   themeConfig: {
-    siteTitle: "uberlens",
+    siteTitle: "uberseek",
     nav: [
       { text: "Design", link: "/design", activeMatch: "^/design" },
       { text: "Research", link: `${repo}/tree/main/docs/archive` },
@@ -34,7 +34,7 @@ export default defineConfig({
     ],
     sidebar: [
       {
-        text: "UberLens",
+        text: "UberSeek",
         items: [
           { text: "Overview", link: "/" },
           { text: "Design", link: "/design" },

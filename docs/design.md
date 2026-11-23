@@ -1,8 +1,8 @@
-# UberLens: design
+# UberSeek: design
 
-UberLens is a harness for video work: one reusable environment that brings together what an agent needs to work
+UberSeek is a harness for video work: one reusable environment that brings together what an agent needs to work
 with video. It does not have an agent loop of its own. It runs inside an existing agent harness, such as Pydantic
-AI or Hermes, which drives the model and calls UberLens; that is also how it is tested end to end.
+AI or Hermes, which drives the model and calls UberSeek; that is also how it is tested end to end.
 
 It has two layers:
 
@@ -121,7 +121,7 @@ as **not heard**, and left for the editor to confirm. Real sound in `observe` is
 ### Memory as part of the API
 
 VIVID keeps every look outside the model's context, pinned to the file version it came from, and lets the agent
-search it with one `retrieve` tool (`research-editing.md`). UberLens keeps the same store, and makes it an object
+search it with one `retrieve` tool (`research-editing.md`). UberSeek keeps the same store, and makes it an object
 in the API, so a program can query and reuse past observations like any other data:
 
 ```ts
@@ -153,7 +153,7 @@ const mentions = await video.observations.search("hands over the document");
   memory ablation removed the working files at the same time, so how much the searchable store itself helps is
   unknown.
 - **Working files stay the host's job.** The brief, the plan and continuing in a fresh context belong to the host
-  harness; UberLens supplies a compact index of the observations and candidates for it to load.
+  harness; UberSeek supplies a compact index of the observations and candidates for it to load.
 - **Bounded requests.** A program or `observe` asking for more than its caps returns a bounded part and the next
   request to make, pinned to the same version (VIVID).
 
@@ -365,7 +365,7 @@ Kept thin until the method has shown a gain. The first build is the pieces below
 not a framework. A harness is an engineered environment in which the model can make and check useful decisions, not a
 bigger orchestration layer:
 
-| Mechanism | In UberLens |
+| Mechanism | In UberSeek |
 | --- | --- |
 | Context kept small | Media and large outputs stay outside the model's context; only what the next decision needs is loaded |
 | Durable state | Observations, candidates, selections and preferences persist across calls and sessions |
@@ -376,7 +376,7 @@ bigger orchestration layer:
 | Change by measurement | Harness changes are compared on held-out footage |
 
 - **An environment, hosted by an existing harness** (decided). The core is the typed video API, the bounded
-  executor and the `observe` gateway. UberLens has no loop of its own: an existing agent harness drives the model
+  executor and the `observe` gateway. UberSeek has no loop of its own: an existing agent harness drives the model
   and calls it. Pydantic AI and Hermes are the candidates; one is chosen in M0 and used for all end-to-end tests.
   The same tools can be offered to Claude Code, Codex or OpenCode. The host model keeps the exploration strategy.
 - **Model contract.** A model needs tool calls and images. The host must be able to return images in a tool
@@ -403,7 +403,7 @@ container or isolate), never in the same process as the media services. A restri
 | Reproducibility | Source identity, exact parameters, artifacts and outcome are recorded for every run |
 
 ```
-uberlens/
+uberseek/
   media/        # host-side media services; FFmpeg reference, uberscene-codec optional
   ingest/       # content hash, shots, sound, transcript, signals
   api/          # the typed video API the model programs against
@@ -428,7 +428,7 @@ locate; if this fails, the ladder may still be a useful interface, but there is 
 
 | | Experiment | Compared | Primary measure | Dropped when |
 | --- | --- | --- | --- | --- |
-| E0 | Does adaptive exploration help **locate**? | Full-video inference; a static index; SAVE, reproduced faithfully; UberLens | Localization accuracy at equal total cost | It does not beat SAVE; then SAVE's loop is the base |
+| E0 | Does adaptive exploration help **locate**? | Full-video inference; a static index; SAVE, reproduced faithfully; UberSeek | Localization accuracy at equal total cost | It does not beat SAVE; then SAVE's loop is the base |
 | E1 | Do **signals** improve selection? | Excerpts alone vs excerpts plus selected speech, motion and semantic signals | Blind editor preference; observation cost | Signals improve neither |
 | E2 | Does **direct comparison** beat independent ranking? | Absolute scores; pairwise comparison with `compare`; ranking several at once; same candidates, context and budget, order randomised | Blind editor preference | Comparison is no better, or its verdicts flip with order |
 | E3 | Does the **brief** change which moments are right? | General relevance ranking vs ranking conditioned on the brief, same footage under several briefs | Agreement with editors working to each brief | Conditioning adds nothing over relevance |
