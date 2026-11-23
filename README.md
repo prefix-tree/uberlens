@@ -1,25 +1,27 @@
 # UberLens
 
-A harness that lets an AI agent explore video and edit it, and a benchmark that measures how well it does both.
+An agent harness for video that picks the right time.
 
-Agents fail at video by drowning: they transcribe or thumbnail everything, run out of budget and never finish the
-edit. UberLens gives an agent you already use (Claude Code, Codex, any tool-calling model) a better way to work:
+Agents can already execute an edit. Where they fail is picking: looking in the wrong place, choosing a weaker take,
+cutting a beat early or late. UberLens is built for that one job. Given footage and what is needed, it finds the
+moment, chooses the best candidate and sets exactly where it starts and ends.
 
-- **Explore.** Look only where it matters: a cheap first look guided by the file's own signals (bitrate, keyframes,
-  audio), then targeted frames, crops and sound inside the stretches that look promising.
-- **Remember.** Everything seen is stored outside the model's context, tied to the exact version of the file it came
-  from, so a decision can always be traced to its evidence.
-- **Edit.** Changes go through [UberScene](https://github.com/prefix-tree/uberscene)'s typed, undoable actions on one
-  TSX file, never through hand-written FFmpeg commands.
-- **Check.** Code checks first, then a critic that watches the rendered result and asks for one concrete fix per
-  segment.
+It works by zooming. The agent asks to see a span of time, and the harness decides how to show it:
 
-The benchmark runs the same model with and without the harness on footage that can be redistributed, and reports
-cost next to accuracy.
+- **Map**: the whole source in one strip.
+- **Section**: minutes, one frame per shot.
+- **Passage**: 10 to 60 seconds, with the words.
+- **Moment**: 1 to 8 seconds, a dense run of frames with the real sound.
+- **Frame**: one instant at full resolution, or a crop.
+
+At each step the agent narrows, compares candidates, and marks a range. The result is a list of selections with
+in and out points and reasons, exported as JSON, a cut list, FFmpeg commands or an
+[UberScene](https://github.com/prefix-tree/uberscene) file. UberLens does not edit; it hands its selections to
+whatever does.
 
 > [!WARNING]
-> **Design stage.** There is no code yet. [docs/design.md](docs/design.md) is the design; the research behind it is
-> in [docs/](docs).
+> **Design stage.** There is no code yet. [docs/design.md](docs/design.md) is the design. Earlier research is
+> frozen in [docs/archive](docs/archive).
 
 ## License
 
