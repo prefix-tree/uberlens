@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 // The site is served from "/" on its own domain and from "/<repo>/" on GitHub Pages; the workflow sets DOCS_BASE.
 const base = process.env.DOCS_BASE ? `${process.env.DOCS_BASE.replace(/\/$/, "")}/` : "/";
-const repo = "https://github.com/prefix-tree/uberlens";
+const repo = "https://github.com/prefix-tree/uberseek";
 
 export default defineConfig({
   title: "UberSeek",

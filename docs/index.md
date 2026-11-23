@@ -26,7 +26,7 @@ import { withBase } from "vitepress";
 
 <div class="actions">
 <a class="btn primary" :href="withBase('/design')">Read the design →</a>
-<a class="btn" href="https://github.com/prefix-tree/uberlens">GitHub</a>
+<a class="btn" href="https://github.com/prefix-tree/uberseek">GitHub</a>
 </div>
 
 <div class="term" role="img" aria-label="An illustrative agent session: the agent searches a transcript in a program, gets back four candidates, and asks to see one as a contact sheet with its sound drawn as a strip.">
