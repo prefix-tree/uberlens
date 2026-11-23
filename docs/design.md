@@ -5,9 +5,10 @@ together what an agent needs to work with video, with its own loop, for any mode
 
 It has two layers:
 
-- **A base for exploring video.** Sources, observations, navigation, cost and task completion. It knows nothing
-  about editing. Anything that needs to look at video can be built on it: question answering, search, review,
-  selection.
+- **A base for exploring video.** A programmable environment: the agent writes small programs against a typed
+  video API to search, measure and filter footage, and asks to be shown picture and sound only where a judgment
+  needs it. Sources, observations, cost and task completion live here. It knows nothing about editing. Anything
+  that needs to look at video can be built on it: question answering, search, review, selection.
 - **Modules on top.** The first is **selection**: finding the moment that is needed, choosing the best candidate,
   and setting where it starts and ends.
 
@@ -74,18 +75,52 @@ dialogue clear?"); a 3-second moment may need dense frames ("who takes the docum
 question about a 90-minute video. So the agent states an extent and an objective, and the harness chooses the
 fidelity.
 
-### Navigation
+### The interface: code, plus a way to look
 
-| Action | Does |
+Video is far larger than what the next decision needs. So the agent does not call one inspection tool at a time
+and read every result. It writes a short program against a typed video API; the program runs in a sandbox;
+intermediate data (transcripts, timings, signals, a hundred candidates) stays there; only a compact result comes
+back. This is Cloudflare's Code Mode idea applied to video.
+
+Three primitives:
+
+| Primitive | Does |
 | --- | --- |
-| `zoom(span, focus)` | Shows a span, in the form that fits `focus` |
-| `back` | Returns to the wider view |
-| `find(text)` | Searches the transcript and jumps to matching passages |
-| `done` | Ends the task, with what was not looked at |
+| `discover` | Returns the parts of the API relevant to the task, so the whole API never sits in context |
+| `execute(program)` | Runs a bounded program against the API and returns its result |
+| `observe(spans, focus)` | Delivers actual picture and sound to the model as an observation, by artifact id |
 
-`focus` says what the look is for:
+```ts
+const source = await video.open("interview.mp4");
+const hits = await source.transcript.search("company almost failed");
+const candidates = await Promise.all(hits.map(async h => {
+  const span = h.span.expand({ before: 5, after: 8 });
+  return { span,
+           words: await source.transcript.get(span),
+           pauses: await source.signals.pauses(span),
+           shots: await source.shots.in(span) };
+}));
+return candidates.filter(c => c.words.length > 0);
+```
 
-| Focus | The harness shows |
+(Illustrative; the API does not exist yet.) The model then decides which of the returned candidates need to be
+seen or heard, and asks for that with `observe`.
+
+**Code computes; only the model perceives.** A program can search, measure, filter and rank on timings, words
+and signals. It cannot judge delivery, framing or whether a cut lands. Any decision of that kind needs an
+`observe`, and only what `observe` delivered counts as something the model saw or heard. How `observe` gets
+picture, short clips and sound into the model's next step without flooding its context is the most important
+design question of the base (section 10).
+
+**The simple actions remain, as a library.** `zoom(span, focus)`, `back`, `find(text)` and `done` are functions
+built on the same API, and can be exposed as plain tools for a model that does better with a small vocabulary.
+Whether code beats those tools is an experiment (E6), not an assumption: writing and debugging programs costs
+output tokens, and Code Mode's published savings are for very large tool catalogues, not for a handful of video
+tools.
+
+`focus` says what a look is for:
+
+| Focus | `observe` delivers |
 | --- | --- |
 | `visual` (default) | Frames, by the ladder below |
 | `speech` | The words with timings, and the sound; few or no frames |
@@ -118,7 +153,8 @@ nest.
   guidance would give observation decisions to the model. The split is a starting position; letting the model set
   fidelity is an arm of E0.
 - **Caps**, whatever the focus: frames per view, pixels, seconds of sound, and a budget of views, tokens and time
-  per task. The model never writes media commands.
+  per task. These hold inside programs too: the API enforces them on the host side, so a program cannot ask its
+  way around them. The model never writes media commands.
 - **Every observation states what it delivered:** the span asked for, the presentation timestamps actually
   decoded, the gap between samples, frame size, whether sound was included.
 - **Degraded is not equivalent.** If a model cannot hear, a `delivery` or `boundary` look returns frames, words
@@ -194,7 +230,7 @@ look in numbers needs a calibrated model of editorial utility, which nobody has;
 `research-rres.md` covers why one-step value estimates are weak. Whether this loop beats plain range exploration
 is experiment E4.
 
-Two actions on top of the base.
+Two functions on top of the base, callable from a program or as tools.
 
 ### `compare`: choosing between candidates
 
@@ -270,7 +306,8 @@ session and can continue with another model.
   changes to the harness can be judged on held-out footage and not on impressions. Held-out matters: the one
   published method that tunes a harness from its traces gains 7 points on the tasks it tuned on and 0.4 on others
   (section 8).
-- **Cost**, per observation and per task.
+- **Executions.** Each program run: its text, the API calls it made, what it returned, whether it failed.
+- **Cost**, per observation, per execution and per task.
 
 **Time.** Positions are kept as presentation timestamps in the media's own timebase (a rational number), not as
 floating-point seconds, so variable frame rate and audio alignment do not move a cut.
@@ -288,31 +325,49 @@ bigger orchestration layer:
 | --- | --- |
 | Context kept small | Media and large outputs stay outside the model's context; only what the next decision needs is loaded |
 | Durable state | Observations, candidates, selections and preferences persist across calls and sessions |
-| A small tool surface | `zoom`, `back`, `find`, `compare`, `mark`, `done` |
+| A small surface | Three primitives (`discover`, `execute`, `observe`); the simple actions as a library on top |
 | Checks before "done" | By code: selections play, source versions and timestamps are valid, constraints of the brief are met |
 | Recovery | A long exploration resumes from the log |
 | Delegation, only where isolation helps | Indexing and retrieval can run apart from the deciding model |
 | Change by measurement | Harness changes are compared on held-out footage |
 
-- **The loop.** Task, observations, actions, budget, state. Model-agnostic.
-- **Model contract.** What each model can take: tool calls, images, sound, video. A missing capability is a
-  recorded restriction (section 2), not a silent fallback.
-- **Media, behind one interface.** FFmpeg is the reference implementation and an inner tool of the harness.
-  FilmCraft's codecs (through `uberscene-codec`) are an optional second implementation, to be used only after it
-  matches FFmpeg on: the frame returned for a requested timestamp, variable-frame-rate seeking, sound and picture
-  sync, colour conversion, behaviour around keyframes, and damaged files. What the model sees must be identical
-  across backends in any experiment.
-- **Python**, Whisper for transcription.
-- **Tool surface.** The same actions can be exposed as tools for use inside OpenCode or Claude Code.
+- **An environment first, a loop second.** The core is the typed video API, the bounded executor and the
+  `observe` gateway. It is usable from an agent the user already has (Claude Code, Codex, OpenCode) through tool
+  calls, and from a small loop of our own. The host model keeps the exploration strategy.
+- **Model contract.** What each model can take: tool calls, images, sound, video, and whether its host can pass
+  media back in a tool result. A missing capability is a recorded restriction (section 2), not a silent fallback.
+- **Media, behind one interface.** FFmpeg is the reference implementation and an inner tool of the harness, run by
+  trusted host-side services. FilmCraft's codecs (through `uberscene-codec`) are an optional second
+  implementation, to be used only after it matches FFmpeg on: the frame returned for a requested timestamp,
+  variable-frame-rate seeking, sound and picture sync, colour conversion, behaviour around keyframes, and damaged
+  files. What the model sees must be identical across backends in any experiment.
+- **Media services in Python**, Whisper for transcription. The language of the API the model writes against
+  (TypeScript as in Code Mode, or Python) is open (section 10).
+
+**Safe execution.** Programs written by a model run in a real isolation boundary (a separate restricted process,
+container or isolate), never in the same process as the media services. A restricted `exec()` is not a sandbox.
+
+| Boundary | Enforced by |
+| --- | --- |
+| Files | Read only registered sources and the project's own artifacts |
+| Network | Off, unless switched on for a named service |
+| Media processing | Only through the API; FFmpeg is called by host services, never by a generated shell command |
+| Resources | Caps on decoded frames, pixels, seconds of sound, CPU time and parallel jobs |
+| Output | Caps on returned text and media |
+| Persistence | Selected results and metadata are kept; unbounded intermediate data is not |
+| Reproducibility | Source identity, exact parameters, artifacts and outcome are recorded for every run |
 
 ```
 uberlens/
-  media/        # the media interface; FFmpeg reference, uberscene-codec optional
-  ingest/       # content hash, shots, sound, transcript, activity marks
-  observe/      # the observation policy: focus, ladder defaults, caps, rendering
-  state/        # observation log, cost
-  loop/         # the agent loop, model contracts
+  media/        # host-side media services; FFmpeg reference, uberscene-codec optional
+  ingest/       # content hash, shots, sound, transcript, signals
+  api/          # the typed video API the model programs against
+  exec/         # the sandboxed executor and its limits
+  observe/      # the observe gateway: focus, ladder defaults, caps, rendering, delivery
+  state/        # observation log, executions, cost
+  actions/      # zoom, back, find, done as a library and as plain tools
   select/       # the selection module: compare, mark, selections, export
+  loop/         # an optional small loop of our own, model contracts
 bench/          # tasks, scoring, cost report
 ```
 
@@ -333,6 +388,7 @@ locate; if this fails, the ladder may still be a useful interface, but there is 
 | E2 | Does **direct comparison** beat independent ranking? | Absolute scores; pairwise audiovisual comparison; ranking several at once; same candidates, context and budget, order randomised | Blind editor preference | Comparison is no better, or its verdicts flip with order |
 | E3 | Does the **brief** change which moments are right? | General relevance ranking vs ranking conditioned on the brief, same footage under several briefs | Agreement with editors working to each brief | Conditioning adds nothing over relevance |
 | E4 | Does **decision-led looking** beat the alternatives? | Free inspection (VIVID-style); SAVE; the ladder; the decision loop of section 3 | Editor preference, missed alternatives, cost, share of looks that changed a decision | It is no better than plain range exploration |
+| E6 | Does **code** beat plain tools? | A: plain tools (`find`, `zoom`, `compare`, `mark`); B: the API through `execute` only; C: `execute` plus `observe` | Accuracy on locate, choose and trim; tokens in and out; round trips; wall time; failed or invalid programs | The model spends more writing and fixing programs than it saves; then plain tools are the surface |
 | E5 | Does **boundary comparison** improve trimming? | Transcript boundaries; silence boundaries; boundary comparison | Blind preference between boundaries; speech left intact | It does no better than the simple boundaries |
 
 Rules for all of them:
@@ -372,10 +428,11 @@ measures the real variance.
 
 One vertical experiment before a broad harness.
 
-0. **M0, the observation contract.** FFmpeg-backed source reading: frames, sound, timestamps. The simplest
-   persistent log. Proof that an observation can be reproduced exactly.
-1. **M1, a minimal range explorer.** SAVE's loop reproduced with a small loop of our own, plus the ladder
-   defaults and `focus`. No separate orchestration framework.
+0. **M0, the observation contract.** FFmpeg-backed media services: frames, sound, timestamps. The simplest
+   persistent log. Proof that an observation can be reproduced exactly. Decide the API language and the sandbox.
+1. **M1, the environment and a minimal explorer.** The typed API, the bounded executor and `observe`. SAVE's
+   loop reproduced twice on the same core, once with plain tools and once as code, which is experiment E6 and
+   settles the surface early. No separate orchestration framework.
 2. **M2, candidate comparison.** The brief and profile, the candidate set, the cheap measured signals, and
    `compare` with matched picture and sound and context. Preferences recorded with their context.
 3. **M3, boundary comparison.** `mark` with alternative cut points shown with real sound and dense frames.
@@ -404,6 +461,11 @@ wide benchmark coverage.
     second and transcripts, no raw sound; fixed pipelines, no agent choosing what to look at.
   - VEBench (arXiv:2605.03276): pick the right footage among four candidates, then give its start and end, with
     sound, in one model pass.
+- **Programs in place of tool calls.** Cloudflare's Code Mode turns tools into a typed API the agent writes code
+  against, run in a sandbox, so intermediate results stay out of the model's context; a later version reaches a
+  very large API through two tools, a search and an execute. (From the articles the proposal cites; not re-read
+  by us.) Their measured savings are for large tool catalogues. Nothing found applies this to video, where the
+  open problem is getting picture and sound back to the model.
 - **Harness engineering** (verified; OpenAI's post read as snippets only). A source-code study of eleven coding
   agents (arXiv:2609.00006) finds none uses a general agent framework and that a more elaborate loop "does not
   predict benchmark performance". Anthropic's guidance covers just-in-time context, clearing tool results, and
@@ -448,6 +510,8 @@ Each is added only after the one before it has shown its value in an experiment.
 
 | Question | Recommendation |
 | --- | --- |
+| How does `observe` deliver media? | Open, and the most important one. As contact sheets and short sound clips returned by artifact id, sized by focus. It depends on what each host lets a tool result carry: images widely, sound and video rarely |
+| Which language does the model write? | TypeScript in an isolate, as Code Mode does, or Python in a restricted process. Decide in M0 on which is easier to isolate and which the models write more reliably |
 | Which models first? | One strong model that takes sound and video, and one strong text-and-image model. The second runs with sound-dependent judgments marked unverified |
 | Which footage? | Interviews and action-heavy material. Reuse labelled editing sets where licences allow; label a small set of candidate pairs and boundaries ourselves |
 | Very long sources | One cheap map to start, refined in parts and cached. Measure where it fails before adding more |
