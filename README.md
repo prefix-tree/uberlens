@@ -124,8 +124,9 @@ Results so far are in [bench/reading/results](bench/reading/results/README.md). 
 
 ## Docs site
 
-The site is built with VitePress from `docs/`: the home page is `docs/index.md` and the design is
-`docs/design.md`, the one maintained document.
+The site is built with VitePress from `docs/`: the home page is `docs/index.md`, the design is
+`docs/design.md`, and each Markdown file in `docs/blog/` with a `date` in its front matter is a post.
+The logo is in `docs/public/` (`logo.svg`, `wordmark.svg`, `favicon.svg`, `og.png`).
 
 ```sh
 pnpm install
