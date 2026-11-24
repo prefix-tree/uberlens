@@ -71,4 +71,4 @@ def test_a_program_can_handle_an_error_itself(executor):
 def test_a_large_result_is_cut_and_says_so(executor):
     done = executor.run_sync("[[i, i * 2] for i in range(500)]")
     assert done.error is None and len(done.result) == 500
-    assert "[result cut at 200 of" in done.text and "return less" in done.text
+    assert "[result cut at 200 of" in done.text and "ask for less" in done.text

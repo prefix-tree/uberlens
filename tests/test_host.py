@@ -105,6 +105,23 @@ def test_the_plain_surface_offers_one_operation_at_a_time(clips, tmp_path):
     assert result.output == "[2.5, 4.5]"
 
 
+def test_a_plain_tool_cannot_flood_the_context_either(clips, tmp_path):
+    from uberseek.exec import Limits
+
+    told = []
+
+    def model(messages, info):
+        returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
+        if not returns:
+            return ModelResponse(parts=[ToolCallPart("cuts", {"video": "ten_shots.mp4"})])
+        told.append(returns[0].content)
+        return ModelResponse(parts=[TextPart("ok")])
+
+    tools = toolset(Project(tmp_path), [clips["ten_shots"]], surface="tools", limits=Limits(result=30))
+    Agent(FunctionModel(model), toolsets=[tools]).run_sync("Cuts?")
+    assert told[0].startswith("[8.0, 16.0, 24.0, 32.0, 40.0,") and "[result cut at 30 of" in told[0] and "ask for less" in told[0]
+
+
 # What each provider's API is sent. A fake server answers twice: first with a call to `observe`, then with text.
 
 
