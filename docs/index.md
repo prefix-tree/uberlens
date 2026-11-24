@@ -156,7 +156,7 @@ candidates[:3]
 
 <ol class="steps">
 <li class="done"><span class="n">M0</span><span>Built. Exact frames and sound, the observation log, and proof that an observation can be made again exactly. Host: Pydantic AI.</span></li>
-<li class="now"><span class="n">M1</span><span>Under way. Cuts, the transcript, real footage, the library, the sandboxed executor and a skill that teaches agents to use them are in, and two models read the pictures correctly. Next: the explorer, run both as code and as plain tools.</span></li>
+<li class="now"><span class="n">M1</span><span>Under way. Cuts, the transcript, real footage, the library, the sandboxed executor, a skill that teaches agents to use them, and cutting and checking a clip are in. Two models read the pictures correctly. Next: the explorer, run both as code and as plain tools.</span></li>
 <li><span class="n">M2</span><span>Candidate comparison against a brief.</span></li>
 <li><span class="n">M3</span><span>Boundary comparison.</span></li>
 <li><span class="n">M4</span><span>Controlled experiments: does each part beat its simpler baseline?</span></li>

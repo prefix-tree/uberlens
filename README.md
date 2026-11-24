@@ -20,7 +20,8 @@ Later iterations add carrying out edits, reviewing the render and handling revis
 
 > [!NOTE]
 > **Early.** Built so far: exact frames and sound, the observation log, cuts, the transcript, a small library
-> with `find` over the transcript, and a sandboxed executor. The selection module is not. [docs/design.md](docs/design.md)
+> with `find` over the transcript, a sandboxed executor, and marking, cutting and checking a clip. Comparing candidates
+> against a brief is not. [docs/design.md](docs/design.md)
 > is the design. Earlier research is frozen in [docs/archive](docs/archive).
 
 ## Try it
@@ -69,6 +70,20 @@ sheet("reel.mp4", [(s[0] + s[1]) / 2 for s in found], labels=[str(s[0]) + " to "
 
 `toolset(..., surface="tools")` offers the same operations one call at a time instead. `find` searches the
 transcript and matches words, not meaning.
+
+## Building a clip
+
+Once a span is chosen it can be saved, cut and checked:
+
+```sh
+uv run uberseek mark interview.mp4 64.2 79.5 --reason "her answer about the nights in the cave"
+uv run uberseek clip cave-answer sel_000001        # hard cuts, frame-exact; written to .uberseek/clips/
+uv run uberseek verify cave-answer                 # decodes, has the frames selected, starts and ends on the frames chosen
+uv run uberseek observe .uberseek/clips/cave-answer.mp4 0 15 --focus delivery
+```
+
+An agent does the same with `mark`, `clip` and `verify`, and then looks at its own clip with `observe`.
+`verify` says the file is what was asked for; it does not say the clip is good.
 
 ## The skill
 

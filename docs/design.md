@@ -352,6 +352,12 @@ ladder does not solve it. This action is the main research target of the iterati
 
 ### `mark`: selecting, with boundaries compared
 
+**Built so far** (`uberseek/select`): `mark` saves a span snapped to frames, pinned to the file's content and to
+the looks in the log that overlap it, and says when its first or last frame was never looked at. `clip` cuts
+selections into one file with hard cuts, frame-exact, and keeps the map from source time to clip time.
+`verify` checks the file by code. Not built: the boundary alternatives below as an operation of their own (an
+agent does it by hand with `pauses`, `words` and boundary looks), `compare`, and the brief and profile.
+
 `mark(span, purpose, why)` records a selection. Its in and out points are not just "seen up close"; they are
 **chosen among alternatives**:
 
@@ -676,6 +682,20 @@ One vertical experiment before a broad harness.
      that combine steps went from 0 of 10 to 7 of 12, and every run used a sheet. **Tokens did not fall; they
      rose about 40%**: the core is longer, and the models used sheets as well as looks. Whether a sheet saves
      anything needs a task where it replaces several looks, and more runs.
+   - *Done: from a chosen span to a checked clip* (`uberseek/select`). VIVID's ablation puts the look at the
+     render almost level with the look at the source (14.6 points against 16.0), so the loop is closed early, in
+     its smallest form.
+     - `mark` saves a selection; which looks it rests on is filled in by code, not claimed by the model.
+     - `clip` cuts selections in the order given. Each part is seeked to the keyframe before it and trimmed by
+       timestamp, so a cut never depends on where keyframes fall. Hard cuts only.
+     - `verify` checks that the file decodes, holds exactly the frames selected, and that each part starts and
+       ends on the frame chosen. Re-encoding changes pixels, so a frame must look like the one chosen and no
+       less like it than like its neighbours; a test confirms this catches a cut one frame off.
+     - The clip is then a video like any other, so the agent reviews it with the same `observe`.
+   - *Tried with real models, not measured* (`bench/clip/results`). One request, "a clip of about 15 seconds
+     of her answer about how many nights they slept in the cave", two cheap models. Both produced a clip of the
+     right length that holds the answer, passed `verify`, looked at both edges before marking and looked at the
+     clip afterwards. It cost 130,000 to 170,000 input tokens a run. Whether the clips are good was not judged.
    - *Next.* The explorer of E6: SAVE's loop reproduced twice on the same core, once with plain tools and once
      as code, on confirmed locate tasks. That settles the surface early. Picture search is added to `find` only
      after text search and the ladder are measured. No separate orchestration framework.
@@ -744,8 +764,8 @@ where the evidence stands.
 | Iteration | Capability | What the research says so far |
 | --- | --- | --- |
 | 1 (this document) | The base for exploring video, and the selection module | Sections 1 and 8 |
-| 2 | Carrying out edits inside the harness, through UberScene (FFmpeg for what UberScene cannot do) | Typed, undoable timelines for agents exist (Cassette-Editor); whether typed actions beat editing the file as text is untested |
-| 3 | Reviewing the result by watching and hearing the render | No one has compared a watching critic with a reading one; model judges are reliable on checkable items and weak on craft |
+| 2 | Carrying out edits inside the harness, through UberScene (FFmpeg for what UberScene cannot do). *Started early in its smallest form: hard cuts with FFmpeg, and a code check of the file (section 7)* | Typed, undoable timelines for agents exist (Cassette-Editor); whether typed actions beat editing the file as text is untested |
+| 3 | Reviewing the result by watching and hearing the render. *The agent can already look at its own clip; nothing yet tells it what to look for* | No one has compared a watching critic with a reading one; model judges are reliable on checkable items and weak on craft |
 | 4 | Revisions: keeping approved material intact across notes | A code gate with rollback is the mechanism with evidence |
 | Hearing | Real sound, and short clips, in `observe`, for models and hosts that can take them | Agents judging from stills and transcripts cannot assess delivery or rhythm; this is the known cost of images only |
 | Other modules | Question answering, search, compliance review (which needs evidence of absence), action analysis | The base serves them without change; each needs its own module |
