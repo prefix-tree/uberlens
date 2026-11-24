@@ -186,15 +186,9 @@ body {
   font-size: 15px;
   border-bottom: 0;
 }
-.VPNavBarTitle .title::before {
-  content: "";
-  width: 16px;
-  height: 16px;
+.VPNavBarTitle .title .logo {
+  height: 18px;
   margin-right: 10px;
-  background:
-    linear-gradient(var(--us-fg), var(--us-fg)) left top / 5px 16px no-repeat,
-    linear-gradient(var(--us-fg), var(--us-fg)) right top / 5px 16px no-repeat,
-    linear-gradient(var(--us-accent), var(--us-accent)) center / 4px 4px no-repeat;
 }
 .VPNavBarMenuLink,
 .VPNavBarMenuGroup .text {
@@ -286,17 +280,27 @@ body {
   height: 6px;
   background: var(--us-warn);
 }
-.home .wordmark {
-  margin: 22px 0 0;
+.home .brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 28px 0 0;
   font-family: var(--vp-font-family-mono);
-  font-size: 13px;
-  line-height: 1.15;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
   color: var(--us-fg);
-  white-space: pre;
-  overflow-x: auto;
 }
-.home .wordmark .seek {
-  color: var(--us-accent);
+.home .brand svg {
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+.home .brand .bar {
+  fill: var(--us-fg);
+}
+.home .brand .pick {
+  fill: var(--us-accent);
 }
 .home h1.hero-title {
   margin: 26px 0 0;
@@ -695,4 +699,116 @@ body {
   .home .abstract-body {
     padding: 18px 16px;
   }
+}
+
+/* ---- The real example on the home page: a request, the program a model wrote, and the picture it got back */
+.home .term-line > .grow {
+  flex: 1;
+  min-width: 0;
+}
+.home .term pre.program {
+  background: transparent;
+  font-family: var(--vp-font-family-mono);
+  margin: 8px 0 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--us-term-line);
+  color: var(--us-term-fg);
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+  border-radius: 0;
+}
+.home .term .shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 8px 0 2px;
+  border: 1px solid var(--us-term-line);
+}
+.home .grid3.six {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 767px) {
+  .home .grid3.six {
+    grid-template-columns: 1fr;
+  }
+}
+.home .facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 24px;
+  border-top: 1px solid var(--us-line);
+  border-left: 1px solid var(--us-line);
+}
+.home .facts > a {
+  display: block;
+  padding: 18px 20px;
+  border-right: 1px solid var(--us-line);
+  border-bottom: 1px solid var(--us-line);
+  color: var(--us-fg);
+  text-decoration: none;
+}
+.home .facts > a:hover {
+  background: var(--us-bg-deep);
+}
+.home .facts .num {
+  display: block;
+  font-family: var(--vp-font-family-mono);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.home .facts .what {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--us-fg-muted);
+}
+@media (max-width: 639px) {
+  .home .facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Blog */
+.vp-doc ul.blog-list {
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--us-line);
+}
+.vp-doc ul.blog-list > li {
+  margin: 0;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--us-line);
+}
+.blog-list time,
+.post-meta {
+  font-family: var(--vp-font-family-mono);
+  font-size: 12.5px;
+  color: var(--us-fg-faint);
+}
+.blog-list a.title {
+  display: block;
+  margin: 6px 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--us-fg);
+  text-decoration: none;
+}
+.blog-list a.title:hover {
+  color: var(--us-accent);
+}
+.blog-list p {
+  margin: 0;
+  color: var(--us-fg-muted);
+  line-height: 1.6;
+}
+.vp-doc p.post-meta {
+  margin: -8px 0 28px;
 }
