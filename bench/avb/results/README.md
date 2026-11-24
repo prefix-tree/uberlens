@@ -105,4 +105,4 @@ Cost of the nine runs: $0.13.
 Files: `2026-11-24T151044.json` (the ten runs), `2026-11-24T155719.json` (content-cut-wsj without UberSeek,
 run again because the first try ended when OpenCode refused a write outside `/workspace`; the runner now
 allows it), `2026-11-24T150409.json` (the first trial pair), `2026-11-24T150314.json` (the reference solution), `2026-11-24T214931.json` (Sequencing and
-Assembly), `2026-11-24T230309.json` (the skill rewritten).
+Assembly), `2026-11-24T230315.json` (the skill rewritten).
