@@ -201,3 +201,28 @@ def test_the_command_line_serves_the_skill_and_runs_programs(clips, tmp_path, ca
     assert out.startswith('{"cuts": [2.5, 4.5]}') and re.search(r"Picture: .*\.png", out)
     program.write_text('cuts("other.mp4")')
     assert main(["--project", str(tmp_path), "run", str(program), "--video", str(clips["three_shots"])]) == 1
+
+
+def test_every_operation_is_a_command(clips, tmp_path, monkeypatch, capsys):
+    """An agent in a shell reads the skill's operations as commands, so each one has to be one."""
+    from uberseek.cli import COMMANDS, PLAIN
+
+    assert set(Library.OPERATIONS) <= {*COMMANDS, *PLAIN}
+    monkeypatch.chdir(clips["three_shots"].parent)
+    run = ["--project", str(tmp_path)]
+    assert main([*run, "cuts", "three_shots.mp4"]) == 0 and capsys.readouterr().out.strip() == "[2.5, 4.5]"
+    assert main([*run, "pauses", "three_shots.mp4", "0", "0:03"]) == 0
+    assert main([*run, "minus", "[0, 10]", "[[2, 3]]"]) == 0 and capsys.readouterr().out.strip().endswith("[[0, 2], [3, 10]]")
+    assert main([*run, "sheet", "three_shots.mp4", "[1, 3, 5]", "purpose=one frame per shot"]) == 0
+    assert "Picture: /" in capsys.readouterr().out
+    assert main([*run, "videos"]) == 0 and "three_shots.mp4" in capsys.readouterr().out
+    assert main([*run, "cuts", "three_shots.mp4", "5", "2"]) == 2  # a refused call says why, and fails
+
+
+def test_the_card_names_only_commands_that_exist():
+    from uberseek.cli import COMMANDS, PLAIN
+
+    card = guide.topic("card")
+    named = set(re.findall(r"`uberseek ([a-z]+)", card))
+    assert named and named <= {*COMMANDS, *PLAIN}
+    assert len(card) < 4500  # it is loaded into every run, so it stays short

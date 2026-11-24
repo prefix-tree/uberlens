@@ -15,7 +15,7 @@ from pathlib import Path
 from uberseek.api.library import Library, signature
 
 SKILL = Path(__file__).parent / "skill"
-TOPICS = ("operations", "looking", "programs", "recipes", "limits")
+TOPICS = ("operations", "looking", "programs", "recipes", "limits", "card")
 
 # One call of each operation, as it would be written in a program.
 EXAMPLES = {

@@ -33,7 +33,9 @@ ENV UBERSEEK_TRANSCRIPT_MODEL=base HF_HUB_DISABLE_XET=1
 COPY src /opt/uberseek
 RUN pip install --no-cache-dir "/opt/uberseek[transcript]" \
  && python -c "import faster_whisper; faster_whisper.WhisperModel('base', device='cpu', compute_type='int8')"
-# The skill, where OpenCode reads global rules: its core, and where to get the rest.
+# The skill, every time: its short card in the rules OpenCode loads into every run, and the whole skill
+# where OpenCode looks for skills.
 RUN mkdir -p /root/.config/opencode \
- && uberseek guide > /root/.config/opencode/AGENTS.md \
- && uberseek skill install /opt/skills
+ && uberseek guide card > /root/.config/opencode/AGENTS.md \
+ && uberseek skill install /root/.config/opencode/skills \
+ && uberseek skill install /root/.claude/skills
