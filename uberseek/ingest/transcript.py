@@ -6,13 +6,15 @@ may be wrong or misplaced. Times are on the file's own timeline, like every othe
 
 from __future__ import annotations
 
+import os
 from fractions import Fraction
 from pathlib import Path
 
 from uberseek.media.backend import MediaBackend, MediaError
 from uberseek.timecode import Seconds
 
-MODEL = "small"
+# The Whisper model. A smaller one (base, tiny) is faster where the clock is short; set UBERSEEK_TRANSCRIPT_MODEL.
+MODEL = os.environ.get("UBERSEEK_TRANSCRIPT_MODEL", "small")
 RATE = 16_000
 
 

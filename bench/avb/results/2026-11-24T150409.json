@@ -1,0 +1,102 @@
+{
+ "at": "2026-11-24T150409",
+ "note": "first pair, wiring trial",
+ "rows": [
+  {
+   "task": "exp-content-cut-wsj-task01",
+   "condition": "native",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9971, audio_xcorr=0.9982842723970256",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 54.937,
+       "golden_end_s": 67.3,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 55.04,
+       "submitted_end_s": 60.45,
+       "start_offset_s": 0.103,
+       "end_offset_s": 6.85,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.9971,
+     "audio_xcorr": 0.9983,
+     "expected_duration_s": 84.608,
+     "submission_duration_s": 84.638,
+     "duration_diff_s": 0.03
+    }
+   },
+   "seconds": 228,
+   "timed_out": false,
+   "steps": 9,
+   "tokens": {
+    "input": 22,
+    "output": 3016,
+    "cache_read": 127099
+   },
+   "tool_calls": 8,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T150409/exp-content-cut-wsj-task01/native"
+  },
+  {
+   "task": "exp-content-cut-wsj-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9972, audio_xcorr=0.9988419722560712",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 54.937,
+       "golden_end_s": 67.3,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 55.0,
+       "submitted_end_s": 66.9,
+       "start_offset_s": 0.063,
+       "end_offset_s": 0.4,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.9972,
+     "audio_xcorr": 0.9988,
+     "expected_duration_s": 78.144,
+     "submission_duration_s": 78.162,
+     "duration_diff_s": 0.018
+    }
+   },
+   "seconds": 83,
+   "timed_out": false,
+   "steps": 10,
+   "tokens": {
+    "input": 26,
+    "output": 2554,
+    "cache_read": 193143
+   },
+   "tool_calls": 10,
+   "uberseek_commands": 6,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T150409/exp-content-cut-wsj-task01/uberseek"
+  }
+ ]
+}

@@ -1,0 +1,437 @@
+{
+ "at": "2026-11-24T151044",
+ "note": "pilot: five Repair locating tasks, both conditions",
+ "rows": [
+  {
+   "task": "exp-content-cut-mkbhd-task01",
+   "condition": "native",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9962, audio_xcorr=0.9972222896829528",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 29.143,
+       "golden_end_s": 34.328,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 28.98,
+       "submitted_end_s": 34.36,
+       "start_offset_s": 0.163,
+       "end_offset_s": 0.032,
+       "tol_start_s": 0.1,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.9962,
+     "audio_xcorr": 0.9972,
+     "expected_duration_s": 84.672,
+     "submission_duration_s": 84.669,
+     "duration_diff_s": 0.003
+    }
+   },
+   "seconds": 770,
+   "timed_out": false,
+   "steps": 13,
+   "tokens": {
+    "input": 30,
+    "output": 3771,
+    "cache_read": 193096
+   },
+   "cost_usd": 0.0079,
+   "tool_calls": 12,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-content-cut-mkbhd-task01/native"
+  },
+  {
+   "task": "exp-content-cut-mkbhd-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9962, audio_xcorr=0.9979171425829008",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 29.143,
+       "golden_end_s": 34.328,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 28.98,
+       "submitted_end_s": 34.41,
+       "start_offset_s": 0.163,
+       "end_offset_s": 0.082,
+       "tol_start_s": 0.1,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.9962,
+     "audio_xcorr": 0.9979,
+     "expected_duration_s": 84.608,
+     "submission_duration_s": 84.619,
+     "duration_diff_s": 0.011
+    }
+   },
+   "seconds": 119,
+   "timed_out": false,
+   "steps": 19,
+   "tokens": {
+    "input": 44,
+    "output": 4847,
+    "cache_read": 443392
+   },
+   "cost_usd": 0.0143,
+   "tool_calls": 19,
+   "uberseek_commands": 12,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-content-cut-mkbhd-task01/uberseek"
+  },
+  {
+   "task": "exp-content-cut-wsj-task01",
+   "condition": "native",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": null,
+   "seconds": 7,
+   "timed_out": false,
+   "steps": 2,
+   "tokens": {
+    "input": 6,
+    "output": 396,
+    "cache_read": 21231
+   },
+   "cost_usd": 0.0007,
+   "tool_calls": 2,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-content-cut-wsj-task01/native"
+  },
+  {
+   "task": "exp-content-cut-wsj-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9972, audio_xcorr=0.9985597591511618",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 54.937,
+       "golden_end_s": 67.3,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 55.3,
+       "submitted_end_s": 67.2,
+       "start_offset_s": 0.363,
+       "end_offset_s": 0.1,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.9972,
+     "audio_xcorr": 0.9986,
+     "expected_duration_s": 78.144,
+     "submission_duration_s": 78.148,
+     "duration_diff_s": 0.004
+    }
+   },
+   "seconds": 81,
+   "timed_out": false,
+   "steps": 12,
+   "tokens": {
+    "input": 26,
+    "output": 4124,
+    "cache_read": 249530
+   },
+   "cost_usd": 0.0082,
+   "tool_calls": 12,
+   "uberseek_commands": 8,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-content-cut-wsj-task01/uberseek"
+  },
+  {
+   "task": "exp-glitch-dup-long-task01",
+   "condition": "native",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "ssim 0.9224 < 0.95 (content lie suspected)",
+     "n_gt": 2,
+     "n_submitted": 2,
+     "passed_count": 2,
+     "honesty_pass": false,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 6.3397,
+       "golden_end_s": 7.4449,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 6.4648,
+       "submitted_end_s": 7.4449,
+       "start_offset_s": 0.1251,
+       "end_offset_s": 0.0,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": true
+      },
+      {
+       "golden_start_s": 14.8482,
+       "golden_end_s": 15.9534,
+       "matched_submitted_idx": 1,
+       "submitted_start_s": 14.8899,
+       "submitted_end_s": 15.87,
+       "start_offset_s": 0.0417,
+       "end_offset_s": 0.0834,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": true
+      }
+     ],
+     "ssim": 0.9224,
+     "audio_xcorr": 0.9919,
+     "expected_duration_s": 62.592,
+     "submission_duration_s": 62.563,
+     "duration_diff_s": 0.029
+    }
+   },
+   "seconds": 225,
+   "timed_out": false,
+   "steps": 12,
+   "tokens": {
+    "input": 26,
+    "output": 5404,
+    "cache_read": 247759
+   },
+   "cost_usd": 0.0118,
+   "tool_calls": 11,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-glitch-dup-long-task01/native"
+  },
+  {
+   "task": "exp-glitch-dup-long-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "score": 1.0,
+     "reason": "passed 2/2 cuts; ssim=0.9956, audio_xcorr=0.994121104100592",
+     "n_gt": 2,
+     "n_submitted": 2,
+     "passed_count": 2,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 6.3397,
+       "golden_end_s": 7.4449,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 6.5065,
+       "submitted_end_s": 7.4449,
+       "start_offset_s": 0.1668,
+       "end_offset_s": 0.0,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": true
+      },
+      {
+       "golden_start_s": 14.8482,
+       "golden_end_s": 15.9534,
+       "matched_submitted_idx": 1,
+       "submitted_start_s": 14.8899,
+       "submitted_end_s": 15.87,
+       "start_offset_s": 0.0417,
+       "end_offset_s": 0.0834,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": true
+      }
+     ],
+     "ssim": 0.9956,
+     "audio_xcorr": 0.9941,
+     "expected_duration_s": 62.592,
+     "submission_duration_s": 62.6042,
+     "duration_diff_s": 0.0122
+    }
+   },
+   "seconds": 207,
+   "timed_out": false,
+   "steps": 11,
+   "tokens": {
+    "input": 24,
+    "output": 4951,
+    "cache_read": 219180
+   },
+   "cost_usd": 0.0098,
+   "tool_calls": 10,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-glitch-dup-long-task01/uberseek"
+  },
+  {
+   "task": "exp-disfluency-interview-3-task01",
+   "condition": "native",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9940, audio_xcorr=0.9924658320395081",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 25.32,
+       "golden_end_s": 26.205,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 12.52,
+       "submitted_end_s": 13.08,
+       "start_offset_s": 12.8,
+       "end_offset_s": 13.125,
+       "tol_start_s": 0.1,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.994,
+     "audio_xcorr": 0.9925,
+     "expected_duration_s": 36.48,
+     "submission_duration_s": 36.4,
+     "duration_diff_s": 0.08
+    }
+   },
+   "seconds": 346,
+   "timed_out": false,
+   "steps": 16,
+   "tokens": {
+    "input": 36,
+    "output": 6347,
+    "cache_read": 340818
+   },
+   "cost_usd": 0.0125,
+   "tool_calls": 17,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-disfluency-interview-3-task01/native"
+  },
+  {
+   "task": "exp-disfluency-interview-3-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9985, audio_xcorr=0.9991805457553035",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 25.32,
+       "golden_end_s": 26.205,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 12.56,
+       "submitted_end_s": 13.2,
+       "start_offset_s": 12.76,
+       "end_offset_s": 13.005,
+       "tol_start_s": 0.1,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.9985,
+     "audio_xcorr": 0.9992,
+     "expected_duration_s": 36.416,
+     "submission_duration_s": 36.416,
+     "duration_diff_s": 0.0
+    }
+   },
+   "seconds": 88,
+   "timed_out": false,
+   "steps": 10,
+   "tokens": {
+    "input": 24,
+    "output": 3624,
+    "cache_read": 185627
+   },
+   "cost_usd": 0.009,
+   "tool_calls": 9,
+   "uberseek_commands": 1,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-disfluency-interview-3-task01/uberseek"
+  },
+  {
+   "task": "exp-swap-car-task01",
+   "condition": "native",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "reason": "no output.mp4"
+    }
+   },
+   "seconds": 507,
+   "timed_out": false,
+   "steps": 19,
+   "tokens": {
+    "input": 48,
+    "output": 5979,
+    "cache_read": 397266
+   },
+   "cost_usd": 0.0289,
+   "tool_calls": 18,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-swap-car-task01/native"
+  },
+  {
+   "task": "exp-swap-car-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "reason": "no output.mp4"
+    }
+   },
+   "seconds": 203,
+   "timed_out": false,
+   "steps": 18,
+   "tokens": {
+    "input": 40,
+    "output": 5210,
+    "cache_read": 407085
+   },
+   "cost_usd": 0.0282,
+   "tool_calls": 17,
+   "uberseek_commands": 10,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T151044/exp-swap-car-task01/uberseek"
+  }
+ ]
+}

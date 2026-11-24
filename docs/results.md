@@ -38,7 +38,7 @@ Claude Sonnet 5.5 and GPT 5.6 Terra, 20 questions on generated clips with known 
 - **What it caught:** asked for "frames", GPT first answered 0/12 in frame numbers of the video. The wording
   was fixed in the product.
 
-[Post](./blog/can-a-model-read-the-pictures) · [files](https://github.com/prefix-tree/uberseek/tree/main/bench/reading/results)
+[Post](./blog/building-uberseek#reading) · [files](https://github.com/prefix-tree/uberseek/tree/main/bench/reading/results)
 
 ## Code against plain tools
 
@@ -58,7 +58,7 @@ Claude Sonnet 5.5, six "find A, then the related B" tasks with computed answers,
 - **What it caught:** two tasks had wrong computed answers because a measurement was wrong. Every program
   trusted the faulty list; the model reading the list on the tools surface corrected it.
 
-[Post](./blog/code-against-plain-tools) · [files](https://github.com/prefix-tree/uberseek/tree/main/bench/compose/results)
+[Post](./blog/building-uberseek#code-or-tools) · [files](https://github.com/prefix-tree/uberseek/tree/main/bench/compose/results)
 
 ## Building a clip
 
@@ -74,7 +74,7 @@ One request on a 19-minute interview, two small models, one run each.
 - **Supports:** the loop from a request to a checked file works with real models.
 - **Does not support:** that the clips are good. Nobody judged them.
 
-[Post](./blog/from-a-request-to-a-checked-clip) · [files](https://github.com/prefix-tree/uberseek/tree/main/bench/clip/results)
+[Post](./blog/building-uberseek#clip) · [files](https://github.com/prefix-tree/uberseek/tree/main/bench/clip/results)
 
 ## Context management
 
@@ -90,7 +90,7 @@ The same clip request, one run per setting.
   turns about 70% of the rest into cache reads.
 - **Does not support:** the exact percentages. Token counts vary by tens of thousands between runs.
 
-[Post](./blog/pictures-that-stay-one-step) · [files](https://github.com/prefix-tree/uberseek/tree/main/bench/clip/results)
+[Post](./blog/building-uberseek#context) · [files](https://github.com/prefix-tree/uberseek/tree/main/bench/clip/results)
 
 ## The skill, with and without
 
@@ -108,6 +108,22 @@ Four draft locate tasks, two small models, both surfaces: 32 runs.
 
 [Files](https://github.com/prefix-tree/uberseek/tree/main/bench/locate/results)
 
+## AgenticVBench: a first pilot
+
+Five Repair tasks that need finding a place, one run each with and without UberSeek. OpenCode with Claude Haiku
+5.5, each task's own image, limits and verifier, in our own runner rather than Harbor.
+
+| | Without UberSeek | With UberSeek |
+| --- | --- | --- |
+| Tasks passed | 0 of 5 | 1 of 5 (in a run that did not use UberSeek) |
+| Time per task | 225 to 770 s | 81 to 207 s |
+
+- **Supports:** with UberSeek the agent finished faster on every task, and used it unprompted on four of five.
+- **Does not support:** any gain in score. Three of four passage runs missed one edge by 0.06 to 0.16 s more
+  than the verifier allows.
+
+[Post](./blog/building-uberseek#benchmark) · [files](https://github.com/prefix-tree/uberseek/tree/main/bench/avb/results)
+
 ## What these trials taught us about our own labels
 
 - **Three of the five draft labels we tried were wrong.** A shot that began two seconds early, a question the
@@ -120,4 +136,5 @@ Four draft locate tasks, two small models, both surfaces: 32 runs.
 - Any comparison against a baseline: SAVE, full-video inference, or an agent with no harness.
 - Whether comparing candidates against a brief gives better selections than ranking them, which is the
   project's central question.
-- Anything on a public benchmark. The target is [AgenticVBench](./roadmap).
+- Anything on a public benchmark beyond the five-task pilot above, and nothing in Harbor, so no number comparable with
+  published results.

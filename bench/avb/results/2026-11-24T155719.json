@@ -1,0 +1,55 @@
+{
+ "at": "2026-11-24T155719",
+ "note": "rerun: the earlier run ended on a refused permission",
+ "rows": [
+  {
+   "task": "exp-content-cut-wsj-task01",
+   "condition": "native",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9971, audio_xcorr=0.9980879086427599",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 54.937,
+       "golden_end_s": 67.3,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 55.05,
+       "submitted_end_s": 60.3,
+       "start_offset_s": 0.113,
+       "end_offset_s": 7.0,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.9971,
+     "audio_xcorr": 0.9981,
+     "expected_duration_s": 84.8,
+     "submission_duration_s": 84.798,
+     "duration_diff_s": 0.002
+    }
+   },
+   "seconds": 387,
+   "timed_out": false,
+   "steps": 10,
+   "tokens": {
+    "input": 22,
+    "output": 3653,
+    "cache_read": 144233
+   },
+   "cost_usd": 0.0056,
+   "tool_calls": 10,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T155719/exp-content-cut-wsj-task01/native"
+  }
+ ]
+}

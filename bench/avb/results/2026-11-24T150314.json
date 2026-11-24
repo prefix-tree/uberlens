@@ -1,0 +1,54 @@
+{
+ "at": "2026-11-24T150314",
+ "note": "",
+ "rows": [
+  {
+   "task": "exp-content-cut-wsj-task01",
+   "condition": "oracle",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "score": 1.0,
+     "reason": "passed 1/1 cuts; ssim=0.9958, audio_xcorr=0.9999257995939327",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 1,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 54.937,
+       "golden_end_s": 67.3,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 54.937,
+       "submitted_end_s": 67.3,
+       "start_offset_s": 0.0,
+       "end_offset_s": 0.0,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": true
+      }
+     ],
+     "ssim": 0.9958,
+     "audio_xcorr": 0.9999,
+     "expected_duration_s": 77.696,
+     "submission_duration_s": 77.696,
+     "duration_diff_s": 0.0
+    }
+   },
+   "seconds": 6,
+   "timed_out": false,
+   "steps": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cache_read": 0
+   },
+   "tool_calls": 0,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T150314/exp-content-cut-wsj-task01/oracle"
+  }
+ ]
+}

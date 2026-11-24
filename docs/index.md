@@ -157,10 +157,10 @@ kept
 <p class="sec-lead">Few tasks and few runs each: they show what works and which way a change pushes. Nothing has been run against a baseline yet.</p>
 
 <div class="facts">
-<a :href="withBase('/blog/can-a-model-read-the-pictures')"><span class="num">12 of 12</span><span class="what">Two models read the pictures correctly on five kinds of question.</span></a>
-<a :href="withBase('/blog/from-a-request-to-a-checked-clip')"><span class="num">1 sentence → 15 s clip</span><span class="what">Two small models each built a clip that holds the answer and passes the checks.</span></a>
-<a :href="withBase('/blog/pictures-that-stay-one-step')"><span class="num">−25% and −34%</span><span class="what">Input tokens, when a picture stays in the context for one step and a note takes its place.</span></a>
-<a :href="withBase('/blog/code-against-plain-tools')"><span class="num">Equal accuracy</span><span class="what">Programs against plain tools. Code was cheaper where there was much data, and trusted a faulty measurement.</span></a>
+<a :href="withBase('/blog/building-uberseek#reading')"><span class="num">12 of 12</span><span class="what">Two models read the pictures correctly on five kinds of question.</span></a>
+<a :href="withBase('/blog/building-uberseek#clip')"><span class="num">1 sentence → 15 s clip</span><span class="what">Two small models each built a clip that holds the answer and passes the checks.</span></a>
+<a :href="withBase('/blog/building-uberseek#context')"><span class="num">−25% and −34%</span><span class="what">Input tokens, when a picture stays in the context for one step and a note takes its place.</span></a>
+<a :href="withBase('/blog/building-uberseek#code-or-tools')"><span class="num">Equal accuracy</span><span class="what">Programs against plain tools. Code was cheaper where there was much data, and trusted a faulty measurement.</span></a>
 </div>
 
 <p class="paper-links"><a :href="withBase('/results')">All results, with what each can and cannot support</a></p>
