@@ -67,7 +67,42 @@ Cost of the eight runs: $0.07.
 What it asks of UberSeek: operations that take many clips at once. One labelled sheet across all clips, a
 view of a join (the end of one clip beside the start of another), and `videos` on the command line.
 
+## The skill rewritten, no new operations (2026-11-24, one run per cell)
+
+The same nine tasks with UberSeek, after two changes: a short card of the skill is loaded into every run and
+the whole skill is installed, and every operation is a command.
+
+| Task | UberSeek commands, before | After | Score, before | After |
+| --- | --- | --- | --- | --- |
+| content-cut-mkbhd | 12 | 36 | 0 | 0 (edges off by 0.16 s, 0.03 s; allowed 0.1 s) |
+| content-cut-wsj | 8 | 19 | 0 | 0 (cut half of the passage) |
+| glitch-dup-long | 0 | 2 | 1 | 0 (both cuts right; output failed the picture check) |
+| disfluency-interview-3 | 1 | 12 | 0 | 0 (1.4 s away; was 12.8 s) |
+| swap-car | 10 | 10 | 0 | 0 (no output) |
+| Sequencing 1 | 1, failed | 3 | 0.00 | 0.12 |
+| Sequencing 2 | 0 | 2 | 0.07 | 0.33 |
+| Assembly 1 | 0 | 3 | 0.63 | 0.00 |
+| Assembly 2 | 0 | 2 | 0.63 | 0.00 |
+
+Cost of the nine runs: $0.13.
+
+- **The skill change did what it was for:** UberSeek was used in nine of nine runs (four of nine before), and
+  on the content-cut task through the whole loop: find, words, pauses, a sheet, boundary looks, mark, clip,
+  verify.
+- **Scores did not improve.** One run per cell, so single differences are chance in either direction.
+- **Use exposed faults in UberSeek itself:**
+  - `clip` wrote a file 852 pixels wide from an 854-pixel source with non-square pixels. The task wants the
+    source's size.
+  - A clip cannot be opened by its name from the command line (`uberseek observe cut1.mp4` fails), so the
+    agent could not look at its own join.
+  - `mark` takes `--reason` where the other operations take `reason=`, and `clip` takes the name first. The
+    agent lost five calls to this.
+  - `pauses` found one silence in 90 seconds of speech over music, so "put the edge in a pause" had nothing to
+    work with.
+  - Twelve separate pictures, one per clip: the agent's context dropped the first ones before it had read the
+    last, and it fetched them again.
+
 Files: `2026-11-24T151044.json` (the ten runs), `2026-11-24T155719.json` (content-cut-wsj without UberSeek,
 run again because the first try ended when OpenCode refused a write outside `/workspace`; the runner now
 allows it), `2026-11-24T150409.json` (the first trial pair), `2026-11-24T150314.json` (the reference solution), `2026-11-24T214931.json` (Sequencing and
-Assembly).
+Assembly), `2026-11-24T230309.json` (the skill rewritten).

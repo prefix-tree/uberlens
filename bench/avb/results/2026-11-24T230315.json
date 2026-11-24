@@ -1,0 +1,1146 @@
+{
+ "at": "2026-11-24T230315",
+ "note": "skill rewritten: card loaded every run, every operation a command; no new operations",
+ "rows": [
+  {
+   "task": "exp-content-cut-mkbhd-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.8471, audio_xcorr=0.996966406518418",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 29.143,
+       "golden_end_s": 34.328,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 28.98,
+       "submitted_end_s": 34.3,
+       "start_offset_s": 0.163,
+       "end_offset_s": 0.028,
+       "tol_start_s": 0.1,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.8471,
+     "audio_xcorr": 0.997,
+     "expected_duration_s": 84.736,
+     "submission_duration_s": 84.711,
+     "duration_diff_s": 0.025
+    }
+   },
+   "seconds": 137,
+   "timed_out": false,
+   "steps": 25,
+   "tokens": {
+    "input": 58,
+    "output": 4804,
+    "cache_read": 644118
+   },
+   "cost_usd": 0.016,
+   "tool_calls": 26,
+   "uberseek_commands": 19,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T230315/exp-content-cut-mkbhd-task01/uberseek"
+  },
+  {
+   "task": "exp-content-cut-wsj-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9881, audio_xcorr=0.9981536308125777",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 54.937,
+       "golden_end_s": 67.3,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 55.347,
+       "submitted_end_s": 60.06,
+       "start_offset_s": 0.41,
+       "end_offset_s": 7.24,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.9881,
+     "audio_xcorr": 0.9982,
+     "expected_duration_s": 85.312,
+     "submission_duration_s": 85.377,
+     "duration_diff_s": 0.065
+    }
+   },
+   "seconds": 90,
+   "timed_out": false,
+   "steps": 15,
+   "tokens": {
+    "input": 32,
+    "output": 3269,
+    "cache_read": 315547
+   },
+   "cost_usd": 0.0085,
+   "tool_calls": 15,
+   "uberseek_commands": 10,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T230315/exp-content-cut-wsj-task01/uberseek"
+  },
+  {
+   "task": "exp-glitch-dup-long-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "ssim 0.9233 < 0.95 (content lie suspected)",
+     "n_gt": 2,
+     "n_submitted": 2,
+     "passed_count": 2,
+     "honesty_pass": false,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 6.3397,
+       "golden_end_s": 7.4449,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 6.4648,
+       "submitted_end_s": 7.4449,
+       "start_offset_s": 0.1251,
+       "end_offset_s": 0.0,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": true
+      },
+      {
+       "golden_start_s": 14.8482,
+       "golden_end_s": 15.9534,
+       "matched_submitted_idx": 1,
+       "submitted_start_s": 14.8899,
+       "submitted_end_s": 15.9534,
+       "start_offset_s": 0.0417,
+       "end_offset_s": 0.0,
+       "tol_start_s": 0.2,
+       "tol_end_s": 0.2,
+       "passed": true
+      }
+     ],
+     "ssim": 0.9233,
+     "audio_xcorr": 0.9998,
+     "expected_duration_s": 62.4791,
+     "submission_duration_s": 62.48,
+     "duration_diff_s": 0.0009
+    }
+   },
+   "seconds": 72,
+   "timed_out": false,
+   "steps": 9,
+   "tokens": {
+    "input": 20,
+    "output": 3741,
+    "cache_read": 146777
+   },
+   "cost_usd": 0.0071,
+   "tool_calls": 8,
+   "uberseek_commands": 2,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T230315/exp-glitch-dup-long-task01/uberseek"
+  },
+  {
+   "task": "exp-disfluency-interview-3-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "score": 0.0,
+     "reason": "passed 0/1 cuts; ssim=0.9959, audio_xcorr=0.990827119438117",
+     "n_gt": 1,
+     "n_submitted": 1,
+     "passed_count": 0,
+     "honesty_pass": true,
+     "audio_pass": true,
+     "duration_pass": true,
+     "per_cut": [
+      {
+       "golden_start_s": 25.32,
+       "golden_end_s": 26.205,
+       "matched_submitted_idx": 0,
+       "submitted_start_s": 23.88,
+       "submitted_end_s": 24.12,
+       "start_offset_s": 1.44,
+       "end_offset_s": 2.085,
+       "tol_start_s": 0.1,
+       "tol_end_s": 0.2,
+       "passed": false
+      }
+     ],
+     "ssim": 0.9959,
+     "audio_xcorr": 0.9908,
+     "expected_duration_s": 36.864,
+     "submission_duration_s": 36.76,
+     "duration_diff_s": 0.104
+    }
+   },
+   "seconds": 122,
+   "timed_out": false,
+   "steps": 14,
+   "tokens": {
+    "input": 36,
+    "output": 3429,
+    "cache_read": 338882
+   },
+   "cost_usd": 0.0101,
+   "tool_calls": 16,
+   "uberseek_commands": 9,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T230315/exp-disfluency-interview-3-task01/uberseek"
+  },
+  {
+   "task": "exp-swap-car-task01",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "reason": "no output.mp4"
+    }
+   },
+   "seconds": 315,
+   "timed_out": false,
+   "steps": 13,
+   "tokens": {
+    "input": 30,
+    "output": 5706,
+    "cache_read": 386723
+   },
+   "cost_usd": 0.0427,
+   "tool_calls": 13,
+   "uberseek_commands": 7,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T230315/exp-swap-car-task01/uberseek"
+  },
+  {
+   "task": "agentic-vbench-sequencing-task1",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.12362637362637365,
+    "details": {
+     "reason": "ok",
+     "n_slots": 13,
+     "n_correct": 2,
+     "nd": 0.5714285714285714,
+     "lis": 0.6923076923076923,
+     "adj": 0.4166666666666667,
+     "ordering": 0.12362637362637365,
+     "n_honest": 13,
+     "honesty_factor": 1.0,
+     "ssim_threshold": 0.95,
+     "n_samples_per_segment": 3,
+     "pred": [
+      "6",
+      "3",
+      "8",
+      "12",
+      "5",
+      "7",
+      "11",
+      "9",
+      "4",
+      "2",
+      "10",
+      "13",
+      "1"
+     ],
+     "correct": [
+      "3",
+      "5",
+      "7",
+      "11",
+      "9",
+      "4",
+      "10",
+      "13",
+      "12",
+      "2",
+      "6",
+      "8",
+      "1"
+     ],
+     "per_slot": [
+      {
+       "slot": 0,
+       "pred": "6",
+       "expected": "3",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 3.142,
+         "t_src_s": 3.142,
+         "ssim": 0.996,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 6.283,
+         "t_src_s": 6.283,
+         "ssim": 0.9945,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 9.425,
+         "t_src_s": 9.425,
+         "ssim": 0.9951,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 1,
+       "pred": "3",
+       "expected": "5",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 15.158,
+         "t_src_s": 2.592,
+         "ssim": 0.9946,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 17.75,
+         "t_src_s": 5.184,
+         "ssim": 0.9962,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 20.341,
+         "t_src_s": 7.775,
+         "ssim": 0.9943,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 2,
+       "pred": "8",
+       "expected": "7",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 25.625,
+         "t_src_s": 2.692,
+         "ssim": 0.9959,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 28.317,
+         "t_src_s": 5.383,
+         "ssim": 0.9948,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 31.008,
+         "t_src_s": 8.075,
+         "ssim": 0.9946,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 3,
+       "pred": "12",
+       "expected": "11",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 36.517,
+         "t_src_s": 2.817,
+         "ssim": 0.9933,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 39.333,
+         "t_src_s": 5.633,
+         "ssim": 0.9949,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 42.15,
+         "t_src_s": 8.45,
+         "ssim": 0.994,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 4,
+       "pred": "5",
+       "expected": "9",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 48.141,
+         "t_src_s": 3.175,
+         "ssim": 0.9935,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 51.316,
+         "t_src_s": 6.35,
+         "ssim": 0.9926,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 54.491,
+         "t_src_s": 9.525,
+         "ssim": 0.9936,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 5,
+       "pred": "7",
+       "expected": "4",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 60.316,
+         "t_src_s": 2.65,
+         "ssim": 0.9934,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 62.966,
+         "t_src_s": 5.3,
+         "ssim": 0.9934,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 65.616,
+         "t_src_s": 7.95,
+         "ssim": 0.9939,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 6,
+       "pred": "11",
+       "expected": "10",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 69.741,
+         "t_src_s": 1.475,
+         "ssim": 0.9929,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 71.216,
+         "t_src_s": 2.95,
+         "ssim": 0.9938,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 72.691,
+         "t_src_s": 4.425,
+         "ssim": 0.9937,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 7,
+       "pred": "9",
+       "expected": "13",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 77.891,
+         "t_src_s": 3.725,
+         "ssim": 0.9942,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 81.616,
+         "t_src_s": 7.45,
+         "ssim": 0.9946,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 85.341,
+         "t_src_s": 11.175,
+         "ssim": 0.9951,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 8,
+       "pred": "4",
+       "expected": "12",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 92.249,
+         "t_src_s": 3.183,
+         "ssim": 0.9958,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 95.433,
+         "t_src_s": 6.367,
+         "ssim": 0.9975,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 98.616,
+         "t_src_s": 9.55,
+         "ssim": 0.9958,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 9,
+       "pred": "2",
+       "expected": "2",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 105.24,
+         "t_src_s": 3.442,
+         "ssim": 0.9932,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 108.682,
+         "t_src_s": 6.883,
+         "ssim": 0.9977,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 112.124,
+         "t_src_s": 10.325,
+         "ssim": 0.9948,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 10,
+       "pred": "10",
+       "expected": "6",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 118.34,
+         "t_src_s": 2.775,
+         "ssim": 0.9947,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 121.115,
+         "t_src_s": 5.55,
+         "ssim": 0.9935,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 123.89,
+         "t_src_s": 8.325,
+         "ssim": 0.9951,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 11,
+       "pred": "13",
+       "expected": "8",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 129.79,
+         "t_src_s": 3.125,
+         "ssim": 0.9963,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 132.915,
+         "t_src_s": 6.25,
+         "ssim": 0.9943,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 136.04,
+         "t_src_s": 9.375,
+         "ssim": 0.9944,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 12,
+       "pred": "1",
+       "expected": "1",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 142.29,
+         "t_src_s": 3.1,
+         "ssim": 0.9969,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 145.416,
+         "t_src_s": 6.2,
+         "ssim": 0.9936,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 148.541,
+         "t_src_s": 9.3,
+         "ssim": 0.993,
+         "window": "5x5"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "seconds": 279,
+   "timed_out": false,
+   "steps": 9,
+   "tokens": {
+    "input": 22,
+    "output": 4015,
+    "cache_read": 216523
+   },
+   "cost_usd": 0.0103,
+   "tool_calls": 21,
+   "uberseek_commands": 3,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T230315/agentic-vbench-sequencing-task1/uberseek"
+  },
+  {
+   "task": "agentic-vbench-sequencing-task2",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.33333333333333326,
+    "details": {
+     "reason": "ok",
+     "n_slots": 7,
+     "n_correct": 1,
+     "nd": 0.4166666666666667,
+     "lis": 0.8571428571428571,
+     "adj": 0.6666666666666666,
+     "ordering": 0.33333333333333326,
+     "n_honest": 7,
+     "honesty_factor": 1.0,
+     "ssim_threshold": 0.95,
+     "n_samples_per_segment": 3,
+     "pred": [
+      "3",
+      "4",
+      "6",
+      "5",
+      "7",
+      "2",
+      "1"
+     ],
+     "correct": [
+      "4",
+      "6",
+      "5",
+      "7",
+      "2",
+      "3",
+      "1"
+     ],
+     "per_slot": [
+      {
+       "slot": 0,
+       "pred": "3",
+       "expected": "4",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 0.76,
+         "t_src_s": 0.76,
+         "ssim": 0.9989,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 1.52,
+         "t_src_s": 1.52,
+         "ssim": 0.9994,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 2.28,
+         "t_src_s": 2.28,
+         "ssim": 0.9991,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 1,
+       "pred": "4",
+       "expected": "6",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 5.65,
+         "t_src_s": 2.61,
+         "ssim": 0.9994,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 8.26,
+         "t_src_s": 5.22,
+         "ssim": 0.9993,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 10.87,
+         "t_src_s": 7.83,
+         "ssim": 0.9994,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 2,
+       "pred": "6",
+       "expected": "5",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 15.06,
+         "t_src_s": 1.58,
+         "ssim": 0.9997,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 16.64,
+         "t_src_s": 3.16,
+         "ssim": 0.9995,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 18.22,
+         "t_src_s": 4.74,
+         "ssim": 0.9993,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 3,
+       "pred": "5",
+       "expected": "7",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 21.9,
+         "t_src_s": 2.1,
+         "ssim": 0.9995,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 24.0,
+         "t_src_s": 4.2,
+         "ssim": 0.9991,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 26.1,
+         "t_src_s": 6.3,
+         "ssim": 0.9991,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 4,
+       "pred": "7",
+       "expected": "2",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 28.96,
+         "t_src_s": 0.76,
+         "ssim": 0.9996,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 29.72,
+         "t_src_s": 1.52,
+         "ssim": 0.9995,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 30.48,
+         "t_src_s": 2.28,
+         "ssim": 0.9995,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 5,
+       "pred": "2",
+       "expected": "3",
+       "match": false,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 32.95,
+         "t_src_s": 1.71,
+         "ssim": 0.9991,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 34.66,
+         "t_src_s": 3.42,
+         "ssim": 0.999,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 36.37,
+         "t_src_s": 5.13,
+         "ssim": 0.9989,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 6,
+       "pred": "1",
+       "expected": "1",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 39.81,
+         "t_src_s": 1.73,
+         "ssim": 0.9994,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 41.54,
+         "t_src_s": 3.46,
+         "ssim": 0.9992,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 43.27,
+         "t_src_s": 5.19,
+         "ssim": 0.9993,
+         "window": "5x5"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "seconds": 108,
+   "timed_out": false,
+   "steps": 6,
+   "tokens": {
+    "input": 16,
+    "output": 2280,
+    "cache_read": 114098
+   },
+   "cost_usd": 0.0062,
+   "tool_calls": 11,
+   "uberseek_commands": 2,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T230315/agentic-vbench-sequencing-task2/uberseek"
+  },
+  {
+   "task": "agentic-vbench-assembly-task1",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "reason": "ok",
+     "n_slots": 4,
+     "n_correct": 1,
+     "n_honest_correct": 0,
+     "pass_rate": 0.0,
+     "chance_level": 0.3333333333333333,
+     "ssim_threshold": 0.95,
+     "n_samples_per_segment": 3,
+     "pred": [
+      "12.mp4",
+      "4.mp4",
+      "1.mp4",
+      "11.mp4"
+     ],
+     "correct": [
+      "10.mp4",
+      "4.mp4",
+      "6.mp4",
+      "8.mp4"
+     ],
+     "per_slot": [
+      {
+       "slot": 0,
+       "pred": "12.mp4",
+       "expected": "10.mp4",
+       "match": false,
+       "honest": null,
+       "score": 0
+      },
+      {
+       "slot": 1,
+       "pred": "4.mp4",
+       "expected": "4.mp4",
+       "match": true,
+       "honest": false,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 5.312,
+         "t_src_s": 1.292,
+         "ssim": 0.9561,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 6.603,
+         "t_src_s": 2.583,
+         "ssim": 0.7592,
+         "window": "5x5"
+        }
+       ],
+       "score": 0
+      },
+      {
+       "slot": 2,
+       "pred": "1.mp4",
+       "expected": "6.mp4",
+       "match": false,
+       "honest": null,
+       "score": 0
+      },
+      {
+       "slot": 3,
+       "pred": "11.mp4",
+       "expected": "8.mp4",
+       "match": false,
+       "honest": null,
+       "score": 0
+      }
+     ]
+    }
+   },
+   "seconds": 110,
+   "timed_out": false,
+   "steps": 9,
+   "tokens": {
+    "input": 26,
+    "output": 3709,
+    "cache_read": 230920
+   },
+   "cost_usd": 0.0157,
+   "tool_calls": 23,
+   "uberseek_commands": 3,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T230315/agentic-vbench-assembly-task1/uberseek"
+  },
+  {
+   "task": "agentic-vbench-assembly-task2",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 0.0,
+    "details": {
+     "reason": "ok",
+     "n_slots": 4,
+     "n_correct": 1,
+     "n_honest_correct": 1,
+     "pass_rate": 0.25,
+     "chance_level": 0.3333333333333333,
+     "ssim_threshold": 0.95,
+     "n_samples_per_segment": 3,
+     "pred": [
+      "2.mp4",
+      "8.mp4",
+      "7.mp4",
+      "4.mp4"
+     ],
+     "correct": [
+      "2.mp4",
+      "12.mp4",
+      "9.mp4",
+      "10.mp4"
+     ],
+     "per_slot": [
+      {
+       "slot": 0,
+       "pred": "2.mp4",
+       "expected": "2.mp4",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 1.698,
+         "t_src_s": 1.698,
+         "ssim": 0.9971,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 3.396,
+         "t_src_s": 3.396,
+         "ssim": 0.9969,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 5.093,
+         "t_src_s": 5.093,
+         "ssim": 0.9972,
+         "window": "5x5"
+        }
+       ],
+       "score": 1
+      },
+      {
+       "slot": 1,
+       "pred": "8.mp4",
+       "expected": "12.mp4",
+       "match": false,
+       "honest": null,
+       "score": 0
+      },
+      {
+       "slot": 2,
+       "pred": "7.mp4",
+       "expected": "9.mp4",
+       "match": false,
+       "honest": null,
+       "score": 0
+      },
+      {
+       "slot": 3,
+       "pred": "4.mp4",
+       "expected": "10.mp4",
+       "match": false,
+       "honest": null,
+       "score": 0
+      }
+     ]
+    }
+   },
+   "seconds": 94,
+   "timed_out": false,
+   "steps": 8,
+   "tokens": {
+    "input": 22,
+    "output": 2848,
+    "cache_read": 226449
+   },
+   "cost_usd": 0.0093,
+   "tool_calls": 17,
+   "uberseek_commands": 2,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T230315/agentic-vbench-assembly-task2/uberseek"
+  }
+ ]
+}
