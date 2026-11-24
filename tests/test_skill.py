@@ -110,7 +110,7 @@ def test_the_programs_shown_in_the_guide_run(spoken):
     project, speech = spoken
     blocks = re.findall(r"```python\n(.*?)```", guide.core("harness") + guide.topic("programs"), re.S)
     whole = [b for b in blocks if re.search(r'"(interview|reel)\.mp4"', b)]
-    assert len(whole) == 7  # the six in "What you can do", and the one in the guide to programs
+    assert len(whole) == 8  # the seven ways to combine steps in the core, and the one in the guide to programs
     for program in whole:
         done = Executor(project, [speech]).run_sync(re.sub(r"(interview|reel)\.mp4", "speech.mp4", program))
         assert done.error is None, done.text

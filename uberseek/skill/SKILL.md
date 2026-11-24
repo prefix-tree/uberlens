@@ -18,23 +18,69 @@ look only where a judgment needs eyes. It works like a shell for video:
 Measurements are the exact part: `words`, `pauses`, `loudness`, `cuts`, `shots`. Memory is kept for you:
 every look is logged, and `observations` and `coverage` read the log.
 
-## What you can do
+## What a program can do
 
-Each of these is a whole program. The functions are already defined; times are seconds; the last line is
-what comes back. Pictures from `observe` and `sheet` are shown to you with the result.
+A program is ordinary Python with the library's functions already defined. Its power comes from one fact:
+**every function takes a video and times, and returns plain lists and dicts of times.** So the output of any
+function can be the input of any other. A span is `[start, end]` in seconds; a search hit is a dict with
+`start` and `end`.
 
-**Find where something is said, and check it by looking.**
+There are four kinds of step. A program strings them together.
+
+| Step | Functions | Gives |
+| --- | --- | --- |
+| **Propose** places to consider | `find` (what is said), `shots` and `cuts` (structure), `pauses` (silences), `coverage` (not yet seen) | Spans |
+| **Measure** a span | `words`, `pauses`, `loudness`, `shots`, `cuts` over that span | Values to compare |
+| **Reshape** a set of spans | `expand`, `merge`, `minus`, and Python's own `sorted`, slicing, `if` | Fewer or better spans |
+| **Look** | `observe` (one span, closely), `sheet` (many instants, one picture) | Pictures, after the program ends |
+
+The usual order is propose, measure, reshape, look: code narrows many places to a few, and you look only at
+those. Ways to combine them:
+
+**Chain: one result bounds the next search.** Find A, then look for B only after it.
 
 ```python
-hits = find("interview.mp4", "slept in the cave", limit=10)
-for hit in hits[:2]:
-    span = expand([hit["start"], hit["end"]], before=1.5, after=1.5)
-    observe("interview.mp4", span[0], span[1], "delivery", "is this the line?")
-[{"start": h["start"], "end": h["end"], "text": h["text"]} for h in hits[:5]]
+first = find("interview.mp4", "cave", limit=1)
+later = find("interview.mp4", "moon", after=first[0]["end"], limit=3) if first else []
+[first, later]
 ```
 
-**Find something that is shown, not said.** One frame from every shot on one sheet, then a close look at
-the shot that has it.
+**Fan out, measure, filter.** Measure every candidate and keep those that pass.
+
+```python
+hits = find("interview.mp4", "moon", limit=20)
+alone = [h for h in hits if len(shots("interview.mp4", h["start"], h["end"])) == 1]
+[[h["start"], h["end"]] for h in alone]
+```
+
+**Join two kinds of evidence.** A line that is said, lies in one shot, and has a pause before it.
+
+```python
+kept = []
+for h in find("interview.mp4", "moon", limit=20):
+    before = pauses("interview.mp4", max(0, h["start"] - 1.5), h["start"] + 0.2)
+    if before and len(shots("interview.mp4", h["start"], h["end"])) == 1:
+        kept.append({"span": [h["start"], h["end"]], "pause_before": round(before[-1][1] - before[-1][0], 2), "text": h["text"][:60]})
+kept
+```
+
+**Rank, and keep the runner-up.** Sort by a measurement; return the first two, so a wrong measurement shows.
+
+```python
+ranked = sorted(shots("reel.mp4"), key=lambda s: s[0] - s[1])
+{"longest": ranked[0], "runner_up": ranked[1:2], "of": len(ranked)}
+```
+
+**Subtract: what is left.** The parts of a span that something does not cover.
+
+```python
+whole = [0, info("interview.mp4")["duration"]]
+speech_free = pauses("interview.mp4")
+{"unseen": coverage("interview.mp4")["never"][:5], "talking": len(minus(whole, speech_free))}
+```
+
+**Sample for your eyes.** Turn spans into instants and put them on one sheet; then look closely at the one
+that matters. A sheet costs one look however many frames it holds.
 
 ```python
 found = shots("reel.mp4")[:24]
@@ -43,40 +89,23 @@ sheet("reel.mp4", [(s[0] + s[1]) / 2 for s in found], labels=[str(s[0]) + " to "
 len(found)
 ```
 
-**Compare several candidates side by side.** One sheet costs one look, however many frames are on it.
+**Go wide, then narrow, across programs.** A program cannot see, so it cannot decide from a picture. Let one
+program propose and show; read the pictures; write the next program from what you saw.
 
 ```python
-hits = find("interview.mp4", "back to the moon", limit=8)
-sheet("interview.mp4", [(h["start"] + h["end"]) / 2 for h in hits], labels=[h["text"][:40] for h in hits]) if hits else None
-[[h["start"], h["end"], h["text"][:60]] for h in hits]
-```
-
-**Choose a cut point.** Propose exact places from measurements, then look at each.
-
-```python
-quiet = pauses("interview.mp4", 505, 512)
+quiet = pauses("interview.mp4", 505, 512)          # after a sheet showed the line is here
 for pause in quiet[:3]:
     observe("interview.mp4", (pause[0] + pause[1]) / 2, None, "boundary", "does a cut land cleanly here?")
 quiet
 ```
 
-**Count or filter across a whole video.** The data stays in the program; return the answer and the
-runner-up, so a wrong measurement is easier to spot.
+What keeps a program useful:
 
-```python
-found = sorted(shots("reel.mp4"), key=lambda s: s[0] - s[1])
-longest = found[0]
-said = [w for w in words("reel.mp4", longest[0], longest[1]) if w["text"].lower().strip(".,") == "engine"]
-{"longest": longest, "runner_up": found[1:2], "times_engine_is_said": len(said)}
-```
-
-**Check what you have not looked at** before saying something is not there.
-
-```python
-unseen = coverage("interview.mp4")["never"]
-sheet("interview.mp4", [(s[0] + s[1]) / 2 for s in unseen[:24]], purpose="what is in the parts not looked at?") if unseen else None
-unseen[:10]
-```
+- **Return little.** The last line is what comes back: a few spans, a count, a decision. The rest stays in
+  the program and costs nothing.
+- **Look last, at few things.** At most four looks per program. Narrow first.
+- **Do not branch on a picture.** `observe` and `sheet` return an id and a text to the program, not what
+  is in the frame.
 
 ## How to work
 

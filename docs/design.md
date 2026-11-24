@@ -465,8 +465,9 @@ bigger orchestration layer:
   seek fails loudly and never returns a neighbouring frame.
 - **Media services in Python**, Whisper for transcription.
 - **One skill, written once, read two ways** (`uberseek/skill/`, a standard Agent Skill).
-  - *What is in it.* A core of about 175 lines: the three operations, how to work (orient, narrow with code,
-    look before deciding, zoom, check coverage, answer with what it rests on), six worked programs, and eight rules that each come from
+  - *What is in it.* A core of about 200 lines: the three operations, how to work (orient, narrow with code,
+    look before deciding, zoom, check coverage, answer with what it rests on), what a program can do (the four
+    kinds of step and seven ways to combine them, each a runnable program), and eight rules that each come from
     a mistake a model made with this tool. Five reference files: every operation, looking and reading a
     picture, writing programs, worked recipes, and what UberSeek cannot do.
   - *How it stays true.* The operations reference is generated from the library and the recipes reference from
@@ -667,8 +668,10 @@ One vertical experiment before a broad harness.
      **This moves one decision from the harness to the caller:** the harness still sets the size of what is
      shown, but the program now chooses which frames. That is a step toward letting the model set fidelity,
      which section 2 names as an open tension.
-   - *Done: worked examples in the core of the skill.* No run had ever opened the skill's references (`guide`
-     was called 0 times in 16 runs), so the six most useful programs are now in the part that is always read.
+   - *Done: the core of the skill says what a program can do.* No run had ever opened the skill's references
+     (`guide` was called 0 times in 16 runs), so the part that is always read now carries the principle (every
+     function takes times and returns times, so any output can be the next input), the four kinds of step
+     (propose, measure, reshape, look) and seven ways to combine them, each as a short program the tests run.
    - *Tried again, not measured* (`bench/locate/results`): two picture tasks, two cheap models, 4 runs. Programs
      that combine steps went from 0 of 10 to 7 of 12, and every run used a sheet. **Tokens did not fall; they
      rose about 40%**: the core is longer, and the models used sheets as well as looks. Whether a sheet saves
