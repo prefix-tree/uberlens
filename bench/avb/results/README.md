@@ -40,6 +40,34 @@ One run per cell on five tasks: these are observations to act on, not a measurem
 3. An operation for repeated or duplicated frames, which the glitch tasks need.
 4. Three runs per cell before reading any difference.
 
+## Sequencing and Assembly (2026-11-24, one run per cell)
+
+Two tasks of each family, the same agent and model. Both families' reference solutions score 1.0.
+
+| Task | Without UberSeek | With UberSeek |
+| --- | --- | --- |
+| Sequencing 1 (13 clips) | 0.05 | 0.00 |
+| Sequencing 2 (7 clips) | 0.14 | 0.07 |
+| Assembly 1 (4 slots from 12 clips) | 0.00 (1 of 4 right) | 0.63 (3 of 4 right) |
+| Assembly 2 (4 slots from 12 clips) | 0.63 (3 of 4 right) | 0.63 (3 of 4 right) |
+
+Cost of the eight runs: $0.07.
+
+- **UberSeek was not used in any of the eight runs**, so the two columns measure the same thing and their
+  differences are chance. The one attempt was `uberseek videos`, which the skill names as an operation and the
+  command line does not have.
+- **The agent built its own contact sheets with FFmpeg**: one picture per clip, 7 to 20 pictures read per run,
+  then one guess. In one run the pictures carried no clip names and it had to make a labelled grid to tell
+  them apart.
+- **Ordering is close to chance** (0.00 to 0.14). Both runs said the order was a best guess and did not check
+  any join.
+- **Building the file is not the problem.** Every output passed the verifier's check that each segment matches
+  its source clip, except one segment of one run.
+
+What it asks of UberSeek: operations that take many clips at once. One labelled sheet across all clips, a
+view of a join (the end of one clip beside the start of another), and `videos` on the command line.
+
 Files: `2026-11-24T151044.json` (the ten runs), `2026-11-24T155719.json` (content-cut-wsj without UberSeek,
 run again because the first try ended when OpenCode refused a write outside `/workspace`; the runner now
-allows it), `2026-11-24T150409.json` (the first trial pair), `2026-11-24T150314.json` (the reference solution).
+allows it), `2026-11-24T150409.json` (the first trial pair), `2026-11-24T150314.json` (the reference solution), `2026-11-24T214931.json` (Sequencing and
+Assembly).
