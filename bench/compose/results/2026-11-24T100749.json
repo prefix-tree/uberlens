@@ -1,0 +1,1269 @@
+{
+ "at": "2026-11-24T100749",
+ "note": "E1+E3: six compositional tasks, Claude Sonnet 5.5, both surfaces, three repeats",
+ "model": "anthropic/claude-sonnet-5.5",
+ "repeats": 3,
+ "dollars": 2.73,
+ "rows": [
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "pause after Artemis",
+   "relation": "time",
+   "truth": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "found": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 5,
+   "tokens": {
+    "input": 30942,
+    "output": 607
+   },
+   "seconds": 13.7,
+   "programs": 3,
+   "programs_combining": 2
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "pause after Artemis",
+   "relation": "time",
+   "truth": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "found": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 6,
+   "tokens": {
+    "input": 40381,
+    "output": 569
+   },
+   "seconds": 12.0,
+   "programs": 4,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "pause after Artemis",
+   "relation": "time",
+   "truth": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "found": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 4,
+   "tokens": {
+    "input": 25470,
+    "output": 471
+   },
+   "seconds": 9.0,
+   "programs": 2,
+   "programs_combining": 1
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "pause after Artemis",
+   "relation": "time",
+   "truth": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "found": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 3,
+   "tokens": {
+    "input": 19408,
+    "output": 504
+   },
+   "seconds": 10.9,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "pause after Artemis",
+   "relation": "time",
+   "truth": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "found": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 4,
+   "tokens": {
+    "input": 23609,
+    "output": 454
+   },
+   "seconds": 9.0,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "pause after Artemis",
+   "relation": "time",
+   "truth": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "found": {
+    "a": [
+     154.08,
+     155.0
+    ],
+    "b": [
+     162.029,
+     162.937
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 4,
+   "tokens": {
+    "input": 29379,
+    "output": 527
+   },
+   "seconds": 9.2,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "words after the longest silence",
+   "relation": "time",
+   "truth": {
+    "a": [
+     580.331,
+     583.373
+    ],
+    "b": [
+     "Great,",
+     "so",
+     "those",
+     "were",
+     "all"
+    ]
+   },
+   "found": {
+    "a": [
+     580.331,
+     583.373
+    ],
+    "b": "Great, so those were all"
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 2,
+   "tokens": {
+    "input": 11330,
+    "output": 254
+   },
+   "seconds": 4.9,
+   "programs": 1,
+   "programs_combining": 1
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "words after the longest silence",
+   "relation": "time",
+   "truth": {
+    "a": [
+     580.331,
+     583.373
+    ],
+    "b": [
+     "Great,",
+     "so",
+     "those",
+     "were",
+     "all"
+    ]
+   },
+   "found": {
+    "a": [
+     580.331,
+     583.373
+    ],
+    "b": "Great, so those were all"
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 2,
+   "tokens": {
+    "input": 11145,
+    "output": 205
+   },
+   "seconds": 3.9,
+   "programs": 1,
+   "programs_combining": 1
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "words after the longest silence",
+   "relation": "time",
+   "truth": {
+    "a": [
+     580.331,
+     583.373
+    ],
+    "b": [
+     "Great,",
+     "so",
+     "those",
+     "were",
+     "all"
+    ]
+   },
+   "found": {
+    "a": [
+     580.331,
+     583.373
+    ],
+    "b": "Great, so those were all"
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 2,
+   "tokens": {
+    "input": 11149,
+    "output": 171
+   },
+   "seconds": 3.6,
+   "programs": 1,
+   "programs_combining": 1
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "words after the longest silence",
+   "relation": "time",
+   "truth": {
+    "a": [
+     580.331,
+     583.373
+    ],
+    "b": [
+     "Great,",
+     "so",
+     "those",
+     "were",
+     "all"
+    ]
+   },
+   "found": {
+    "a": [
+     388.916,
+     393.273
+    ],
+    "b": "Okay, so let's see. So"
+   },
+   "a_right": false,
+   "b_right": false,
+   "requests": 4,
+   "tokens": {
+    "input": 32940,
+    "output": 2227
+   },
+   "seconds": 30.4,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "words after the longest silence",
+   "relation": "time",
+   "truth": {
+    "a": [
+     580.331,
+     583.373
+    ],
+    "b": [
+     "Great,",
+     "so",
+     "those",
+     "were",
+     "all"
+    ]
+   },
+   "found": {
+    "a": [
+     388.916,
+     393.273
+    ],
+    "b": "Okay, so let's see. So"
+   },
+   "a_right": false,
+   "b_right": false,
+   "requests": 4,
+   "tokens": {
+    "input": 32518,
+    "output": 1750
+   },
+   "seconds": 19.9,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "words after the longest silence",
+   "relation": "time",
+   "truth": {
+    "a": [
+     580.331,
+     583.373
+    ],
+    "b": [
+     "Great,",
+     "so",
+     "those",
+     "were",
+     "all"
+    ]
+   },
+   "found": {
+    "a": [
+     388.916,
+     393.273
+    ],
+    "b": "Okay, so let's see. So"
+   },
+   "a_right": false,
+   "b_right": false,
+   "requests": 4,
+   "tokens": {
+    "input": 26629,
+    "output": 1651
+   },
+   "seconds": 21.0,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "shot after the nitrogen shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "found": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 4,
+   "tokens": {
+    "input": 24580,
+    "output": 827
+   },
+   "seconds": 12.2,
+   "programs": 2,
+   "programs_combining": 2
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "shot after the nitrogen shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "found": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 5,
+   "tokens": {
+    "input": 30584,
+    "output": 664
+   },
+   "seconds": 13.7,
+   "programs": 2,
+   "programs_combining": 2
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "shot after the nitrogen shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "found": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 5,
+   "tokens": {
+    "input": 31839,
+    "output": 1113
+   },
+   "seconds": 16.6,
+   "programs": 2,
+   "programs_combining": 1
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "shot after the nitrogen shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "found": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 3,
+   "tokens": {
+    "input": 16539,
+    "output": 331
+   },
+   "seconds": 5.9,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "shot after the nitrogen shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "found": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 3,
+   "tokens": {
+    "input": 16901,
+    "output": 323
+   },
+   "seconds": 5.6,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "shot after the nitrogen shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "found": {
+    "a": [
+     117.933,
+     127.833
+    ],
+    "b": [
+     127.833,
+     141.8
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 3,
+   "tokens": {
+    "input": 16587,
+    "output": 331
+   },
+   "seconds": 6.5,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "shot after the longest shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     25.333,
+     35.0
+    ],
+    "b": [
+     35.0,
+     37.167
+    ]
+   },
+   "found": {
+    "a": [
+     0.0,
+     7.033
+    ],
+    "b": [
+     7.033,
+     10.5
+    ]
+   },
+   "a_right": false,
+   "b_right": false,
+   "requests": 6,
+   "tokens": {
+    "input": 65101,
+    "output": 1906
+   },
+   "seconds": 54.2,
+   "programs": 4,
+   "programs_combining": 3
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "shot after the longest shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     25.333,
+     35.0
+    ],
+    "b": [
+     35.0,
+     37.167
+    ]
+   },
+   "found": {
+    "a": [
+     0.0,
+     7.033
+    ],
+    "b": [
+     7.033,
+     10.5
+    ]
+   },
+   "a_right": false,
+   "b_right": false,
+   "requests": 6,
+   "tokens": {
+    "input": 67386,
+    "output": 2556
+   },
+   "seconds": 34.0,
+   "programs": 3,
+   "programs_combining": 2
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "shot after the longest shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     25.333,
+     35.0
+    ],
+    "b": [
+     35.0,
+     37.167
+    ]
+   },
+   "found": {
+    "a": [
+     25.333,
+     35.0
+    ],
+    "b": [
+     35.0,
+     37.167
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 3,
+   "tokens": {
+    "input": 21720,
+    "output": 785
+   },
+   "seconds": 12.6,
+   "programs": 1,
+   "programs_combining": 1
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "shot after the longest shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     25.333,
+     35.0
+    ],
+    "b": [
+     35.0,
+     37.167
+    ]
+   },
+   "found": {
+    "a": [
+     25.333,
+     35.0
+    ],
+    "b": [
+     35.0,
+     37.167
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 3,
+   "tokens": {
+    "input": 20915,
+    "output": 894
+   },
+   "seconds": 12.8,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "shot after the longest shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     25.333,
+     35.0
+    ],
+    "b": [
+     35.0,
+     37.167
+    ]
+   },
+   "found": {
+    "a": [
+     0.0,
+     7.033
+    ],
+    "b": [
+     7.033,
+     10.5
+    ]
+   },
+   "a_right": false,
+   "b_right": false,
+   "requests": 8,
+   "tokens": {
+    "input": 104026,
+    "output": 3044
+   },
+   "seconds": 47.7,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "shot after the longest shot",
+   "relation": "structure",
+   "truth": {
+    "a": [
+     25.333,
+     35.0
+    ],
+    "b": [
+     35.0,
+     37.167
+    ]
+   },
+   "found": {
+    "a": [
+     25.333,
+     35.0
+    ],
+    "b": [
+     35.0,
+     37.167
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 5,
+   "tokens": {
+    "input": 40384,
+    "output": 1275
+   },
+   "seconds": 18.9,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "robotic after crane",
+   "relation": "words",
+   "truth": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "found": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 5,
+   "tokens": {
+    "input": 29856,
+    "output": 558
+   },
+   "seconds": 31.7,
+   "programs": 3,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "robotic after crane",
+   "relation": "words",
+   "truth": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "found": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 3,
+   "tokens": {
+    "input": 17151,
+    "output": 377
+   },
+   "seconds": 8.0,
+   "programs": 1,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "robotic after crane",
+   "relation": "words",
+   "truth": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "found": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 6,
+   "tokens": {
+    "input": 36054,
+    "output": 583
+   },
+   "seconds": 20.8,
+   "programs": 5,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "robotic after crane",
+   "relation": "words",
+   "truth": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "found": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 6,
+   "tokens": {
+    "input": 39965,
+    "output": 598
+   },
+   "seconds": 12.2,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "robotic after crane",
+   "relation": "words",
+   "truth": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "found": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 5,
+   "tokens": {
+    "input": 38852,
+    "output": 549
+   },
+   "seconds": 11.4,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "robotic after crane",
+   "relation": "words",
+   "truth": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "found": {
+    "a": [
+     173.83,
+     174.29
+    ],
+    "b": [
+     182.41,
+     182.77
+    ]
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 5,
+   "tokens": {
+    "input": 32487,
+    "output": 524
+   },
+   "seconds": 10.1,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "spacewalk count in the longest shot",
+   "relation": "words and structure",
+   "truth": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5
+   },
+   "found": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5.0
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 4,
+   "tokens": {
+    "input": 27458,
+    "output": 880
+   },
+   "seconds": 13.3,
+   "programs": 3,
+   "programs_combining": 2
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "spacewalk count in the longest shot",
+   "relation": "words and structure",
+   "truth": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5
+   },
+   "found": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5.0
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 4,
+   "tokens": {
+    "input": 27008,
+    "output": 1171
+   },
+   "seconds": 18.9,
+   "programs": 3,
+   "programs_combining": 2
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "code",
+   "task": "spacewalk count in the longest shot",
+   "relation": "words and structure",
+   "truth": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5
+   },
+   "found": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5.0
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 5,
+   "tokens": {
+    "input": 32669,
+    "output": 907
+   },
+   "seconds": 12.3,
+   "programs": 3,
+   "programs_combining": 1
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "spacewalk count in the longest shot",
+   "relation": "words and structure",
+   "truth": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5
+   },
+   "found": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5.0
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 4,
+   "tokens": {
+    "input": 37376,
+    "output": 1740
+   },
+   "seconds": 21.0,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "spacewalk count in the longest shot",
+   "relation": "words and structure",
+   "truth": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5
+   },
+   "found": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5.0
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 9,
+   "tokens": {
+    "input": 120453,
+    "output": 2363
+   },
+   "seconds": 31.2,
+   "programs": 0,
+   "programs_combining": 0
+  },
+  {
+   "model": "anthropic/claude-sonnet-5.5",
+   "surface": "tools",
+   "task": "spacewalk count in the longest shot",
+   "relation": "words and structure",
+   "truth": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5
+   },
+   "found": {
+    "a": [
+     212.1,
+     407.733
+    ],
+    "b": 5.0
+   },
+   "a_right": true,
+   "b_right": true,
+   "requests": 8,
+   "tokens": {
+    "input": 110377,
+    "output": 2501
+   },
+   "seconds": 49.2,
+   "programs": 0,
+   "programs_combining": 0
+  }
+ ]
+}

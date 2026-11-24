@@ -76,3 +76,10 @@ def test_every_word_in_the_span_is_under_some_frame():
     times = [Fraction(1), Fraction(2), Fraction(5, 2)]
     assert transcript.by_frame(words, times, Fraction(0), Fraction(3)) == ["zero one two", "three", "four"]
     assert transcript.by_frame(words, times, Fraction(1), Fraction(14, 5)) == ["one two", "three", ""]
+
+
+def test_silences_that_touch_are_one_silence():
+    spans = [["1.0", "2.0"], ["2.0", "4.4"], ["5.0", "5.5"], ["5.51", "6.0"], ["7.0", "7.3"]]
+    whole = signals.within(spans, Fraction(0), Fraction(10))
+    assert whole == [(Fraction(1), Fraction("4.4")), (Fraction(5), Fraction(6)), (Fraction(7), Fraction("7.3"))]
+    assert signals.within(spans, Fraction(3), Fraction(10))[0] == (Fraction(3), Fraction("4.4"))  # clipped after joining

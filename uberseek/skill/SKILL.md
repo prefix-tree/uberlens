@@ -35,7 +35,7 @@ every look is logged, and `observations` and `coverage` read the log.
 
 ## Rules that keep you right
 
-Each of these comes from a mistake models actually made with this tool.
+Each of these comes from a mistake actually made with this tool.
 
 - **A number on a picture means that picture, not a frame of the video.** Every picture on a sheet has its
   number and its time printed in its corner. "Between 4 and 5" means the fourth and fifth picture. Read
@@ -49,6 +49,9 @@ Each of these comes from a mistake models actually made with this tool.
   shot's first and last second before you report its edges.
 - **The transcript is an estimate.** A word can be wrong or a little early or late. For an exact cut,
   trust the picture and the sound strip over a word's printed time.
+- **A program trusts its data, so check what it picks.** `max()` over a list of pauses or shots cannot notice
+  that two entries touch or that a shot holds a missed cut. Have the program return the runner-up as well as
+  the winner, and look at the winner before you report it.
 - **Give spans you looked at.** If you report 1:36.8 to 1:39.0, a picture should show both edges.
 
 ## What a picture shows

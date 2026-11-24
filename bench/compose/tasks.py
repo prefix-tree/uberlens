@@ -102,6 +102,8 @@ TASKS = [
         "A: the shot during which the word 'nitrogen' is said. B: the shot right after it. Give both as spans.",
         lambda lib: word_shot_then_next(lib, "explainer.mp4", "nitrogen"), "span",
     ),
+    # Flawed, kept for the record: the cut detector misses a cut inside the "longest shot" of this video, so the
+    # computed answer is not the true one. See results/README.md.
     Task(
         "shot after the longest shot", "structure", "reel",
         "A: the longest shot in the video. B: the shot right after it. Give both as spans.",

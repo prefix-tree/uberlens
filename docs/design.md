@@ -465,7 +465,7 @@ bigger orchestration layer:
 - **Media services in Python**, Whisper for transcription.
 - **One skill, written once, read two ways** (`uberseek/skill/`, a standard Agent Skill).
   - *What is in it.* A core of about 120 lines: the three operations, how to work (orient, narrow with code,
-    look before deciding, zoom, check coverage, answer with what it rests on), and six rules that each come from
+    look before deciding, zoom, check coverage, answer with what it rests on), and seven rules that each come from
     a mistake a model made with this tool. Five reference files: every operation, looking and reading a
     picture, writing programs, worked recipes, and what UberSeek cannot do.
   - *How it stays true.* The operations reference is generated from the library and the recipes reference from
@@ -533,6 +533,7 @@ locate; if this fails, the ladder may still be a useful interface, but there is 
 | E4 | Does **decision-led looking** beat the alternatives? | Free inspection (VIVID-style); SAVE; the ladder; the decision loop of section 3 | Editor preference, missed alternatives, cost, share of looks that changed a decision | It is no better than plain range exploration |
 | E6 | Does **code** beat plain tools? | A: plain tools (`find`, `zoom`, `compare`, `mark`); B: the API through `execute` only; C: `execute` plus `observe` | Accuracy on locate, choose and trim; tokens in and out; round trips; wall time; failed or invalid programs | The model spends more writing and fixing programs than it saves; then plain tools are the surface |
 | E7 | Are three operations **enough**? | The same surface on tasks of different kinds: short clips, long video, motion, sound, relations between events | Share of tasks solved with no new operation; which missing operation each failure would have needed | A kind of task fails for lack of an operation; then that operation is added and named |
+| E8 | Can it do **compositional search**? | Find event A, use it to find a related event B (related in time, by structure, or by words); on both surfaces | A right and B right, scored apart; tokens, requests, time | Models cannot link B to A even with A found; then linking needs its own operation |
 | E5 | Does **boundary comparison** improve trimming? | Transcript boundaries; silence boundaries; boundary comparison | Blind preference between boundaries; speech left intact | It does no better than the simple boundaries |
 
 Rules for all of them:
@@ -647,6 +648,18 @@ One vertical experiment before a broad harness.
      every program they wrote was a single call. That question stays open for E6 and for stronger models.
    - *A second wrong label.* The interview answers one question twice and the draft had one range. That is two
      wrong labels in four tasks tried.
+   - *First run of E6 and E8 together* (`bench/compose/results`). Six tasks of the form "find A, then the
+     related B", with answers computed by code; Claude Sonnet 5.5; both surfaces; 36 runs.
+     - On the four sound tasks both surfaces were right 12 of 12. Composition was not the hard part.
+     - Code used 29% fewer input tokens on average, and a third as many where there was much data to go through
+       (counting a word across three minutes of speech). It used more on tasks that needed two lookups.
+     - This model combined steps in half its programs; the cheap models never did.
+     - Two tasks were flawed because their computed answers were wrong: a silence recorded as two that touch,
+       and a missed cut. On the first, every program trusted the list and was wrong; the model on the tools
+       surface read the list, joined the two, and was right. **A program trusts its data; a model that sees
+       the data can notice it is wrong.** The silence measurement is fixed.
+     - What follows: keep both, offer them as one surface (plain operations plus `execute`), and have programs
+       return the runner-up and look at the winner. A computed answer is not ground truth.
    - *Next.* The explorer of E6: SAVE's loop reproduced twice on the same core, once with plain tools and once
      as code, on confirmed locate tasks. That settles the surface early. Picture search is added to `find` only
      after text search and the ladder are measured. No separate orchestration framework.
