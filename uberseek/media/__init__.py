@@ -7,6 +7,7 @@ from uberseek.media.backend import (
     FrameRef,
     MediaBackend,
     MediaError,
+    Segment,
     SourceInfo,
     VideoStream,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "FrameRef",
     "MediaBackend",
     "MediaError",
+    "Segment",
     "SourceInfo",
     "VideoStream",
 ]

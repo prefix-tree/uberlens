@@ -24,7 +24,7 @@ class Limits:
     seconds: float = 20.0  # of the program's own running time; time inside host calls is not counted
     memory: int = 64 * 1024 * 1024
     calls: int = 200  # host calls per program
-    looks: int = 4  # `observe` calls per program
+    looks: int = 4  # looks per program: each `observe` or `sheet` is one
     result: int = 6000  # characters of result returned to the model
     printed: int = 2000
 
@@ -38,10 +38,11 @@ class Execution:
     error: str | None = None
 
 
-def _clip(text: str, limit: int, what: str) -> str:
+def clip(text: str, limit: int, what: str) -> str:
     if len(text) <= limit:
         return text
-    return f"{text[:limit]}\n[{what} cut at {limit} of {len(text)} characters: return less, for example a count or the top few items]"
+    advice = "ask for less, for example a shorter span, a count or the top few items"
+    return f"{text[:limit]}\n[{what} cut at {limit} of {len(text)} characters: {advice}]"
 
 
 class Executor:
@@ -64,7 +65,7 @@ class Executor:
             def call(*args, **kwargs):
                 if len(calls) >= limits.calls:
                     raise ApiError(f"this program made more than {limits.calls} calls to the library; do less per program")
-                if name == "observe" and len(library.looks) >= limits.looks:
+                if name in ("observe", "sheet") and len(library.looks) >= limits.looks:
                     raise ApiError(
                         f"a program can look at most {limits.looks} times; return, see the pictures, then decide what to look at next"
                     )
@@ -102,9 +103,9 @@ class Executor:
         if error:
             parts.append(f"The program failed.\n{error}")
         else:
-            parts.append(_clip(json.dumps(result, default=str), limits.result, "result"))
+            parts.append(clip(json.dumps(result, default=str), limits.result, "result"))
         if out:
-            parts.append("Printed:\n" + _clip(out, limits.printed, "printed text"))
+            parts.append("Printed:\n" + clip(out, limits.printed, "printed text"))
         for number, seen in enumerate(library.looks, start=1):
             parts.append(f"Picture {number} of {len(library.looks)}, titled with its video and span:\n{seen.text}")
         record = self.project.log.append_execution(

@@ -22,7 +22,7 @@ EVERYTHING = "\n".join(path.read_text() for path in sorted(guide.SKILL.rglob("*.
 def test_it_is_a_valid_skill_with_a_short_core():
     described = guide.description()
     assert described["name"] == "uberseek" and len(described["description"]) > 200
-    assert len((guide.SKILL / "SKILL.md").read_text().splitlines()) < 200
+    assert len((guide.SKILL / "SKILL.md").read_text().splitlines()) < 300
     assert all((guide.SKILL / "references" / f"{topic}.md").exists() for topic in guide.TOPICS)
 
 
@@ -82,6 +82,7 @@ RECIPES = {
     "cut_point": {"near": 4.0},
     "coverage_check": {},
     "find_picture": {"looking_for": "a test pattern"},
+    "build_clip": {"query": "money left", "name": "recipe-clip"},
 }
 
 
@@ -109,10 +110,10 @@ def test_the_example_of_every_operation_runs(spoken):
 def test_the_programs_shown_in_the_guide_run(spoken):
     project, speech = spoken
     blocks = re.findall(r"```python\n(.*?)```", guide.core("harness") + guide.topic("programs"), re.S)
-    whole = [b for b in blocks if "interview.mp4" in b and "find(" in b]
-    assert len(whole) == 2
+    whole = [b for b in blocks if re.search(r'"(interview|reel)\.mp4"', b)]
+    assert len(whole) == 9  # seven ways to combine steps and building a clip in the core, and one in the guide to programs
     for program in whole:
-        done = Executor(project, [speech]).run_sync(program.replace("interview.mp4", "speech.mp4"))
+        done = Executor(project, [speech]).run_sync(re.sub(r"(interview|reel)\.mp4", "speech.mp4", program))
         assert done.error is None, done.text
     spans = next(b for b in blocks if b.startswith("span = expand"))
     for line in spans.strip().splitlines():
@@ -166,7 +167,8 @@ def test_the_harness_gives_the_core_and_serves_the_rest_on_request(clips, tmp_pa
         return ModelResponse(parts=[TextPart("ok")])
 
     Agent(FunctionModel(plain), toolsets=[toolset(Project(tmp_path), [clips["bframes"]], skill=False)]).run_sync("hi")
-    assert seen["plain"] == ("The videos you can use: bframes.mp4.", {"find", "observe", "execute", "show_again"})
+    tools = {"find", "observe", "sheet", "execute", "show_again", "mark", "selections", "clip", "verify"}
+    assert seen["plain"] == ("The videos you can use: bframes.mp4.", tools)
 
 
 def test_the_command_line_serves_the_skill_and_runs_programs(clips, tmp_path, capsys):

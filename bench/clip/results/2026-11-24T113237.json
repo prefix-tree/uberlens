@@ -1,0 +1,57 @@
+{
+ "at": "2026-11-24T113237",
+ "note": "first trial of the clip loop: one request, two cheap models, code surface",
+ "request": "Make a clip of about 15 seconds of her answer about how many nights they slept in the cave.",
+ "rows": [
+  {
+   "model": "anthropic/claude-haiku-5.5",
+   "surface": "code",
+   "clip": "cave-nights",
+   "why": "Clip is 15.3 s (source 1:04.23 to 1:19.50 in interview.mp4), one hard cut from the source, verify passed with no problems. Her answer starts after a measured pause (about 1:03.76 to 1:04.26) with 'And then after that, we descended into the cave... I slept there five nights' (64.29-69.85), then 'a total of six days and five nights' (70.05-72.09), and continues into the exploring description and 'beautiful' (ends 79.49). The end is trimmed just before 'at' (starts about 79.49) so no word is cut mid-way. Checked by looking at the start boundary, the end boundary, and a delivery look at the clip. The sound was not heard, so I cannot judge tone or clarity.",
+   "requests": 8,
+   "tokens": {
+    "input": 132906,
+    "output": 2818
+   },
+   "built": true,
+   "verified": true,
+   "problems": [],
+   "edges_not_seen": 0,
+   "seconds": 15.267,
+   "source_spans": [
+    [
+     64.23333333333333,
+     79.5
+    ]
+   ],
+   "holds_the_moment": true,
+   "looked_at_the_clip": 1,
+   "looks": 4
+  },
+  {
+   "model": "openai/gpt-5.6-luna",
+   "surface": "code",
+   "clip": "cave-five-nights",
+   "why": "Created and reviewed a 14.5-second clip from 1:00.5 to 1:15.0 of her answer, including that she slept five nights in the cave and that it was six days total. Verification passed.",
+   "requests": 11,
+   "tokens": {
+    "input": 169666,
+    "output": 1734
+   },
+   "built": true,
+   "verified": true,
+   "problems": [],
+   "edges_not_seen": 0,
+   "seconds": 14.5,
+   "source_spans": [
+    [
+     60.5,
+     75.0
+    ]
+   ],
+   "holds_the_moment": true,
+   "looked_at_the_clip": 1,
+   "looks": 9
+  }
+ ]
+}

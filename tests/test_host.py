@@ -31,7 +31,18 @@ def test_a_scripted_agent_receives_the_picture_it_asked_for(clips, tmp_path):
     def model(messages, info):
         returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
         if not returns:
-            assert {tool.name for tool in info.function_tools} == {"find", "observe", "execute", "show_again", "guide"}
+            assert {tool.name for tool in info.function_tools} == {
+                "find",
+                "observe",
+                "sheet",
+                "execute",
+                "show_again",
+                "guide",
+                "mark",
+                "selections",
+                "clip",
+                "verify",
+            }
             call = {"video": str(clips["bframes"]), "start": 1, "end": 4, "purpose": "is the bar moving?"}
             return ModelResponse(parts=[ToolCallPart("observe", call)])
         received.extend(returns[0].content)
@@ -101,8 +112,73 @@ def test_the_plain_surface_offers_one_operation_at_a_time(clips, tmp_path):
         return ModelResponse(parts=[TextPart(str(returns[0].content))])
 
     result = Agent(FunctionModel(model), toolsets=[toolset(Project(tmp_path), [clips["three_shots"]], surface="tools")]).run_sync("Cuts?")
-    assert asked == ["coverage", "cuts", "find", "guide", "observe", "pauses", "show_again", "words"]
+    assert asked == sorted(
+        ["coverage", "cuts", "find", "guide", "observe", "pauses", "sheet", "show_again", "words", "mark", "selections", "clip", "verify"]
+    )
     assert result.output == "[2.5, 4.5]"
+
+
+@pytest.mark.parametrize("surface", ["code", "tools"])
+def test_a_sheet_comes_back_as_one_picture_on_either_surface(clips, tmp_path, surface):
+    received = []
+
+    def model(messages, info):
+        returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
+        if not returns:
+            call = {"video": "three_shots.mp4", "times": [1, 3.5, 5], "labels": ["one", "two", "three"]}
+            return ModelResponse(parts=[ToolCallPart("sheet", call)])
+        received.extend(returns[0].content)
+        return ModelResponse(parts=[TextPart("ok")])
+
+    Agent(FunctionModel(model), toolsets=[toolset(Project(tmp_path), [clips["three_shots"]], surface)]).run_sync("Compare the shots.")
+    text, picture = received
+    assert "a sheet of 3 frames" in text and "(two)" in text
+    assert isinstance(picture, BinaryContent) and picture.data.startswith(b"\x89PNG")
+
+
+def test_an_agent_builds_and_checks_a_clip_through_the_host(clips, tmp_path):
+    project, steps, told = (
+        Project(tmp_path),
+        iter(
+            [
+                ("observe", {"video": "bframes.mp4", "start": 1, "focus": "boundary"}),
+                ("mark", {"video": "bframes.mp4", "start": 1, "end": 2, "reason": "the tone before the silence"}),
+                ("clip", {"selections": ["sel_000001"], "name": "tone"}),
+                ("verify", {"clip": "tone"}),
+                ("observe", {"video": "tone.mp4", "start": 0, "end": 1}),
+            ]
+        ),
+        [],
+    )
+
+    def model(messages, info):
+        told.extend(part.content for part in messages[-1].parts if isinstance(part, ToolReturnPart))
+        step = next(steps, None)
+        return ModelResponse(parts=[ToolCallPart(*step)] if step else [TextPart("done")])
+
+    Agent(FunctionModel(model), toolsets=[toolset(project, [clips["bframes"]])]).run_sync("Make a one-second clip of the tone.")
+    _, marked, made, checked, look = told
+    assert marked["edges_not_seen"] == ["out"] and marked["rests_on"] == ["obs_000001"]
+    assert made["clip"] == "tone.mp4" and checked["ok"] and "without a look" in checked["warnings"][0]
+    assert look[0].startswith("obs_000002: tone.mp4") and isinstance(look[1], BinaryContent)
+    assert [clip["name"] for clip in project.log.clips()] == ["tone"]
+
+
+def test_a_plain_tool_cannot_flood_the_context_either(clips, tmp_path):
+    from uberseek.exec import Limits
+
+    told = []
+
+    def model(messages, info):
+        returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
+        if not returns:
+            return ModelResponse(parts=[ToolCallPart("cuts", {"video": "ten_shots.mp4"})])
+        told.append(returns[0].content)
+        return ModelResponse(parts=[TextPart("ok")])
+
+    tools = toolset(Project(tmp_path), [clips["ten_shots"]], surface="tools", limits=Limits(result=30))
+    Agent(FunctionModel(model), toolsets=[tools]).run_sync("Cuts?")
+    assert told[0].startswith("[8.0, 16.0, 24.0, 32.0, 40.0,") and "[result cut at 30 of" in told[0] and "ask for less" in told[0]
 
 
 # What each provider's API is sent. A fake server answers twice: first with a call to `observe`, then with text.

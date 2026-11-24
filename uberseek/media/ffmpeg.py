@@ -22,6 +22,7 @@ from uberseek.media.backend import (
     FrameIndex,
     FrameRef,
     MediaError,
+    Segment,
     SourceInfo,
     VideoStream,
 )
@@ -153,6 +154,45 @@ class FFmpegBackend:
              "-f", "s16le", "pipe:1"]
         )  # fmt: skip
         return done.stdout[: count * 2].ljust(count * 2, b"\0")
+
+    def join(self, segments: list[Segment], out: Path, size: tuple[int, int], sound: bool) -> list[str]:
+        command = _join_command(self.ffmpeg, segments, out, size, sound)
+        _run(command)
+        return command
+
+    def decodes(self, path: Path) -> list[str]:
+        done = subprocess.run(
+            [self.ffmpeg, "-v", "error", "-nostdin", "-i", str(path), "-f", "null", "-"], capture_output=True, check=False
+        )
+        said = done.stderr.decode(errors="replace").strip().splitlines()
+        return said[:5] if done.returncode != 0 or said else []
+
+
+def _join_command(ffmpeg: str, segments: list[Segment], out: Path, size: tuple[int, int], sound: bool) -> list[str]:
+    """One FFmpeg command: each segment is its own input, seeked to the keyframe before it and trimmed by timestamp.
+
+    Frames are chosen by presentation timestamp, so the cut does not depend on where keyframes fall. The
+    result is encoded again; a stream copy could only cut on keyframes.
+    """
+    width, height = size
+    args, graph, joined = [ffmpeg, "-v", "error", "-nostdin", "-y"], [], []
+    for i, segment in enumerate(segments):
+        index = segment.index
+        if before := index.keyframes_before(segment.first)[:1]:
+            args += ["-seek_timestamp", "1", "-noaccurate_seek", "-ss", _decimal(index.time(before[0]), up=True)]
+        args += ["-copyts", "-i", str(segment.path)]
+        picture = f"trim=start_pts={segment.first}:end_pts={segment.end},setpts=PTS-STARTPTS"
+        graph.append(f"[{i}:v:0]{picture},scale={width}:{height}:flags={_SCALE},setsar=1,format=yuv420p[v{i}]")
+        joined.append(f"[v{i}]")
+        if sound:
+            start, end = _decimal(index.time(segment.first)), _decimal(index.time(segment.end))
+            graph.append(
+                f"[{i}:a:0]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo[a{i}]"
+            )
+            joined.append(f"[a{i}]")
+    graph.append(f"{''.join(joined)}concat=n={len(segments)}:v=1:a={int(sound)}[v]" + ("[a]" if sound else ""))
+    args += ["-filter_complex", ";".join(graph), "-map", "[v]", *(["-map", "[a]", "-c:a", "aac", "-b:a", "160k"] if sound else [])]
+    return [*args, "-c:v", "libx264", "-crf", "18", "-preset", "veryfast", "-fps_mode", "passthrough", "-movflags", "+faststart", str(out)]
 
 
 def _video(stream: dict) -> VideoStream:

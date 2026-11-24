@@ -1,4 +1,4 @@
-# Gather candidates for a line from several phrasings, rank them by measurements, look at the best.
+# Gather candidates for a line from several phrasings, rank them by measurements, compare them on one sheet.
 # A take in one shot, with a pause before and after it, is easier to cut out cleanly.
 video = "interview.mp4"
 queries = ["company almost failed", "we nearly went under", "ran out of money"]
@@ -19,7 +19,10 @@ for span in merge([[h["start"], h["end"]] for h in hits], gap=1):
             "text": said[:160],
         }
     )
-ranked = sorted(ranked, key=lambda c: -(int(c["one_shot"]) + int(c["pause_before"]) + int(c["pause_after"])))
-for c in ranked[:3]:
+ranked = sorted(ranked, key=lambda c: -(int(c["one_shot"]) + int(c["pause_before"]) + int(c["pause_after"])))[:8]
+if ranked:
+    middles = [round((c["span"][0] + c["span"][1]) / 2, 3) for c in ranked]
+    sheet(video, middles, labels=[c["text"][:40] for c in ranked], purpose="which take looks best?")
+for c in ranked[:2]:
     observe(video, max(0, c["span"][0] - 1), c["span"][1] + 1, "delivery", "which take is cleanest?")
 ranked[:5]

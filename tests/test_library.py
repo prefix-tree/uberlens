@@ -82,7 +82,7 @@ def test_measurements_come_back_as_plain_numbers(clips, tmp_path):
 
 def test_coverage_says_what_was_looked_at_and_what_was_not(clips, tmp_path):
     library = Library(Project(tmp_path), [clips["bframes"]])
-    assert library.coverage("bframes.mp4", 0, 5) == {"looked": [], "never": [[0, 5]]}
+    assert library.coverage("bframes.mp4", 0, 5) == {"looked": [], "sheets": [], "never": [[0, 5]]}
     library.observe("bframes.mp4", 1, 2, purpose="first")
     library.observe("bframes.mp4", 3, 4.5, focus="motion", purpose="second")
     covered = library.coverage("bframes.mp4", 0, 5)
@@ -92,6 +92,22 @@ def test_coverage_says_what_was_looked_at_and_what_was_not(clips, tmp_path):
     assert [look["purpose"] for look in library.observations("bframes.mp4", focus="motion")] == ["second"]
     assert [look["id"] for look in library.observations("bframes.mp4", end=2.5)] == ["obs_000001"]
     assert len(library.looks) == 2
+
+
+def test_a_sheet_shows_the_frames_picked_and_covers_nothing_between_them(clips, tmp_path):
+    library = Library(Project(tmp_path), [clips["bframes"]])
+    seen = library.sheet("bframes.mp4", [4, 0.5, 2], labels=["late", "early", "middle"], purpose="which is sharpest?")
+    assert "a sheet of 3 frames" in seen["text"] and "1: 0:04.000 (late); 2: 0:00.500 (early); 3: 0:02.000 (middle)" in seen["text"]
+    assert "nothing between them was shown" in seen["text"]
+    covered = library.coverage("bframes.mp4", 0, 5)
+    assert covered["sheets"] == [{"id": "obs_000001", "times": [0.5, 2.0, 4.0]}]
+    assert covered["looked"] == [] and covered["never"] == [[0, 5]]  # separate instants close no gap
+    with pytest.raises(ApiError, match="at most 24 frames"):
+        library.sheet("bframes.mp4", [i / 10 for i in range(25)])
+    with pytest.raises(ApiError, match="2 labels were given for 3 times"):
+        library.sheet("bframes.mp4", [1, 2, 3], labels=["a", "b"])
+    with pytest.raises(ApiError, match="at least one time"):
+        library.sheet("bframes.mp4", [])
 
 
 def test_the_reference_is_written_from_the_operations_themselves(tmp_path):

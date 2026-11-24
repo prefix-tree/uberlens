@@ -124,7 +124,9 @@ verified = false
 video = "reel"
 basis = "picture"
 question = "Find the shot of rocket engines firing, seen close."
-ranges = [[14.2, 15.6]]
+# Corrected after a trial: the video has two shots that fit. The second is an engine on a test stand; its
+# start is approximate, because the cut before it is one the detector misses.
+ranges = [[14.2, 15.6], [28.5, 35.0]]
 verified = false
 
 [[task]]

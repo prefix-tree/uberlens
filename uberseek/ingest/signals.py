@@ -14,6 +14,7 @@ from uberseek.media.backend import MediaError
 
 SILENCE = {"noise_db": -35, "min_seconds": "0.25"}
 CUT = {"threshold": 10, "width": 320}
+TOUCH = Fraction(1, 50)  # silences closer than this are one silence
 
 _SILENCE = re.compile(r"silence_(start|end): (-?[\d.]+)")
 _CUT = re.compile(r"frame:\d+\s+pts:(-?\d+)\s+pts_time:\S+\s+lavfi\.scd\.time=")
@@ -73,10 +74,16 @@ def cuts(path: Path, ffmpeg: str = "ffmpeg") -> dict:
 
 
 def within(spans: list[list[str]], start: Fraction, end: Fraction) -> list[tuple[Fraction, Fraction]]:
-    """The parts of the spans that fall inside [start, end]."""
-    out = []
+    """The parts of the spans that fall inside [start, end].
+
+    Silences that touch are one silence: the detector sometimes ends a silence and starts the next at the
+    same instant, on a single loud sample, and a four-second pause must not be reported as two short ones.
+    """
+    out: list[tuple[Fraction, Fraction]] = []
     for a, b in spans:
-        a, b = max(Fraction(a), start), min(Fraction(b), end)
-        if a < b:
-            out.append((a, b))
-    return out
+        a, b = Fraction(a), Fraction(b)
+        if out and a - out[-1][1] <= TOUCH:
+            a = out.pop()[0]
+        out.append((a, b))
+    clipped = [(max(a, start), min(b, end)) for a, b in out]
+    return [(a, b) for a, b in clipped if a < b]

@@ -92,6 +92,16 @@ class Frame:
         return hashlib.sha256(head + self.rgb).hexdigest()
 
 
+@dataclass(frozen=True)
+class Segment:
+    """A run of frames of one file: from the frame at `first` up to, not including, the frame at `end`."""
+
+    path: Path
+    index: FrameIndex
+    first: int  # timestamp of the first frame kept
+    end: int  # timestamp of the first frame not kept
+
+
 class MediaBackend(Protocol):
     name: str
     version: str
@@ -106,4 +116,12 @@ class MediaBackend(Protocol):
 
     def audio(self, path: Path, start: Seconds, duration: Seconds, rate: int) -> bytes:
         """Mono signed 16-bit samples for [start, start + duration), silence where there is no sound."""
+        ...
+
+    def join(self, segments: list[Segment], out: Path, size: tuple[int, int], sound: bool) -> list[str]:
+        """Write the segments one after another into one file, cut on exact frames. Returns the command run."""
+        ...
+
+    def decodes(self, path: Path) -> list[str]:
+        """Decode the whole file. Returns what went wrong, or nothing."""
         ...

@@ -20,7 +20,7 @@ import PIL
 from uberseek.ingest import signals, transcript
 from uberseek.media import FFmpegBackend, FrameIndex, FrameRef, MediaBackend, MediaError, SourceInfo
 from uberseek.observe import render
-from uberseek.observe.plan import SAMPLE_RATE, WAVEFORM_MAX, plan, tile_size
+from uberseek.observe.plan import LADDER, SAMPLE_RATE, SHEET_MOST, WAVEFORM_MAX, plan, tile_size
 from uberseek.state.log import Log
 from uberseek.timecode import Seconds, clock, seconds
 
@@ -132,9 +132,43 @@ class Project:
             "words_in": list(self.words_in),
             "title": f"{source.path.name} · {_span(made.start, made.end)} · {focus}",
         }
+        return self._look(source, request, recipe, list(made.targets), made.in_span)
+
+    def sheet(self, path: Path | str, times: list, labels: list[str] | None = None, purpose: str = "") -> Observation:
+        """Show frames picked from anywhere in a video as one picture, like a plot of chosen points.
+
+        The caller chooses which instants to show and may label each; the harness still sets their size.
+        These are separate instants, so there is no sound strip, and nothing between them counts as seen.
+        """
+        source = self.open(path)
+        if not times:
+            raise ValueError("a sheet needs at least one time")
+        if len(times) > SHEET_MOST:
+            raise ValueError(f"a sheet shows at most {SHEET_MOST} frames, and {len(times)} were asked for: pick fewer, or make two sheets")
+        if labels is not None and len(labels) != len(times):
+            raise ValueError(f"{len(labels)} labels were given for {len(times)} times: give one label per time, or none")
+        index = source.index
+        targets = [index.frames[index.position(seconds(t))].pts for t in times]  # in the order asked, like a plot
+        first, last = index.time(min(targets)), index.time(max(targets))
+        size, columns = tile_size((source.info.video.width, source.info.video.height), LADDER["passage"][2], len(targets))
+        request = {"start": _fraction(first), "end": _fraction(last), "focus": "sheet", "purpose": purpose}
+        recipe = {
+            "level": "sheet",
+            "targets": targets,
+            "frame_size": list(size),
+            "columns": columns,
+            "sound": None,
+            "mark": None,
+            "labels": [str(label) for label in labels] if labels else None,
+            "title": f"{source.path.name} · {len(targets)} frames picked between {_span(first, last)} · separate instants, not a span",
+        }
+        return self._look(source, request, recipe, sorted(targets), index.position(last) - index.position(first) + 1)
+
+    def _look(self, source: Source, request: dict, recipe: dict, in_time_order: list[int], in_span: int) -> Observation:
+        """Draw what the recipe says, log it, and return it with the statement of what it shows."""
         began = time.perf_counter()
         image, delivered = self._render(source, recipe)
-        gaps = [float(b - a) * float(source.index.time_base) for a, b in pairwise(made.targets)]
+        gaps = [float(b - a) * float(source.index.time_base) for a, b in pairwise(in_time_order)]
         record = self.log.append(
             {
                 "source": {"hash": source.hash, "path": str(source.path), "format": source.info.format},
@@ -142,7 +176,7 @@ class Project:
                 "recipe": recipe,
                 "delivered": {
                     **delivered,
-                    "frames_in_span": made.in_span,
+                    "frames_in_span": in_span,
                     "gap_seconds": {"median": statistics.median(gaps), "max": max(gaps)} if gaps else None,
                     "heard": False,
                 },
@@ -204,7 +238,7 @@ class Project:
         delivered: dict = {"time_base": _fraction(index.time_base), "frames": [], "size": None, "drawn": ["frames"], "sound": None}
         delivered["frames"] = [{"pts": f.pts, "pixels_sha256": f.pixel_hash} for f in frames]
 
-        said, captions = [], None
+        said, captions = [], recipe.get("labels")  # a sheet's labels are written where the words would be
         if recipe.get("words"):
             said = self.log.derived(source.hash, recipe["words"], _missing("the transcript"))
             captions = transcript.by_frame(said["words"], times, span[0], span[1])
@@ -269,6 +303,18 @@ def _describe(record: dict, source: Source | None) -> str:
     times = [frame["pts"] * base for frame in delivered["frames"]]
     start, end = Fraction(request["start"]), Fraction(request["end"])
     span = _span(start, end)
+    if recipe["level"] == "sheet":
+        labels = recipe.get("labels") or [""] * len(times)
+        listed = "; ".join(
+            f"{i}: {clock(t)}{' (' + label + ')' if label else ''}" for i, (t, label) in enumerate(zip(times, labels, strict=True), 1)
+        )
+        width, height = recipe["frame_size"]
+        return (
+            f"{record['id']}: {Path(record['source']['path']).name}, a sheet of {len(times)} frames picked by the caller.\n"
+            f"In the order given, {width}x{height} each: {listed}.\n"
+            "Each picture has its number and its time printed in its corner. These are separate instants, not a span: "
+            "nothing between them was shown, and no sound is drawn. Look closer at one with observe."
+        )
     lines = [
         f"{record['id']}: {Path(record['source']['path']).name}, {span}, focus {request['focus']}, level {recipe['level']}.",
     ]

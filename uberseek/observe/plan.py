@@ -15,6 +15,7 @@ from uberseek.timecode import Seconds
 FOCUSES = ("visual", "speech", "motion", "delivery", "boundary")
 
 MAX_SIDE = 1568  # the longest side of any picture delivered
+SHEET_MOST = 24  # frames on one sheet picked by the caller
 WAVEFORM_MAX = Fraction(60)  # longer spans show measured loudness, not the wave itself
 SAMPLE_RATE = 16_000
 

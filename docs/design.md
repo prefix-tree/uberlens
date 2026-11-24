@@ -95,6 +95,7 @@ it explore any codebase, with no special tool for each kind of analysis. The bas
 | --- | --- | --- |
 | `find(query)` | `grep` | Returns candidate spans that may match a description in words, or that resemble an earlier span |
 | `observe(span, focus)` | `cat` | Delivers images of the footage to the model as an observation, by artifact id |
+| `sheet(times, labels)` | A plot | Draws frames picked from anywhere in the video on one picture, in the caller's order |
 | `execute(program)` | A shell script | Runs a bounded program that combines searches, measurements and looks, and returns its result |
 
 - **The API is a small library, and `execute` is one way to run it.** A host that is itself a coding agent can
@@ -351,6 +352,12 @@ ladder does not solve it. This action is the main research target of the iterati
 
 ### `mark`: selecting, with boundaries compared
 
+**Built so far** (`uberseek/select`): `mark` saves a span snapped to frames, pinned to the file's content and to
+the looks in the log that overlap it, and says when its first or last frame was never looked at. `clip` cuts
+selections into one file with hard cuts, frame-exact, and keeps the map from source time to clip time.
+`verify` checks the file by code. Not built: the boundary alternatives below as an operation of their own (an
+agent does it by hand with `pauses`, `words` and boundary looks), `compare`, and the brief and profile.
+
 `mark(span, purpose, why)` records a selection. Its in and out points are not just "seen up close"; they are
 **chosen among alternatives**:
 
@@ -464,8 +471,9 @@ bigger orchestration layer:
   seek fails loudly and never returns a neighbouring frame.
 - **Media services in Python**, Whisper for transcription.
 - **One skill, written once, read two ways** (`uberseek/skill/`, a standard Agent Skill).
-  - *What is in it.* A core of about 120 lines: the three operations, how to work (orient, narrow with code,
-    look before deciding, zoom, check coverage, answer with what it rests on), and six rules that each come from
+  - *What is in it.* A core of about 200 lines: the three operations, how to work (orient, narrow with code,
+    look before deciding, zoom, check coverage, answer with what it rests on), what a program can do (the four
+    kinds of step and seven ways to combine them, each a runnable program), and eight rules that each come from
     a mistake a model made with this tool. Five reference files: every operation, looking and reading a
     picture, writing programs, worked recipes, and what UberSeek cannot do.
   - *How it stays true.* The operations reference is generated from the library and the recipes reference from
@@ -533,6 +541,7 @@ locate; if this fails, the ladder may still be a useful interface, but there is 
 | E4 | Does **decision-led looking** beat the alternatives? | Free inspection (VIVID-style); SAVE; the ladder; the decision loop of section 3 | Editor preference, missed alternatives, cost, share of looks that changed a decision | It is no better than plain range exploration |
 | E6 | Does **code** beat plain tools? | A: plain tools (`find`, `zoom`, `compare`, `mark`); B: the API through `execute` only; C: `execute` plus `observe` | Accuracy on locate, choose and trim; tokens in and out; round trips; wall time; failed or invalid programs | The model spends more writing and fixing programs than it saves; then plain tools are the surface |
 | E7 | Are three operations **enough**? | The same surface on tasks of different kinds: short clips, long video, motion, sound, relations between events | Share of tasks solved with no new operation; which missing operation each failure would have needed | A kind of task fails for lack of an operation; then that operation is added and named |
+| E8 | Can it do **compositional search**? | Find event A, use it to find a related event B (related in time, by structure, or by words); on both surfaces | A right and B right, scored apart; tokens, requests, time | Models cannot link B to A even with A found; then linking needs its own operation |
 | E5 | Does **boundary comparison** improve trimming? | Transcript boundaries; silence boundaries; boundary comparison | Blind preference between boundaries; speech left intact | It does no better than the simple boundaries |
 
 Rules for all of them:
@@ -647,6 +656,46 @@ One vertical experiment before a broad harness.
      every program they wrote was a single call. That question stays open for E6 and for stronger models.
    - *A second wrong label.* The interview answers one question twice and the draft had one range. That is two
      wrong labels in four tasks tried.
+   - *First run of E6 and E8 together* (`bench/compose/results`). Six tasks of the form "find A, then the
+     related B", with answers computed by code; Claude Sonnet 5.5; both surfaces; 36 runs.
+     - On the four sound tasks both surfaces were right 12 of 12. Composition was not the hard part.
+     - Code used 29% fewer input tokens on average, and a third as many where there was much data to go through
+       (counting a word across three minutes of speech). It used more on tasks that needed two lookups.
+     - This model combined steps in half its programs; the cheap models never did.
+     - Two tasks were flawed because their computed answers were wrong: a silence recorded as two that touch,
+       and a missed cut. On the first, every program trusted the list and was wrong; the model on the tools
+       surface read the list, joined the two, and was right. **A program trusts its data; a model that sees
+       the data can notice it is wrong.** The silence measurement is fixed.
+     - What follows: keep both, offer them as one surface (plain operations plus `execute`), and have programs
+       return the runner-up and look at the winner. A computed answer is not ground truth.
+   - *Done: `sheet`.* A program picks up to 24 instants and labels them; the harness draws them on one
+     picture, which counts as one look. It is for scanning and comparing: one frame per shot, one per
+     candidate. The frames are separate instants, so there is no sound strip and `coverage` lists a sheet apart.
+     **This moves one decision from the harness to the caller:** the harness still sets the size of what is
+     shown, but the program now chooses which frames. That is a step toward letting the model set fidelity,
+     which section 2 names as an open tension.
+   - *Done: the core of the skill says what a program can do.* No run had ever opened the skill's references
+     (`guide` was called 0 times in 16 runs), so the part that is always read now carries the principle (every
+     function takes times and returns times, so any output can be the next input), the four kinds of step
+     (propose, measure, reshape, look) and seven ways to combine them, each as a short program the tests run.
+   - *Tried again, not measured* (`bench/locate/results`): two picture tasks, two cheap models, 4 runs. Programs
+     that combine steps went from 0 of 10 to 7 of 12, and every run used a sheet. **Tokens did not fall; they
+     rose about 40%**: the core is longer, and the models used sheets as well as looks. Whether a sheet saves
+     anything needs a task where it replaces several looks, and more runs.
+   - *Done: from a chosen span to a checked clip* (`uberseek/select`). VIVID's ablation puts the look at the
+     render almost level with the look at the source (14.6 points against 16.0), so the loop is closed early, in
+     its smallest form.
+     - `mark` saves a selection; which looks it rests on is filled in by code, not claimed by the model.
+     - `clip` cuts selections in the order given. Each part is seeked to the keyframe before it and trimmed by
+       timestamp, so a cut never depends on where keyframes fall. Hard cuts only.
+     - `verify` checks that the file decodes, holds exactly the frames selected, and that each part starts and
+       ends on the frame chosen. Re-encoding changes pixels, so a frame must look like the one chosen and no
+       less like it than like its neighbours; a test confirms this catches a cut one frame off.
+     - The clip is then a video like any other, so the agent reviews it with the same `observe`.
+   - *Tried with real models, not measured* (`bench/clip/results`). One request, "a clip of about 15 seconds
+     of her answer about how many nights they slept in the cave", two cheap models. Both produced a clip of the
+     right length that holds the answer, passed `verify`, looked at both edges before marking and looked at the
+     clip afterwards. It cost 130,000 to 170,000 input tokens a run. Whether the clips are good was not judged.
    - *Next.* The explorer of E6: SAVE's loop reproduced twice on the same core, once with plain tools and once
      as code, on confirmed locate tasks. That settles the surface early. Picture search is added to `find` only
      after text search and the ladder are measured. No separate orchestration framework.
@@ -715,8 +764,8 @@ where the evidence stands.
 | Iteration | Capability | What the research says so far |
 | --- | --- | --- |
 | 1 (this document) | The base for exploring video, and the selection module | Sections 1 and 8 |
-| 2 | Carrying out edits inside the harness, through UberScene (FFmpeg for what UberScene cannot do) | Typed, undoable timelines for agents exist (Cassette-Editor); whether typed actions beat editing the file as text is untested |
-| 3 | Reviewing the result by watching and hearing the render | No one has compared a watching critic with a reading one; model judges are reliable on checkable items and weak on craft |
+| 2 | Carrying out edits inside the harness, through UberScene (FFmpeg for what UberScene cannot do). *Started early in its smallest form: hard cuts with FFmpeg, and a code check of the file (section 7)* | Typed, undoable timelines for agents exist (Cassette-Editor); whether typed actions beat editing the file as text is untested |
+| 3 | Reviewing the result by watching and hearing the render. *The agent can already look at its own clip; nothing yet tells it what to look for* | No one has compared a watching critic with a reading one; model judges are reliable on checkable items and weak on craft |
 | 4 | Revisions: keeping approved material intact across notes | A code gate with rollback is the mechanism with evidence |
 | Hearing | Real sound, and short clips, in `observe`, for models and hosts that can take them | Agents judging from stills and transcripts cannot assess delivery or rhythm; this is the known cost of images only |
 | Other modules | Question answering, search, compliance review (which needs evidence of absence), action analysis | The base serves them without change; each needs its own module |

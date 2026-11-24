@@ -8,6 +8,7 @@ surfaces over the same library, so they can be compared: `code`, where the model
 from __future__ import annotations
 
 import functools
+import json
 from pathlib import Path
 from typing import Literal
 
@@ -17,10 +18,12 @@ from pydantic_ai.toolsets import FunctionToolset
 from uberseek import Project, guide
 from uberseek.api import ApiError, Library
 from uberseek.exec import Executor, Limits
+from uberseek.exec.executor import clip
 from uberseek.observe.gateway import Observation
 
 Surface = Literal["code", "tools"]
 PLAIN = ("find", "words", "pauses", "cuts", "coverage")  # the operations offered one at a time on the `tools` surface
+BUILD = ("mark", "selections", "clip", "verify")  # building a clip: on both surfaces
 
 EXECUTE = """Run a short Python program against the video library and get back its result.
 
@@ -39,15 +42,21 @@ def _picture(seen: Observation) -> BinaryContent:
     return BinaryContent(data=seen.image, media_type=seen.media_type)
 
 
-def _retrying(function):
-    """A request the library refuses goes back to the model as something to fix."""
+def _retrying(function, limit: int | None = None):
+    """A request the library refuses goes back to the model as something to fix.
+
+    With a limit, a large result is cut and says so, exactly as a program's result is: what one call may
+    put into the model's context is the same on both surfaces.
+    """
 
     @functools.wraps(function)
     def call(*args, **kwargs):
         try:
-            return function(*args, **kwargs)
+            result = function(*args, **kwargs)
         except ApiError as error:
             raise ModelRetry(str(error)) from error
+        text = json.dumps(result, default=str)
+        return result if limit is None or len(text) <= limit else clip(text, limit, "result")
 
     return call
 
@@ -64,7 +73,7 @@ def toolset(
     `videos` are the files the agent may use, by name; leave it out to allow any path. With `skill`,
     the agent is also given the UberSeek skill: its core as instructions, and a `guide` tool for the rest.
     """
-    library = Library(project, videos)
+    library, limits = Library(project, videos), limits or Limits()
     names = ", ".join(library.videos) if library.videos else None
     notes = "\n\n".join(
         part for part in (guide.core("harness") if skill else "", f"The videos you can use: {names}." if names else "") if part
@@ -80,11 +89,16 @@ def toolset(
         """
         return guide.topic(topic)
 
-    extra = [Tool(read_guide, name="guide")] if skill else []
+    extra = [*(_retrying(getattr(library, name), limits.result) for name in BUILD), *([Tool(read_guide, name="guide")] if skill else [])]
 
     @functools.wraps(library.observe)
     def observe(*args, **kwargs) -> list:
         text = _retrying(library.observe)(*args, **kwargs)["text"]
+        return [text, _picture(library.looks.pop())]
+
+    @functools.wraps(library.sheet)
+    def sheet(*args, **kwargs) -> list:
+        text = _retrying(library.sheet)(*args, **kwargs)["text"]
         return [text, _picture(library.looks.pop())]
 
     def show_again(observation: str) -> list:
@@ -99,10 +113,13 @@ def toolset(
             raise ModelRetry(str(error)) from error
         return [seen.text, _picture(seen)]
 
-    look = Tool(observe, description=library.observe.__doc__.replace("after the program ends; a program cannot see it", "in the reply"))
+    seen_now = ("after the program ends; a program cannot see it", "in the reply")
+    look = Tool(observe, description=library.observe.__doc__.replace(*seen_now))
+    plot = Tool(sheet, description=library.sheet.__doc__.replace(*seen_now))
     if surface == "tools":
         return FunctionToolset(
-            [look, show_again, *(_retrying(getattr(library, name)) for name in PLAIN), *extra], instructions=notes or None
+            [look, plot, show_again, *(_retrying(getattr(library, name), limits.result) for name in PLAIN), *extra],
+            instructions=notes or None,
         )
 
     executor = Executor(project, videos, limits)
@@ -114,5 +131,6 @@ def toolset(
 
     description = EXECUTE.format(looks=executor.limits.looks, reference=executor.reference())
     return FunctionToolset(
-        [_retrying(library.find), look, Tool(execute, description=description), show_again, *extra], instructions=notes or None
+        [_retrying(library.find, limits.result), look, plot, Tool(execute, description=description), show_again, *extra],
+        instructions=notes or None,
     )
