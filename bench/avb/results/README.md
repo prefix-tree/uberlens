@@ -17,7 +17,7 @@ The task's reference solution scores 1.0 through this runner (`--conditions orac
 | disfluency-interview-3 | 0 · wrong place (12.8 s away) · 346 s | 0 · wrong place (12.8 s away) · 88 s | 0.1 s |
 | swap-car | 0 · no output; asked the user for a hint · 507 s | 0 · no output; asked the user for a hint · 203 s | |
 
-Total cost of the ten runs: $0.14.
+Total cost of all runs, the trial pair included: about $0.15.
 
 ## What it shows
 
@@ -40,6 +40,6 @@ One run per cell on five tasks: these are observations to act on, not a measurem
 3. An operation for repeated or duplicated frames, which the glitch tasks need.
 4. Three runs per cell before reading any difference.
 
-Files: `2026-11-24T151044.json` (the ten runs), `2026-11-24T155917.json` (content-cut-wsj without UberSeek,
+Files: `2026-11-24T151044.json` (the ten runs), `2026-11-24T155719.json` (content-cut-wsj without UberSeek,
 run again because the first try ended when OpenCode refused a write outside `/workspace`; the runner now
-allows it), `2026-11-24T150409.json` (the first trial pair).
+allows it), `2026-11-24T150409.json` (the first trial pair), `2026-11-24T150314.json` (the reference solution).
