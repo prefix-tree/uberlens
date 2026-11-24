@@ -28,6 +28,8 @@ RESULTS = HERE / "results"
 CACHE = REPO / "data" / "avb"
 MODEL = "openrouter/anthropic/claude-haiku-5.5"
 CONDITIONS = ("native", "uberseek")
+# Nobody is there to answer a permission question, and a refused one ends the run: allow work outside /workspace.
+OPENCODE = json.dumps({"permission": {"external_directory": "allow"}})
 ORACLE = "oracle"  # the task's own solution instead of an agent: checks the runner, costs nothing
 
 
@@ -103,7 +105,7 @@ def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) 
     began = time.time()
     sh(
         "docker", "run", "--rm", *common, *env, *mounts, "-v", f"{work / 'instruction.md'}:/task/instruction.md:ro",
-        "-e", "OPENROUTER_API_KEY=proxy-injected", image, "bash", "-c", agent,
+        "-e", "OPENROUTER_API_KEY=proxy-injected", "-e", f"OPENCODE_CONFIG_CONTENT={OPENCODE}", image, "bash", "-c", agent,
         timeout=timeout + 120,
     )  # fmt: skip
     seconds = round(time.time() - began)
