@@ -1,4 +1,4 @@
-# The environment of an AgenticVBench Repair task (python:3.12-slim, FFmpeg, the verifier's packages), with a
+# The environment of an AgenticVBench post-production task (python:3.12-slim, FFmpeg, the verifier's packages), with a
 # coding agent added. The `uberseek` stage adds UberSeek and its skill; the `native` stage does not.
 #
 # Built on the host network, with the proxy and certificate bundle of the machine that builds it, because
@@ -20,6 +20,9 @@ RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.l
 RUN pip install --no-cache-dir "numpy<3" "scikit-image>=0.22,<1.0" "scipy>=1.10"
 
 RUN npm install -g opencode-ai@1.19.6 && opencode --version
+
+# What the Sequencing and Assembly images install for their verifier.
+RUN pip install --no-cache-dir "opencv-python-headless==4.13.*" && python -c "import cv2"
 
 WORKDIR /workspace
 RUN mkdir -p /workspace/materials /workspace/output /workspace/work /logs

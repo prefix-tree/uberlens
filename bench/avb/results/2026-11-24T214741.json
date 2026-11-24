@@ -1,0 +1,629 @@
+{
+ "at": "2026-11-24T214741",
+ "note": "",
+ "rows": [
+  {
+   "task": "agentic-vbench-sequencing-task1",
+   "condition": "oracle",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "reason": "ok",
+     "n_slots": 13,
+     "n_correct": 13,
+     "nd": 0.0,
+     "lis": 1.0,
+     "adj": 1.0,
+     "ordering": 1.0,
+     "n_honest": 13,
+     "honesty_factor": 1.0,
+     "ssim_threshold": 0.95,
+     "n_samples_per_segment": 3,
+     "pred": [
+      "3",
+      "5",
+      "7",
+      "11",
+      "9",
+      "4",
+      "10",
+      "13",
+      "12",
+      "2",
+      "6",
+      "8",
+      "1"
+     ],
+     "correct": [
+      "3",
+      "5",
+      "7",
+      "11",
+      "9",
+      "4",
+      "10",
+      "13",
+      "12",
+      "2",
+      "6",
+      "8",
+      "1"
+     ],
+     "per_slot": [
+      {
+       "slot": 0,
+       "pred": "3",
+       "expected": "3",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 2.592,
+         "t_src_s": 2.592,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 5.184,
+         "t_src_s": 5.184,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 7.775,
+         "t_src_s": 7.775,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 1,
+       "pred": "5",
+       "expected": "5",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 13.542,
+         "t_src_s": 3.175,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 16.717,
+         "t_src_s": 6.35,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 19.892,
+         "t_src_s": 9.525,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 2,
+       "pred": "7",
+       "expected": "7",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 25.717,
+         "t_src_s": 2.65,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 28.366,
+         "t_src_s": 5.3,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 31.016,
+         "t_src_s": 7.95,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 3,
+       "pred": "11",
+       "expected": "11",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 35.141,
+         "t_src_s": 1.475,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 36.616,
+         "t_src_s": 2.95,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 38.091,
+         "t_src_s": 4.425,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 4,
+       "pred": "9",
+       "expected": "9",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 43.291,
+         "t_src_s": 3.725,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 47.016,
+         "t_src_s": 7.45,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 50.741,
+         "t_src_s": 11.175,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 5,
+       "pred": "4",
+       "expected": "4",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 57.649,
+         "t_src_s": 3.183,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 60.832,
+         "t_src_s": 6.367,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 64.016,
+         "t_src_s": 9.55,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 6,
+       "pred": "10",
+       "expected": "10",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 69.974,
+         "t_src_s": 2.775,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 72.749,
+         "t_src_s": 5.55,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 75.524,
+         "t_src_s": 8.325,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 7,
+       "pred": "13",
+       "expected": "13",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 81.424,
+         "t_src_s": 3.125,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 84.549,
+         "t_src_s": 6.25,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 87.674,
+         "t_src_s": 9.375,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 8,
+       "pred": "12",
+       "expected": "12",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 93.616,
+         "t_src_s": 2.817,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 96.433,
+         "t_src_s": 5.633,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 99.249,
+         "t_src_s": 8.45,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 9,
+       "pred": "2",
+       "expected": "2",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 105.507,
+         "t_src_s": 3.442,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 108.949,
+         "t_src_s": 6.883,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 112.391,
+         "t_src_s": 10.325,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 10,
+       "pred": "6",
+       "expected": "6",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 118.974,
+         "t_src_s": 3.142,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 122.115,
+         "t_src_s": 6.283,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 125.256,
+         "t_src_s": 9.425,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 11,
+       "pred": "8",
+       "expected": "8",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 131.09,
+         "t_src_s": 2.692,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 133.781,
+         "t_src_s": 5.383,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 136.473,
+         "t_src_s": 8.075,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      },
+      {
+       "slot": 12,
+       "pred": "1",
+       "expected": "1",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 142.265,
+         "t_src_s": 3.1,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 145.364,
+         "t_src_s": 6.2,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 148.464,
+         "t_src_s": 9.3,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ]
+      }
+     ]
+    }
+   },
+   "seconds": 7,
+   "timed_out": false,
+   "steps": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cache_read": 0
+   },
+   "cost_usd": 0,
+   "tool_calls": 0,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T214741/agentic-vbench-sequencing-task1/oracle"
+  },
+  {
+   "task": "agentic-vbench-assembly-task1",
+   "condition": "oracle",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "reason": "ok",
+     "n_slots": 4,
+     "n_correct": 4,
+     "n_honest_correct": 4,
+     "pass_rate": 1.0,
+     "chance_level": 0.3333333333333333,
+     "ssim_threshold": 0.95,
+     "n_samples_per_segment": 3,
+     "pred": [
+      "10.mp4",
+      "4.mp4",
+      "6.mp4",
+      "8.mp4"
+     ],
+     "correct": [
+      "10.mp4",
+      "4.mp4",
+      "6.mp4",
+      "8.mp4"
+     ],
+     "per_slot": [
+      {
+       "slot": 0,
+       "pred": "10.mp4",
+       "expected": "10.mp4",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 1.141,
+         "t_src_s": 1.141,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 2.283,
+         "t_src_s": 2.283,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 3.425,
+         "t_src_s": 3.425,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ],
+       "score": 1
+      },
+      {
+       "slot": 1,
+       "pred": "4.mp4",
+       "expected": "4.mp4",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 5.858,
+         "t_src_s": 1.292,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 7.149,
+         "t_src_s": 2.583,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 8.441,
+         "t_src_s": 3.875,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ],
+       "score": 1
+      },
+      {
+       "slot": 2,
+       "pred": "6.mp4",
+       "expected": "6.mp4",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 11.058,
+         "t_src_s": 1.325,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 12.383,
+         "t_src_s": 2.65,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 13.707,
+         "t_src_s": 3.975,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ],
+       "score": 1
+      },
+      {
+       "slot": 3,
+       "pred": "8.mp4",
+       "expected": "8.mp4",
+       "match": true,
+       "honest": true,
+       "samples": [
+        {
+         "k": 0.25,
+         "t_out_s": 16.724,
+         "t_src_s": 1.692,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.5,
+         "t_out_s": 18.416,
+         "t_src_s": 3.383,
+         "ssim": 1.0,
+         "window": "5x5"
+        },
+        {
+         "k": 0.75,
+         "t_out_s": 20.107,
+         "t_src_s": 5.075,
+         "ssim": 1.0,
+         "window": "5x5"
+        }
+       ],
+       "score": 1
+      }
+     ]
+    }
+   },
+   "seconds": 1,
+   "timed_out": false,
+   "steps": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cache_read": 0
+   },
+   "cost_usd": 0,
+   "tool_calls": 0,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-24T214741/agentic-vbench-assembly-task1/oracle"
+  }
+ ]
+}
