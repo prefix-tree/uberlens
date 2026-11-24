@@ -12,10 +12,71 @@ look only where a judgment needs eyes. It works like a shell for video:
 | --- | --- | --- |
 | Find where something is said | `find(video, query)` | `grep` |
 | See a span of the footage | `observe(video, start, end, focus)` | `cat` |
+| See many places at once, on one sheet | `sheet(video, times, labels)` | a plot |
 | Combine searches, measurements and looks | a program (`execute`, or `uberseek run`) | a shell script |
 
 Measurements are the exact part: `words`, `pauses`, `loudness`, `cuts`, `shots`. Memory is kept for you:
 every look is logged, and `observations` and `coverage` read the log.
+
+## What you can do
+
+Each of these is a whole program. The functions are already defined; times are seconds; the last line is
+what comes back. Pictures from `observe` and `sheet` are shown to you with the result.
+
+**Find where something is said, and check it by looking.**
+
+```python
+hits = find("interview.mp4", "slept in the cave", limit=10)
+for hit in hits[:2]:
+    span = expand([hit["start"], hit["end"]], before=1.5, after=1.5)
+    observe("interview.mp4", span[0], span[1], "delivery", "is this the line?")
+[{"start": h["start"], "end": h["end"], "text": h["text"]} for h in hits[:5]]
+```
+
+**Find something that is shown, not said.** One frame from every shot on one sheet, then a close look at
+the shot that has it.
+
+```python
+found = shots("reel.mp4")[:24]
+sheet("reel.mp4", [(s[0] + s[1]) / 2 for s in found], labels=[str(s[0]) + " to " + str(s[1]) for s in found],
+      purpose="which shot shows the telescope?")
+len(found)
+```
+
+**Compare several candidates side by side.** One sheet costs one look, however many frames are on it.
+
+```python
+hits = find("interview.mp4", "back to the moon", limit=8)
+sheet("interview.mp4", [(h["start"] + h["end"]) / 2 for h in hits], labels=[h["text"][:40] for h in hits]) if hits else None
+[[h["start"], h["end"], h["text"][:60]] for h in hits]
+```
+
+**Choose a cut point.** Propose exact places from measurements, then look at each.
+
+```python
+quiet = pauses("interview.mp4", 505, 512)
+for pause in quiet[:3]:
+    observe("interview.mp4", (pause[0] + pause[1]) / 2, None, "boundary", "does a cut land cleanly here?")
+quiet
+```
+
+**Count or filter across a whole video.** The data stays in the program; return the answer and the
+runner-up, so a wrong measurement is easier to spot.
+
+```python
+found = sorted(shots("reel.mp4"), key=lambda s: s[0] - s[1])
+longest = found[0]
+said = [w for w in words("reel.mp4", longest[0], longest[1]) if w["text"].lower().strip(".,") == "engine"]
+{"longest": longest, "runner_up": found[1:2], "times_engine_is_said": len(said)}
+```
+
+**Check what you have not looked at** before saying something is not there.
+
+```python
+unseen = coverage("interview.mp4")["never"]
+sheet("interview.mp4", [(s[0] + s[1]) / 2 for s in unseen[:24]], purpose="what is in the parts not looked at?") if unseen else None
+unseen[:10]
+```
 
 ## How to work
 
@@ -52,15 +113,18 @@ Each of these comes from a mistake actually made with this tool.
 - **A program trusts its data, so check what it picks.** `max()` over a list of pauses or shots cannot notice
   that two entries touch or that a shot holds a missed cut. Have the program return the runner-up as well as
   the winner, and look at the winner before you report it.
+- **A sheet is for scanning, not for judging.** Its frames are small and are separate instants. Use it to
+  find which place matters, then `observe` that place.
 - **Give spans you looked at.** If you report 1:36.8 to 1:39.0, a picture should show both edges.
 
 ## What a picture shows
 
-One image per look: a title line (video, span, focus), then numbered frames in time order, left to right
+One image per look. For `observe`: a title line (video, span, focus), then numbered frames in time order, left to right
 and top to bottom. Under each frame, the words said from that frame until the next. At the bottom, the
 sound strip: a tick for each numbered frame, silences shaded, cuts as red lines, and for focus `boundary` a
 yellow line at the instant you asked about. You choose the span and the focus. How many frames and how
-large is chosen for you, and the text with the picture says exactly what was shown.
+large is chosen for you, and the text with the picture says exactly what was shown. For `sheet`: the frames
+you picked, in your order, each with its number, its time and your label, and no sound strip.
 
 | Focus | Shows | Use it for |
 | --- | --- | --- |
@@ -73,19 +137,11 @@ large is chosen for you, and the text with the picture says exactly what was sho
 <!-- harness -->
 ## Using it here
 
-You have `find` and `observe` as tools, and `execute` to run a program. Times are seconds. In a program
-the functions are already defined: call them directly, without `await`, and end with the value to return.
-A program cannot see: `observe` inside it returns the look's id and text, and the pictures (at most four
-per program) are shown to you with the result.
-
-```python
-hits = find("interview.mp4", "company almost failed", limit=10)
-best = hits[:3]
-for hit in best:
-    span = expand([hit["start"], hit["end"]], before=2, after=2)
-    observe("interview.mp4", span[0], span[1], "delivery", "is this the admission?")
-[{"start": h["start"], "end": h["end"], "text": h["text"]} for h in best]
-```
+You have `find`, `observe` and `sheet` as tools, and `execute` to run a program like the ones above. Use a
+tool for a single step. Use a program when a task needs several steps or more data than fits in a reply.
+In a program, call the functions directly, without `await`. A program cannot see: `observe` and `sheet`
+inside it return the look's id and text, and the pictures (at most four per program) are shown to you with
+the result.
 
 For more, call `guide(topic)`:
 <!-- /harness -->
@@ -104,17 +160,8 @@ uberseek guide recipes                                  # print a reference file
 ```
 
 `observe` and `run` print the path of each picture. Open that file to see it: the text alone is not the
-look. A program is plain Python in which the functions are already defined: call them directly, without
-`await` or imports, and end with the value to return.
-
-```python
-hits = find("interview.mp4", "company almost failed", limit=10)
-best = hits[:3]
-for hit in best:
-    span = expand([hit["start"], hit["end"]], before=2, after=2)
-    observe("interview.mp4", span[0], span[1], "delivery", "is this the admission?")
-[{"start": h["start"], "end": h["end"], "text": h["text"]} for h in best]
-```
+look. A program is plain Python like the ones above: call the functions directly, without `await` or
+imports, and end with the value to return.
 
 For more, read these files next to this one (or `uberseek guide <topic>`):
 <!-- /shell -->

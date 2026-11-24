@@ -1,17 +1,14 @@
 # Find something that is shown, where searching the words does not help.
-# This looks at a stretch in up to four parts and returns the shots of each part.
-# Read the pictures, then run it again with `within` set to the part that shows it, to go closer.
+# One frame from every shot goes on a sheet (two sheets when there are more than 24 shots).
+# Read the sheets, then look closely at the shot that shows it with observe.
 video = "reel.mp4"
 looking_for = "two people with a telescope at dusk"
 within = None  # or [start, end] to search inside one stretch
 
 whole = within if within else [0, info(video)["duration"]]
-length = whole[1] - whole[0]
-parts = 1 if length <= 60 else min(4, int(length // 60) + 1)
-out = []
-for i in range(parts):
-    start = round(whole[0] + i * length / parts, 3)
-    end = round(whole[0] + (i + 1) * length / parts, 3)
-    observe(video, start, end, "visual", "which picture shows: " + looking_for)
-    out.append({"part": i + 1, "span": [start, end], "shots": shots(video, start, end)})
-out
+found = shots(video, whole[0], whole[1])[:48]
+for part in (found[:24], found[24:]):
+    if part:
+        middles = [round((s[0] + s[1]) / 2, 3) for s in part]
+        sheet(video, middles, labels=[str(s[0]) + " to " + str(s[1]) for s in part], purpose="which shot shows: " + looking_for)
+{"shots": len(found), "shown": found}

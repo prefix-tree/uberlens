@@ -171,6 +171,33 @@ Example:
 observe("interview.mp4", 1, 4, "delivery", "where does the line start?")
 ```
 
+## `sheet`
+
+```python
+sheet(video: str, times: list[float], labels: list[str] | None = None, purpose: str = '') -> dict
+```
+
+Show frames from anywhere in a video as one picture, like a plot: one frame per time you give.
+
+Use it to scan or compare many places at the cost of one look: one frame per shot, one per
+candidate. The frames are small and are separate instants, so look closer at the one that matters
+with `observe`. The picture is shown to you after the program ends; a program cannot see it.
+
+Args:
+    video: Name or path of the video.
+    times: The instants to show, in seconds, in the order to draw them. At most 24.
+    labels: A short label to print under each frame, one per time (a rank, a length, a few words).
+    purpose: The question this sheet should answer, in a few words. Kept in the log.
+
+Returns:
+    {"id", "text"}: the observation's id and the statement of what it shows.
+
+Example:
+
+```python
+sheet("interview.mp4", [1, 2.5, 4], labels=["first", "second", "third"], purpose="which one is sharpest?")
+```
+
 ## `observations`
 
 ```python
@@ -205,8 +232,9 @@ Args:
     end: End of the span, in seconds. Leave out for the end of the video.
 
 Returns:
-    {"looked": [{"start", "end", "gap", "id"}], "never": [[start, end]]}. "gap" is the most
-    seconds between two frames shown in that look: a small gap is a close look.
+    {"looked": [{"start", "end", "gap", "id"}], "sheets": [{"id", "times"}], "never": [[start, end]]}.
+    "gap" is the most seconds between two frames shown in that look: a small gap is a close look.
+    A sheet shows separate instants, so it is listed apart and covers nothing in between.
 
 Example:
 

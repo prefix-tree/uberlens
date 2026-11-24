@@ -95,6 +95,11 @@ def toolset(
         text = _retrying(library.observe)(*args, **kwargs)["text"]
         return [text, _picture(library.looks.pop())]
 
+    @functools.wraps(library.sheet)
+    def sheet(*args, **kwargs) -> list:
+        text = _retrying(library.sheet)(*args, **kwargs)["text"]
+        return [text, _picture(library.looks.pop())]
+
     def show_again(observation: str) -> list:
         """Show a past observation again by its id (obs_000012), from the stored picture.
 
@@ -107,10 +112,13 @@ def toolset(
             raise ModelRetry(str(error)) from error
         return [seen.text, _picture(seen)]
 
-    look = Tool(observe, description=library.observe.__doc__.replace("after the program ends; a program cannot see it", "in the reply"))
+    seen_now = ("after the program ends; a program cannot see it", "in the reply")
+    look = Tool(observe, description=library.observe.__doc__.replace(*seen_now))
+    plot = Tool(sheet, description=library.sheet.__doc__.replace(*seen_now))
     if surface == "tools":
         return FunctionToolset(
-            [look, show_again, *(_retrying(getattr(library, name), limits.result) for name in PLAIN), *extra], instructions=notes or None
+            [look, plot, show_again, *(_retrying(getattr(library, name), limits.result) for name in PLAIN), *extra],
+            instructions=notes or None,
         )
 
     executor = Executor(project, videos, limits)
@@ -122,6 +130,6 @@ def toolset(
 
     description = EXECUTE.format(looks=executor.limits.looks, reference=executor.reference())
     return FunctionToolset(
-        [_retrying(library.find, limits.result), look, Tool(execute, description=description), show_again, *extra],
+        [_retrying(library.find, limits.result), look, plot, Tool(execute, description=description), show_again, *extra],
         instructions=notes or None,
     )

@@ -27,6 +27,7 @@ EXAMPLES = {
     "cuts": 'cuts("{video}")',
     "shots": 'shots("{video}", 0, 5)',
     "observe": 'observe("{video}", 1, 4, "delivery", "where does the line start?")',
+    "sheet": 'sheet("{video}", [1, 2.5, 4], labels=["first", "second", "third"], purpose="which one is sharpest?")',
     "observations": 'observations("{video}", focus="delivery")',
     "coverage": 'coverage("{video}", 0, 5)',
     "expand": "expand([10, 14], before=2, after=3)",

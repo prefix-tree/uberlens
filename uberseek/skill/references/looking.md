@@ -50,6 +50,20 @@ For `boundary`, give one time (no end). If you give a span, its middle is used.
   - Words along the bottom (`speech`, `delivery`, `boundary`): each starts where it is said.
 - **No strip** means the video has no sound, or the look did not call for it.
 
+## A sheet: many places on one picture
+
+`sheet(video, times, labels)` draws one frame for each time you give, in your order, up to 24. It is the
+cheap way to scan or compare: one look, however many frames.
+
+- Each frame has its number and its time in the corner, and your label under it.
+- The frames are small (about 320 pixels wide when there are many), so read a sheet for "which one", not
+  for fine detail.
+- They are separate instants. Nothing between two frames was shown, there is no sound strip, and
+  `coverage` lists a sheet apart from looks at spans.
+- Good uses: one frame per shot, one per search hit, the middle of each stretch not yet looked at, the
+  first and last frame of a candidate.
+- Follow a sheet with `observe` on the place it pointed to.
+
 ## Choosing a cut point
 
 1. Find the rough place with a `delivery` look over the line.

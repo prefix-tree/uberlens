@@ -55,6 +55,7 @@ def test_every_run_is_logged_with_its_calls(executor):
         ("import socket", "No module named 'socket'"),
         ("while True:\n    pass", "time limit exceeded"),
         ("[observe('bframes.mp4', t) for t in (1, 2, 3)]", "a program can look at most 2 times"),
+        ("[sheet('bframes.mp4', [t, t + 1]) for t in (1, 2, 3)]", "a program can look at most 2 times"),
         ("[info('bframes.mp4') for _ in range(30)]", "more than 20 calls"),
     ],
 )
@@ -72,3 +73,9 @@ def test_a_large_result_is_cut_and_says_so(executor):
     done = executor.run_sync("[[i, i * 2] for i in range(500)]")
     assert done.error is None and len(done.result) == 500
     assert "[result cut at 200 of" in done.text and "ask for less" in done.text
+
+
+def test_a_sheet_is_one_look_however_many_frames_it_holds(executor):
+    done = executor.run_sync("sheet('bframes.mp4', [0.5, 1, 1.5, 2, 2.5, 3], labels=list('abcdef'))\nobserve('bframes.mp4', 2)\n'ok'")
+    assert done.error is None and len(done.looks) == 2
+    assert "a sheet of 6 frames" in done.looks[0].text and "Picture 1 of 2" in done.text

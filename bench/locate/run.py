@@ -88,17 +88,21 @@ async def ask(model: str, surface: str, task: dict, project: Project, skill: boo
     calls = [part.tool_name for message in result.all_messages() for part in message.parts if isinstance(part, ToolCallPart)]
     usage = result.usage
     programs = [{call["name"] for call in run["calls"]} for run in project.log.executions()[runs_before:]]
-    return row | {
-        "found": [result.output.start, result.output.end],
-        "why": result.output.why,
-        "overlap": overlap(result.output, task["ranges"]),
-        "tool_calls": [name for name in calls if name != "final_result"],
-        "programs": len(programs),
-        "programs_combining": sum(len(used) >= 2 for used in programs),  # programs that use two or more operations
-        "looks": len(project.log.observations()) - looks_before,
-        "requests": usage.requests,
-        "tokens": {"input": usage.input_tokens, "output": usage.output_tokens},
-    }
+    return (
+        row
+        | {
+            "found": [result.output.start, result.output.end],
+            "why": result.output.why,
+            "overlap": overlap(result.output, task["ranges"]),
+            "tool_calls": [name for name in calls if name != "final_result"],
+            "programs": len(programs),
+            "programs_combining": sum(len(used) >= 2 for used in programs),  # programs that use two or more operations
+            "looks": len(project.log.observations()) - looks_before,  # pictures sent to the model
+            "sheets": sum(seen["recipe"]["level"] == "sheet" for seen in project.log.observations()[looks_before:]),
+            "requests": usage.requests,
+            "tokens": {"input": usage.input_tokens, "output": usage.output_tokens},
+        }
+    )
 
 
 async def main() -> None:
@@ -125,7 +129,7 @@ async def main() -> None:
             print(f"{head} · failed: {row['error']}")
             continue
         print(f"{head} · found {row['found']} of {row['ranges']} · overlap {row['overlap']}")
-        work = f"{row['looks']} looks, {row['programs']} programs ({row['programs_combining']} combining steps)"
+        work = f"{row['looks']} looks ({row.get('sheets', 0)} sheets), {row['programs']} programs ({row['programs_combining']} combining steps)"
         print(f"    {work} · {row['requests']} requests · {row['tokens']['input']} tokens in, {row['tokens']['output']} out")
 
     print("\n| Surface | Skill | Runs | Hit (overlap over 0.3) | Looked first | Programs combining steps | Tokens in per run |")

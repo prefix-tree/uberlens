@@ -24,7 +24,7 @@ class Limits:
     seconds: float = 20.0  # of the program's own running time; time inside host calls is not counted
     memory: int = 64 * 1024 * 1024
     calls: int = 200  # host calls per program
-    looks: int = 4  # `observe` calls per program
+    looks: int = 4  # looks per program: each `observe` or `sheet` is one
     result: int = 6000  # characters of result returned to the model
     printed: int = 2000
 
@@ -65,7 +65,7 @@ class Executor:
             def call(*args, **kwargs):
                 if len(calls) >= limits.calls:
                     raise ApiError(f"this program made more than {limits.calls} calls to the library; do less per program")
-                if name == "observe" and len(library.looks) >= limits.looks:
+                if name in ("observe", "sheet") and len(library.looks) >= limits.looks:
                     raise ApiError(
                         f"a program can look at most {limits.looks} times; return, see the pictures, then decide what to look at next"
                     )

@@ -102,3 +102,15 @@ def test_the_command_line(clips, tmp_path, capsys):
     assert main(["--project", str(tmp_path), "reproduce"]) == 0
     assert "obs_000001: exact" in capsys.readouterr().out
     assert main(["--project", str(tmp_path), "observe", str(tmp_path / "missing.mp4"), "1"]) == 2
+
+
+def test_a_sheet_shows_exactly_the_frames_asked_for_and_is_made_again_exactly(clips, tmp_path):
+    project = Project(tmp_path)
+    seen = project.sheet(clips["bframes"], ["3.1", 1, "0:02.5"], labels=["c", "a", "b"], purpose="compare")
+    index, record = project.open(clips["bframes"]).index, seen.record
+    assert [index.time(pts) for pts in record["recipe"]["targets"]] == [Fraction(31, 10), Fraction(1), Fraction(5, 2)]  # the order asked
+    assert [frame["pts"] for frame in record["delivered"]["frames"]] == record["recipe"]["targets"]
+    assert record["recipe"]["level"] == "sheet" and record["delivered"]["sound"] is None and record["request"]["focus"] == "sheet"
+    assert seen.image.startswith(b"\x89PNG") and max(record["delivered"]["size"]) <= MAX_SIDE
+    assert Project(tmp_path).reproduce(seen.id).exact
+    assert Project(tmp_path).show(seen.id).text == seen.text

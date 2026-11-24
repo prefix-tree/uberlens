@@ -31,7 +31,7 @@ def test_a_scripted_agent_receives_the_picture_it_asked_for(clips, tmp_path):
     def model(messages, info):
         returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
         if not returns:
-            assert {tool.name for tool in info.function_tools} == {"find", "observe", "execute", "show_again", "guide"}
+            assert {tool.name for tool in info.function_tools} == {"find", "observe", "sheet", "execute", "show_again", "guide"}
             call = {"video": str(clips["bframes"]), "start": 1, "end": 4, "purpose": "is the bar moving?"}
             return ModelResponse(parts=[ToolCallPart("observe", call)])
         received.extend(returns[0].content)
@@ -101,8 +101,26 @@ def test_the_plain_surface_offers_one_operation_at_a_time(clips, tmp_path):
         return ModelResponse(parts=[TextPart(str(returns[0].content))])
 
     result = Agent(FunctionModel(model), toolsets=[toolset(Project(tmp_path), [clips["three_shots"]], surface="tools")]).run_sync("Cuts?")
-    assert asked == ["coverage", "cuts", "find", "guide", "observe", "pauses", "show_again", "words"]
+    assert asked == ["coverage", "cuts", "find", "guide", "observe", "pauses", "sheet", "show_again", "words"]
     assert result.output == "[2.5, 4.5]"
+
+
+@pytest.mark.parametrize("surface", ["code", "tools"])
+def test_a_sheet_comes_back_as_one_picture_on_either_surface(clips, tmp_path, surface):
+    received = []
+
+    def model(messages, info):
+        returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
+        if not returns:
+            call = {"video": "three_shots.mp4", "times": [1, 3.5, 5], "labels": ["one", "two", "three"]}
+            return ModelResponse(parts=[ToolCallPart("sheet", call)])
+        received.extend(returns[0].content)
+        return ModelResponse(parts=[TextPart("ok")])
+
+    Agent(FunctionModel(model), toolsets=[toolset(Project(tmp_path), [clips["three_shots"]], surface)]).run_sync("Compare the shots.")
+    text, picture = received
+    assert "a sheet of 3 frames" in text and "(two)" in text
+    assert isinstance(picture, BinaryContent) and picture.data.startswith(b"\x89PNG")
 
 
 def test_a_plain_tool_cannot_flood_the_context_either(clips, tmp_path):

@@ -40,7 +40,7 @@ class Library:
     """The operations, bound to one project and to the videos an agent may use."""
 
     OPERATIONS = (
-        "info", "find", "words", "pauses", "loudness", "cuts", "shots", "observe",
+        "info", "find", "words", "pauses", "loudness", "cuts", "shots", "observe", "sheet",
         "observations", "coverage", "expand", "merge", "minus",
     )  # fmt: skip
 
@@ -231,6 +231,30 @@ class Library:
         self.looks.append(seen)
         return {"id": seen.id, "text": seen.text}
 
+    def sheet(self, video: str, times: list[float], labels: list[str] | None = None, purpose: str = "") -> dict:
+        """Show frames from anywhere in a video as one picture, like a plot: one frame per time you give.
+
+        Use it to scan or compare many places at the cost of one look: one frame per shot, one per
+        candidate. The frames are small and are separate instants, so look closer at the one that matters
+        with `observe`. The picture is shown to you after the program ends; a program cannot see it.
+
+        Args:
+            video: Name or path of the video.
+            times: The instants to show, in seconds, in the order to draw them. At most 24.
+            labels: A short label to print under each frame, one per time (a rank, a length, a few words).
+            purpose: The question this sheet should answer, in a few words. Kept in the log.
+
+        Returns:
+            {"id", "text"}: the observation's id and the statement of what it shows.
+        """
+        source = self._source(video)
+        try:
+            seen = self.project.sheet(source.path, times, labels, purpose)
+        except (MediaError, ValueError) as error:
+            raise ApiError(str(error)) from error
+        self.looks.append(seen)
+        return {"id": seen.id, "text": seen.text}
+
     # Memory
 
     def observations(
@@ -276,20 +300,25 @@ class Library:
             end: End of the span, in seconds. Leave out for the end of the video.
 
         Returns:
-            {"looked": [{"start", "end", "gap", "id"}], "never": [[start, end]]}. "gap" is the most
-            seconds between two frames shown in that look: a small gap is a close look.
+            {"looked": [{"start", "end", "gap", "id"}], "sheets": [{"id", "times"}], "never": [[start, end]]}.
+            "gap" is the most seconds between two frames shown in that look: a small gap is a close look.
+            A sheet shows separate instants, so it is listed apart and covers nothing in between.
         """
         source = self._source(video)
         low, high = (_f(t) for t in self._window(source, start, end))
-        looked = []
+        looked, sheets = [], []
         for record in self.project.log.observations(source.hash):
             base = Fraction(record["delivered"]["time_base"])
             times = [frame["pts"] * base for frame in record["delivered"]["frames"]]
+            if record["recipe"]["level"] == "sheet":
+                inside = sorted(_f(t) for t in times if low <= _f(t) <= high)
+                sheets += [{"id": record["id"], "times": inside}] if inside else []
+                continue
             a, b = max(low, min(_f(times[0]), _f(record["request"]["start"]))), min(high, max(_f(times[-1]), _f(record["request"]["end"])))
             if b >= a and not (b < low or a > high):
                 gap = record["delivered"]["gap_seconds"]
                 looked.append({"start": a, "end": b, "gap": round(gap["max"], 3) if gap else 0.0, "id": record["id"]})
-        return {"looked": looked, "never": spans.minus([low, high], [[s["start"], s["end"]] for s in looked])}
+        return {"looked": looked, "sheets": sheets, "never": spans.minus([low, high], [[s["start"], s["end"]] for s in looked])}
 
     # Spans
 
