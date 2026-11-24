@@ -31,8 +31,8 @@ def test_a_scripted_agent_receives_the_picture_it_asked_for(clips, tmp_path):
     def model(messages, info):
         returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
         if not returns:
-            assert {tool.name for tool in info.function_tools} == {"observe", "show_again"}
-            call = {"video": str(clips["bframes"]), "start": "1", "end": "4", "purpose": "is the bar moving?"}
+            assert {tool.name for tool in info.function_tools} == {"find", "observe", "execute", "show_again", "guide"}
+            call = {"video": str(clips["bframes"]), "start": 1, "end": 4, "purpose": "is the bar moving?"}
             return ModelResponse(parts=[ToolCallPart("observe", call)])
         received.extend(returns[0].content)
         return ModelResponse(parts=[TextPart("seen")])
@@ -54,12 +54,55 @@ def test_a_bad_request_goes_back_to_the_model_as_something_to_fix(clips, tmp_pat
     def model(messages, info):
         last = messages[-1].parts[-1]
         if last.part_kind == "user-prompt":
-            return ModelResponse(parts=[ToolCallPart("observe", {"video": "missing.mp4", "start": "1"})])
+            return ModelResponse(parts=[ToolCallPart("observe", {"video": "missing.mp4", "start": 1})])
         said.append(str(last.content))
         return ModelResponse(parts=[TextPart("gave up")])
 
     Agent(FunctionModel(model), toolsets=[toolset(Project(tmp_path))]).run_sync("Look.")
     assert "missing.mp4" in said[0]
+
+
+def test_a_program_run_by_the_agent_returns_its_result_and_its_pictures(clips, tmp_path):
+    pytest.importorskip("pydantic_monty")
+    project, received = Project(tmp_path), []
+    program = "\n".join(
+        [
+            'shots = cuts("three_shots.mp4")',
+            'seen = observe("three_shots.mp4", shots[0] - 1, shots[0] + 1)',
+            '{"cuts": shots, "looked": seen["id"]}',
+        ]
+    )
+
+    def model(messages, info):
+        returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
+        if not returns:
+            assert (info.instructions or "").endswith("The videos you can use: three_shots.mp4.")
+            return ModelResponse(parts=[ToolCallPart("execute", {"program": program})])
+        received.extend(returns[0].content)
+        return ModelResponse(parts=[TextPart("done")])
+
+    Agent(FunctionModel(model), toolsets=[toolset(project, [clips["three_shots"]])]).run_sync("Where are the cuts?")
+
+    text, picture = received
+    assert text.startswith('{"cuts": [2.5, 4.5], "looked": "obs_000001"}') and "obs_000001: three_shots.mp4" in text
+    assert isinstance(picture, BinaryContent) and picture.data.startswith(b"\x89PNG")
+    (run,) = project.log.executions()
+    assert run["observations"] == ["obs_000001"] and [call["name"] for call in run["calls"]] == ["cuts", "observe"]
+
+
+def test_the_plain_surface_offers_one_operation_at_a_time(clips, tmp_path):
+    asked = []
+
+    def model(messages, info):
+        returns = [part for part in messages[-1].parts if isinstance(part, ToolReturnPart)]
+        if not returns:
+            asked.extend(sorted(tool.name for tool in info.function_tools))
+            return ModelResponse(parts=[ToolCallPart("cuts", {"video": "three_shots.mp4"})])
+        return ModelResponse(parts=[TextPart(str(returns[0].content))])
+
+    result = Agent(FunctionModel(model), toolsets=[toolset(Project(tmp_path), [clips["three_shots"]], surface="tools")]).run_sync("Cuts?")
+    assert asked == ["coverage", "cuts", "find", "guide", "observe", "pauses", "show_again", "words"]
+    assert result.output == "[2.5, 4.5]"
 
 
 # What each provider's API is sent. A fake server answers twice: first with a call to `observe`, then with text.
@@ -79,7 +122,7 @@ def _capture(replies: list) -> tuple[httpx.AsyncClient, list[dict]]:
 
 
 def _call(clips) -> dict:
-    return {"video": str(clips["bframes"]), "start": "1", "end": "4"}
+    return {"video": str(clips["bframes"]), "start": 1, "end": 4}
 
 
 def test_anthropic_gets_the_picture_inside_the_tool_result(clips, tmp_path):

@@ -87,7 +87,7 @@ import { withBase } from "vitepress";
 <div class="grid3">
 <div>
 <code class="name">find</code>
-<p>Returns candidate spans that may match a description, or that resemble an earlier span. Candidates, never answers.</p>
+<p>Returns candidate spans where the words of a query are said. Candidates, never answers. Search by picture comes later.</p>
 </div>
 <div>
 <code class="name">observe</code>
@@ -100,18 +100,19 @@ import { withBase } from "vitepress";
 </div>
 
 <div class="code-panel">
-<div class="head"><span>program.py</span><span>illustrative API</span></div>
+<div class="head"><span>program.py</span><span>runs as written</span></div>
 
 ```python
-source = await video.open("interview.mp4")
-hits = await source.find("she admits the company almost failed")
+hits = find("interview.mp4", "company almost failed", limit=20)
 
-async def candidate(hit):
-    span = hit.span.expand(before=5, after=8)
-    return {"span": span, "pauses": await source.signals.pauses(span)}
+candidates = []
+for hit in hits:
+    span = expand([hit["start"], hit["end"]], before=5, after=8)
+    candidates.append({"span": span, "pauses": pauses("interview.mp4", span[0], span[1])})
 
-candidates = await asyncio.gather(*[candidate(h) for h in hits])
-await video.observe(spans=[c["span"] for c in candidates], focus="delivery")
+for c in candidates[:3]:
+    observe("interview.mp4", c["span"][0], c["span"][1], "delivery")
+candidates[:3]
 ```
 
 </div>
@@ -155,7 +156,7 @@ await video.observe(spans=[c["span"] for c in candidates], focus="delivery")
 
 <ol class="steps">
 <li class="done"><span class="n">M0</span><span>Built. Exact frames and sound, the observation log, and proof that an observation can be made again exactly. Host: Pydantic AI.</span></li>
-<li class="now"><span class="n">M1</span><span>Under way. Cuts, the transcript and real footage are in, and two models read the pictures correctly. Next: the library and the executor, run end to end through the host.</span></li>
+<li class="now"><span class="n">M1</span><span>Under way. Cuts, the transcript, real footage, the library, the sandboxed executor and a skill that teaches agents to use them are in, and two models read the pictures correctly. Next: the explorer, run both as code and as plain tools.</span></li>
 <li><span class="n">M2</span><span>Candidate comparison against a brief.</span></li>
 <li><span class="n">M3</span><span>Boundary comparison.</span></li>
 <li><span class="n">M4</span><span>Controlled experiments: does each part beat its simpler baseline?</span></li>

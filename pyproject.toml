@@ -34,3 +34,7 @@ include = ["uberseek/**/*.py", "tests/**/*.py", "bench/**/*.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# Recipes are programs for the sandbox: the library's functions are defined there, and the last line is the result.
+"uberseek/skill/recipes/*" = ["F821", "B018", "E501"]

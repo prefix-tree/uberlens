@@ -141,7 +141,7 @@ def tile_size(display: tuple[int, int], long_side: int, count: int) -> tuple[tup
     scale = min(
         Fraction(long_side, max(width, height)),
         Fraction(MAX_SIDE, columns * width),
-        Fraction(MAX_SIDE - 160 - rows * 40, rows * height),  # room for the sound strip and the words
+        Fraction(MAX_SIDE - 190 - rows * 40, rows * height),  # room for the title, the sound strip and the words
         1,
     )
     return (max(2, int(width * scale)), max(2, int(height * scale))), columns

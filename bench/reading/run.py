@@ -9,22 +9,17 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
-import os
 import re
 import tempfile
 from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 
-os.environ.setdefault("PYDANTIC_AI_NO_BANNER", "1")
-# The key is added to requests by the environment's network proxy; the client only needs a value to start.
-os.environ.setdefault("OPENROUTER_API_KEY", "proxy-injected")
-
 from pydantic_ai import Agent  # noqa: E402
 from pydantic_ai.exceptions import ModelHTTPError  # noqa: E402
 from pydantic_ai.messages import ToolReturnPart  # noqa: E402
-from pydantic_ai.models.openrouter import OpenRouterModel  # noqa: E402
 
+from bench import models  # noqa: E402
 from bench.reading.questions import Pair, Question, questions, spoken  # noqa: E402
 from uberseek import Project  # noqa: E402
 from uberseek.host.pydantic_ai import toolset  # noqa: E402
@@ -47,11 +42,11 @@ def _same(answer: object, expected: object) -> bool:
 async def ask(model: str, question: Question, project: Project, limit: asyncio.Semaphore) -> dict:
     row = {"model": model, "kind": question.kind, "question": question.name, "correct": False}
     agent = Agent(
-        OpenRouterModel(model),
+        models.model(model),
         toolsets=[toolset(project)],
         output_type=question.answer_type,
         instructions=INSTRUCTIONS,
-        model_settings={"max_tokens": MAX_TOKENS},
+        model_settings=models.settings(model, MAX_TOKENS),
     )
     prompt = f"Look at the video {question.video} {question.look}. {question.ask}"
     async with limit:
