@@ -42,6 +42,10 @@ def test_a_scripted_agent_receives_the_picture_it_asked_for(clips, tmp_path):
                 "selections",
                 "clip",
                 "verify",
+                "note",
+                "brief",
+                "status",
+                "videos",
             }
             call = {"video": str(clips["bframes"]), "start": 1, "end": 4, "purpose": "is the bar moving?"}
             return ModelResponse(parts=[ToolCallPart("observe", call)])
@@ -112,9 +116,8 @@ def test_the_plain_surface_offers_one_operation_at_a_time(clips, tmp_path):
         return ModelResponse(parts=[TextPart(str(returns[0].content))])
 
     result = Agent(FunctionModel(model), toolsets=[toolset(Project(tmp_path), [clips["three_shots"]], surface="tools")]).run_sync("Cuts?")
-    assert asked == sorted(
-        ["coverage", "cuts", "find", "guide", "observe", "pauses", "sheet", "show_again", "words", "mark", "selections", "clip", "verify"]
-    )
+    plain = ["coverage", "cuts", "find", "guide", "observe", "pauses", "sheet", "show_again", "words"]
+    assert asked == sorted([*plain, "mark", "selections", "clip", "verify", "note", "brief", "status", "videos"])
     assert result.output == "[2.5, 4.5]"
 
 
@@ -162,6 +165,50 @@ def test_an_agent_builds_and_checks_a_clip_through_the_host(clips, tmp_path):
     assert made["clip"] == "tone.mp4" and checked["ok"] and "without a look" in checked["warnings"][0]
     assert look[0].startswith("obs_000002: tone.mp4") and isinstance(look[1], BinaryContent)
     assert [clip["name"] for clip in project.log.clips()] == ["tone"]
+
+
+def _pictures(messages) -> list[int]:
+    """How many pictures each request in a history carries."""
+    counts = []
+    for message in messages:
+        if message.kind == "request":
+            returned = [part.content for part in message.parts if isinstance(part, ToolReturnPart) and isinstance(part.content, list)]
+            counts.append(sum(isinstance(item, BinaryContent) for content in returned for item in content))
+    return counts
+
+
+@pytest.mark.parametrize("forget", [True, False])
+def test_a_picture_stays_for_one_step_and_its_note_stays_for_good(clips, tmp_path, forget):
+    from uberseek.host.pydantic_ai import harness
+
+    project, seen_by_model = Project(tmp_path), []
+    steps = iter(
+        [
+            ("observe", {"video": "bframes.mp4", "start": 1, "end": 2}),
+            ("note", {"observation": "obs_000001", "text": "the bar sweeps right; nothing else moves"}),
+            ("observe", {"video": "bframes.mp4", "start": 3, "end": 4}),
+            ("observe", {"video": "bframes.mp4", "start": 4, "end": 5}),
+        ]
+    )
+
+    def model(messages, info):
+        seen_by_model.append((_pictures(messages), str([part.content for m in messages if m.kind == "request" for part in m.parts])))
+        step = next(steps, None)
+        return ModelResponse(parts=[ToolCallPart(*step)] if step else [TextPart("done")])
+
+    agent = Agent(FunctionModel(model), capabilities=harness(project, [clips["bframes"]], forget=forget))
+    result = agent.run_sync("Look at three parts of the clip.")
+    counts = [pictures for pictures, _ in seen_by_model]
+    if not forget:
+        assert counts[-1] == [0, 1, 0, 1, 1]  # every picture is sent again on every later request
+        return
+    # Each picture is sent once, in the request right after its look, and is gone from every later one.
+    assert counts == [[0], [0, 1], [0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0, 1]]
+    last = seen_by_model[-1][1]
+    assert "obs_000001: note: the bar sweeps right; nothing else moves" in last
+    assert "obs_000002: no note was written" in last and "show_again(id) shows one again" in last
+    assert "This picture leaves your context after your next step" in seen_by_model[1][1]
+    assert _pictures(result.all_messages()) == [0, 0, 0, 0, 1]  # and the history kept for later is the short one
 
 
 def test_a_plain_tool_cannot_flood_the_context_either(clips, tmp_path):

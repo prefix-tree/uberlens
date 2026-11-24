@@ -15,6 +15,7 @@ from uberseek.api import search, spans
 from uberseek.ingest import signals, transcript
 from uberseek.media import MediaError
 from uberseek.observe.gateway import Observation, Project, Source
+from uberseek.state import working
 from uberseek.timecode import seconds
 
 
@@ -43,24 +44,25 @@ class Library:
     OPERATIONS = (
         "info", "find", "words", "pauses", "loudness", "cuts", "shots", "observe", "sheet",
         "observations", "coverage", "expand", "merge", "minus", "mark", "selections", "clip", "verify",
+        "note", "brief", "status", "videos",
     )  # fmt: skip
 
     def __init__(self, project: Project, videos: list[Path | str] | None = None):
         self.project = project
-        self.videos = {Path(v).name: Path(v) for v in videos} if videos is not None else None
+        self.allowed = {Path(v).name: Path(v) for v in videos} if videos is not None else None
         self.looks: list[Observation] = []  # pictures made by `observe`, for whoever delivers them to the model
 
     # Sources
 
     def _source(self, video: str) -> Source:
-        if self.videos is None:
+        if self.allowed is None:
             path = Path(video)
-        elif Path(video).name in self.videos:
-            path = self.videos[Path(video).name]
+        elif Path(video).name in self.allowed:
+            path = self.allowed[Path(video).name]
         elif (made := select.clips_folder(self.project) / Path(video).name).exists():
             path = made  # a clip cut in this project is a video like any other
         else:
-            raise ApiError(f"no video named {video!r}. Available: {', '.join(self.videos) or 'none'}")
+            raise ApiError(f"no video named {video!r}. Available: {', '.join(self.allowed) or 'none'}")
         try:
             return self.project.open(path)
         except (FileNotFoundError, MediaError) as error:
@@ -272,7 +274,7 @@ class Library:
             end: Only looks that begin before this time, in seconds.
         """
         source = self._source(video) if video else None
-        out = []
+        out, notes = [], self.project.log.notes()
         for record in self.project.log.observations(source.hash if source else None):
             request, delivered = record["request"], record["delivered"]
             a, b = _f(request["start"]), _f(request["end"])
@@ -290,6 +292,7 @@ class Library:
                     "level": record["recipe"]["level"],
                     "frames": len(delivered["frames"]),
                     "gap": round(gap["max"], 3) if gap else 0.0,
+                    "note": notes.get(record["id"]),
                 }
             )
         return out
@@ -322,6 +325,50 @@ class Library:
                 gap = record["delivered"]["gap_seconds"]
                 looked.append({"start": a, "end": b, "gap": round(gap["max"], 3) if gap else 0.0, "id": record["id"]})
         return {"looked": looked, "sheets": sheets, "never": spans.minus([low, high], [[s["start"], s["end"]] for s in looked])}
+
+    # Keeping track
+
+    def note(self, observation: str, text: str) -> dict:
+        """Write down what you concluded from a look, in a sentence. Pictures leave your context; notes stay.
+
+        A picture can always be shown again. What you concluded from it cannot be recovered unless it is
+        written here. Notes appear in `status` and in `observations`.
+
+        Args:
+            observation: The id of the look, like obs_000012.
+            text: What you concluded, in a sentence: what is there, and what it means for the task.
+        """
+        try:
+            self.project.log.get(observation)
+        except (KeyError, ValueError) as error:
+            raise ApiError(f"no observation {observation!r}: give the id of a look you made") from error
+        self.project.log.append_note({"observation": observation, "text": str(text)[:500]})
+        return {"observation": observation, "noted": True}
+
+    def brief(self, text: str) -> dict:
+        """Record the task exactly as it was given, so its requirements survive a shortened context.
+
+        Copy the request word for word: lengths, formats, file names, what must and must not be in the
+        result. Do not summarise it. It is shown at the top of `status`.
+
+        Args:
+            text: The task, word for word.
+        """
+        self.project.log.append_brief({"text": str(text)})
+        return {"recorded": True, "characters": len(str(text))}
+
+    def status(self) -> str:
+        """Where the task stands: the brief word for word, the selections, the clips, and what each look concluded.
+
+        Read it when you are unsure what you have already done, or after your context was shortened.
+        """
+        return working.render(self.project.log)
+
+    def videos(self) -> list[dict]:
+        """The videos you can use, and the clips made so far: length, size, and what is prepared for each."""
+        made = sorted(select.clips_folder(self.project).glob("*.mp4"))
+        names = [*(self.allowed or {}), *(path.name for path in made)]
+        return [self.info(name) for name in dict.fromkeys(names)]
 
     # Building a clip
 

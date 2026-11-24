@@ -9,10 +9,14 @@ from __future__ import annotations
 
 import functools
 import json
+import re
+from dataclasses import replace
 from pathlib import Path
 from typing import Literal
 
 from pydantic_ai import BinaryContent, ModelRetry, Tool
+from pydantic_ai.capabilities import ProcessHistory, Toolset
+from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, ToolReturnPart
 from pydantic_ai.toolsets import FunctionToolset
 
 from uberseek import Project, guide
@@ -24,6 +28,9 @@ from uberseek.observe.gateway import Observation
 Surface = Literal["code", "tools"]
 PLAIN = ("find", "words", "pauses", "cuts", "coverage")  # the operations offered one at a time on the `tools` surface
 BUILD = ("mark", "selections", "clip", "verify")  # building a clip: on both surfaces
+TRACK = ("note", "brief", "status", "videos")  # keeping track of a task: on both surfaces
+
+KEEP = "This picture leaves your context after your next step. Keep what you conclude from it: note(id, what you concluded)."
 
 EXECUTE = """Run a short Python program against the video library and get back its result.
 
@@ -67,14 +74,18 @@ def toolset(
     surface: Surface = "code",
     limits: Limits | None = None,
     skill: bool = True,
+    forget: bool = False,
 ) -> FunctionToolset:
     """The tools to give an agent: `Agent(model, toolsets=[toolset(project, videos)])`.
 
     `videos` are the files the agent may use, by name; leave it out to allow any path. With `skill`,
     the agent is also given the UberSeek skill: its core as instructions, and a `guide` tool for the rest.
+    With `forget`, each look says that its picture will not stay; use it together with `forget_pictures`,
+    or take both at once from `harness`.
     """
+    reminder = [KEEP] if forget else []
     library, limits = Library(project, videos), limits or Limits()
-    names = ", ".join(library.videos) if library.videos else None
+    names = ", ".join(library.allowed) if library.allowed else None
     notes = "\n\n".join(
         part for part in (guide.core("harness") if skill else "", f"The videos you can use: {names}." if names else "") if part
     )
@@ -89,17 +100,20 @@ def toolset(
         """
         return guide.topic(topic)
 
-    extra = [*(_retrying(getattr(library, name), limits.result) for name in BUILD), *([Tool(read_guide, name="guide")] if skill else [])]
+    extra = [
+        *(_retrying(getattr(library, name), limits.result) for name in (*BUILD, *TRACK)),
+        *([Tool(read_guide, name="guide")] if skill else []),
+    ]
 
     @functools.wraps(library.observe)
     def observe(*args, **kwargs) -> list:
         text = _retrying(library.observe)(*args, **kwargs)["text"]
-        return [text, _picture(library.looks.pop())]
+        return [text, *reminder, _picture(library.looks.pop())]
 
     @functools.wraps(library.sheet)
     def sheet(*args, **kwargs) -> list:
         text = _retrying(library.sheet)(*args, **kwargs)["text"]
-        return [text, _picture(library.looks.pop())]
+        return [text, *reminder, _picture(library.looks.pop())]
 
     def show_again(observation: str) -> list:
         """Show a past observation again by its id (obs_000012), from the stored picture.
@@ -127,10 +141,59 @@ def toolset(
     async def execute(program: str) -> list:
         """Run a program."""
         done = await executor.run(program)
-        return [done.text, *(_picture(seen) for seen in done.looks)]
+        return [done.text, *(reminder if done.looks else []), *(_picture(seen) for seen in done.looks)]
 
     description = EXECUTE.format(looks=executor.limits.looks, reference=executor.reference())
     return FunctionToolset(
         [_retrying(library.find, limits.result), look, plot, Tool(execute, description=description), show_again, *extra],
         instructions=notes or None,
     )
+
+
+def forget_pictures(project: Project):
+    """A history processor: once the model has answered after seeing a picture, the picture is taken out of the history.
+
+    Its id and its text stay, with the note written about it, so nothing that cannot be recovered is lost:
+    a picture can be shown again by its id, and a conclusion lives in its note. Without this, every picture
+    is sent again on every later request, and the cost of a task grows with each look.
+    """
+
+    def process(messages: list[ModelMessage]) -> list[ModelMessage]:
+        answered = max((i for i, message in enumerate(messages) if isinstance(message, ModelResponse)), default=-1)
+        notes, out = None, []
+        for i, message in enumerate(messages):
+            if i > answered or not isinstance(message, ModelRequest):
+                out.append(message)  # what the model has not answered yet is left as it is
+                continue
+            parts = []
+            for part in message.parts:
+                content = part.content if isinstance(part, ToolReturnPart) else None
+                if not isinstance(content, list) or not any(isinstance(item, BinaryContent) for item in content):
+                    parts.append(part)
+                    continue
+                notes = project.log.notes() if notes is None else notes
+                kept = [item for item in content if not isinstance(item, BinaryContent) and item != KEEP]
+                ids = list(dict.fromkeys(re.findall(r"obs_\d+", " ".join(str(item) for item in kept))))
+                gone = [f"{id}: note: {notes[id]}" if id in notes else f"{id}: no note was written" for id in ids]
+                kept.append("[The pictures are no longer in your context. " + "; ".join(gone) + ". show_again(id) shows one again.]")
+                parts.append(replace(part, content=kept))
+            out.append(replace(message, parts=parts))
+        return out
+
+    return process
+
+
+def harness(
+    project: Project,
+    videos: list[Path | str] | None = None,
+    surface: Surface = "code",
+    limits: Limits | None = None,
+    skill: bool = True,
+    forget: bool = True,
+) -> list:
+    """Everything an agent needs, as capabilities: `Agent(model, capabilities=harness(project, videos))`.
+
+    The tools, the skill, and with `forget` the rule that a picture stays in the context for one step only.
+    """
+    tools = Toolset(toolset(project, videos, surface, limits, skill, forget))
+    return [tools, ProcessHistory(forget_pictures(project))] if forget else [tools]

@@ -13,6 +13,8 @@ import threading
 from datetime import UTC, datetime
 from pathlib import Path
 
+from uberseek.state import working
+
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS observations (
     seq INTEGER PRIMARY KEY,
@@ -53,6 +55,24 @@ CREATE TRIGGER IF NOT EXISTS clips_keep BEFORE UPDATE ON clips
     BEGIN SELECT RAISE(ABORT, 'the clip log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS clips_stay BEFORE DELETE ON clips
     BEGIN SELECT RAISE(ABORT, 'the clip log is append-only'); END;
+CREATE TABLE IF NOT EXISTS notes (
+    seq INTEGER PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    record TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS notes_keep BEFORE UPDATE ON notes
+    BEGIN SELECT RAISE(ABORT, 'the note log is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS notes_stay BEFORE DELETE ON notes
+    BEGIN SELECT RAISE(ABORT, 'the note log is append-only'); END;
+CREATE TABLE IF NOT EXISTS briefs (
+    seq INTEGER PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    record TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS briefs_keep BEFORE UPDATE ON briefs
+    BEGIN SELECT RAISE(ABORT, 'the brief log is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS briefs_stay BEFORE DELETE ON briefs
+    BEGIN SELECT RAISE(ABORT, 'the brief log is append-only'); END;
 CREATE TABLE IF NOT EXISTS derived (
     source TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -99,6 +119,7 @@ class Log:
                 "INSERT INTO observations VALUES (?, ?, ?, ?, ?)",
                 (seq, created, record["source"]["hash"], record["request"]["focus"], json.dumps(full)),
             )
+        working.write(self)
         return full
 
     def get(self, id: str) -> dict:
@@ -121,6 +142,7 @@ class Log:
             seq = self.db.execute(f"SELECT COALESCE(MAX(seq), 0) + 1 FROM {table}").fetchone()[0]
             full = {"id": f"{prefix}_{seq:06d}", "created_at": created, **record}
             self.db.execute(f"INSERT INTO {table} VALUES (?, ?, ?)", (seq, created, json.dumps(full, default=str)))
+        working.write(self)
         return full
 
     def _all(self, table: str) -> list[dict]:
@@ -146,6 +168,22 @@ class Log:
 
     def clips(self) -> list[dict]:
         return self._all("clips")
+
+    def append_note(self, record: dict) -> dict:
+        """What was concluded from a look. A picture can be shown again; a conclusion cannot be recovered."""
+        return self._append("notes", "note", record)
+
+    def notes(self) -> dict[str, str]:
+        """The latest note on each observation."""
+        return {note["observation"]: note["text"] for note in self._all("notes")}
+
+    def append_brief(self, record: dict) -> dict:
+        """The task as given, word for word."""
+        return self._append("briefs", "brief", record)
+
+    def brief(self) -> str | None:
+        every = self._all("briefs")
+        return every[-1]["text"] if every else None
 
     # Pictures, by content hash
 

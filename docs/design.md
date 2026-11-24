@@ -263,7 +263,11 @@ nest.
   decoded, the gap between samples, frame size, and which signals were drawn on it.
 - **Seen is not heard.** A picture of a waveform is not listening. Anything decided about sound from signals and
   drawn strips is recorded as not heard, in the observation and on the selection it supports.
-- **Observations leave the model's context** after each step; the log stays (section 4).
+- **Observations leave the model's context** after each step; the log stays (section 4). Built: a picture is
+  sent once, in the request right after its look, and is then replaced by its id and the note written about it.
+  The rule comes from a 2026 study of harnesses: dropping what can be looked up again costs nothing, and losing
+  what cannot be recovered drops success to chance ([arXiv:2610.26632](https://arxiv.org/abs/2610.26632)). A
+  picture can be shown again by its id. A conclusion cannot, so it goes in a note.
 
 ### Built once per source: signals
 
@@ -696,6 +700,18 @@ One vertical experiment before a broad harness.
      of her answer about how many nights they slept in the cave", two cheap models. Both produced a clip of the
      right length that holds the answer, passed `verify`, looked at both edges before marking and looked at the
      clip afterwards. It cost 130,000 to 170,000 input tokens a run. Whether the clips are good was not judged.
+   - *Done: keeping track outside the context* (`uberseek/state/working.py`, `forget_pictures` in the host).
+     - `note(id, text)` records what a look concluded; `brief(text)` records the task word for word.
+     - A working file, rewritten after every step, holds the brief, the selections, the clips and every note.
+       Compaction by a host silently loses rules (a third after one round in two 2026 studies), and this file
+       is what an agent re-reads. On a coding agent, where we do not control the context, this is the part
+       that carries over.
+     - In our own harness, pictures stay in the context for one step. `harness(project, videos)` gives an
+       agent the tools, the skill and that rule in one call.
+   - *Measured on the clip trial* (`bench/clip/results`): input tokens fell 25% and 34% with pictures leaving,
+     the clips stayed correct, and the models wrote three to five notes where they had written one. With the
+     provider caching the fixed part, about 70% of input tokens were cache reads and a run cost roughly 60%
+     less. One run per cell.
    - *Next.* The explorer of E6: SAVE's loop reproduced twice on the same core, once with plain tools and once
      as code, on confirmed locate tasks. That settles the surface early. Picture search is added to `find` only
      after text search and the ladder are measured. No separate orchestration framework.

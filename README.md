@@ -45,10 +45,10 @@ From an agent, with Pydantic AI as the host:
 ```python
 from pydantic_ai import Agent
 from uberseek import Project
-from uberseek.host.pydantic_ai import toolset
+from uberseek.host.pydantic_ai import harness
 
-tools = toolset(Project("."), videos=["interview.mp4"])   # find, observe, execute
-agent = Agent("anthropic:claude-sonnet-5.5", toolsets=[tools])
+# The tools, the skill, and the rule that a picture stays in the context for one step only.
+agent = Agent("anthropic:claude-sonnet-5.5", capabilities=harness(Project("."), videos=["interview.mp4"]))
 ```
 
 With `execute`, the model writes a short Python program against the library; it runs in a sandbox and only
@@ -70,6 +70,17 @@ sheet("reel.mp4", [(s[0] + s[1]) / 2 for s in found], labels=[str(s[0]) + " to "
 
 `toolset(..., surface="tools")` offers the same operations one call at a time instead. `find` searches the
 transcript and matches words, not meaning.
+
+## Keeping track
+
+A long task loses things: pictures are taken out of the context after one step, and a host may shorten the
+context. UberSeek keeps the state in a file, `.uberseek/WORKING.md`, rewritten after every step.
+
+```sh
+uv run uberseek brief "Make a 15-second clip of her answer about the cave. One mp4, hard cuts only."
+uv run uberseek note obs_000012 "the second take is cleaner; she looks at the camera"
+uv run uberseek status        # the brief word for word, the selections, the clips, every note
+```
 
 ## Building a clip
 

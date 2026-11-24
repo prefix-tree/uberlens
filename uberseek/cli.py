@@ -12,6 +12,7 @@ from uberseek import Project, guide, select
 from uberseek.api import ApiError, Library
 from uberseek.media import MediaError
 from uberseek.observe.plan import FOCUSES
+from uberseek.state import working
 from uberseek.timecode import clock, seconds
 
 
@@ -68,6 +69,15 @@ def main(argv: list[str] | None = None) -> int:
     exporting = commands.add_parser("export", help="print a clip as data: selections, reasons and the command that cut it")
     exporting.add_argument("name")
 
+    noting = commands.add_parser("note", help="write down what a look showed; notes outlive the picture")
+    noting.add_argument("observation")
+    noting.add_argument("text")
+
+    briefing = commands.add_parser("brief", help="record the task word for word (text, or - to read standard input)")
+    briefing.add_argument("text")
+
+    commands.add_parser("status", help="where the task stands: brief, selections, clips and what each look concluded")
+
     log = commands.add_parser("log", help="list observations")
     log.add_argument("--json", action="store_true")
 
@@ -113,6 +123,14 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if checked["ok"] else 1
         elif args.command == "export":
             print(json.dumps(select.export(project, args.name), indent=1))
+        elif args.command == "note":
+            Library(project).note(args.observation, args.text)
+            print(f"Noted on {args.observation}.")
+        elif args.command == "brief":
+            Library(project).brief(sys.stdin.read() if args.text == "-" else args.text)
+            print(f"Recorded. It is kept word for word in {project.log.root / working.NAME}.")
+        elif args.command == "status":
+            print(Library(project).status(), end="")
         elif args.command == "transcript":
             words = project.transcribe(args.video)["words"]
             print(" ".join(f"[{clock(Fraction(w[0]))}] {w[2]}" if i % 12 == 0 else w[2] for i, w in enumerate(words)))
