@@ -35,6 +35,24 @@ CREATE TRIGGER IF NOT EXISTS executions_keep BEFORE UPDATE ON executions
     BEGIN SELECT RAISE(ABORT, 'the execution log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS executions_stay BEFORE DELETE ON executions
     BEGIN SELECT RAISE(ABORT, 'the execution log is append-only'); END;
+CREATE TABLE IF NOT EXISTS selections (
+    seq INTEGER PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    record TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS selections_keep BEFORE UPDATE ON selections
+    BEGIN SELECT RAISE(ABORT, 'the selection log is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS selections_stay BEFORE DELETE ON selections
+    BEGIN SELECT RAISE(ABORT, 'the selection log is append-only'); END;
+CREATE TABLE IF NOT EXISTS clips (
+    seq INTEGER PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    record TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS clips_keep BEFORE UPDATE ON clips
+    BEGIN SELECT RAISE(ABORT, 'the clip log is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS clips_stay BEFORE DELETE ON clips
+    BEGIN SELECT RAISE(ABORT, 'the clip log is append-only'); END;
 CREATE TABLE IF NOT EXISTS derived (
     source TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -94,19 +112,40 @@ class Log:
         rows = self.db.execute(f"SELECT record FROM observations {where} ORDER BY seq", args)
         return [json.loads(r[0]) for r in rows]
 
-    # Executions: every program run, whether it worked or not
+    # Executions, selections and clips: each an append-only list of records with its own ids
 
-    def append_execution(self, record: dict) -> dict:
+    def _append(self, table: str, prefix: str, record: dict) -> dict:
         created = datetime.now(UTC).isoformat(timespec="milliseconds")
         with self.db:
             self.db.execute("BEGIN IMMEDIATE")
-            seq = self.db.execute("SELECT COALESCE(MAX(seq), 0) + 1 FROM executions").fetchone()[0]
-            full = {"id": f"exec_{seq:06d}", "created_at": created, **record}
-            self.db.execute("INSERT INTO executions VALUES (?, ?, ?)", (seq, created, json.dumps(full, default=str)))
+            seq = self.db.execute(f"SELECT COALESCE(MAX(seq), 0) + 1 FROM {table}").fetchone()[0]
+            full = {"id": f"{prefix}_{seq:06d}", "created_at": created, **record}
+            self.db.execute(f"INSERT INTO {table} VALUES (?, ?, ?)", (seq, created, json.dumps(full, default=str)))
         return full
 
+    def _all(self, table: str) -> list[dict]:
+        return [json.loads(r[0]) for r in self.db.execute(f"SELECT record FROM {table} ORDER BY seq")]
+
+    def append_execution(self, record: dict) -> dict:
+        """A program run, whether it worked or not."""
+        return self._append("executions", "exec", record)
+
     def executions(self) -> list[dict]:
-        return [json.loads(r[0]) for r in self.db.execute("SELECT record FROM executions ORDER BY seq")]
+        return self._all("executions")
+
+    def append_selection(self, record: dict) -> dict:
+        """A span chosen for use, with its reason and the looks it rests on."""
+        return self._append("selections", "sel", record)
+
+    def selections(self) -> list[dict]:
+        return self._all("selections")
+
+    def append_clip(self, record: dict) -> dict:
+        """A file cut from selections, with the map from source time to its own time."""
+        return self._append("clips", "clip", record)
+
+    def clips(self) -> list[dict]:
+        return self._all("clips")
 
     # Pictures, by content hash
 

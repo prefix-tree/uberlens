@@ -13,6 +13,7 @@ look only where a judgment needs eyes. It works like a shell for video:
 | Find where something is said | `find(video, query)` | `grep` |
 | See a span of the footage | `observe(video, start, end, focus)` | `cat` |
 | See many places at once, on one sheet | `sheet(video, times, labels)` | a plot |
+| Turn chosen spans into a video file | `mark`, `clip`, `verify` | an editor's bin and a render |
 | Combine searches, measurements and looks | a program (`execute`, or `uberseek run`) | a shell script |
 
 Measurements are the exact part: `words`, `pauses`, `loudness`, `cuts`, `shots`. Memory is kept for you:
@@ -106,6 +107,35 @@ What keeps a program useful:
 - **Look last, at few things.** At most four looks per program. Narrow first.
 - **Do not branch on a picture.** `observe` and `sheet` return an id and a text to the program, not what
   is in the frame.
+
+## Building a clip
+
+Finding a span is half the job. To turn choices into a video file: mark each span, cut them, check the
+file, then look at it.
+
+| Step | Function | What it does |
+| --- | --- | --- |
+| Save a choice | `mark(video, start, end, reason)` | Records the span, snapped to frames, with the looks it rests on. It tells you if you never looked at its first or last frame |
+| Cut | `clip(selections, name)` | Joins selections in the order given, with hard cuts, frame-exact. Returns the clip's name and where each part sits in it |
+| Check by code | `verify(name)` | The file decodes, has the right frames, and each part starts and ends on the frame chosen. Lists the joins |
+| Look | `observe(name, ...)` | The clip is a video like any other |
+
+```python
+quiet = pauses("interview.mp4", 500, 520)
+a = mark("interview.mp4", quiet[0][1], quiet[-1][0], reason="the answer, from the breath before it") if len(quiet) > 1 else None
+made = clip([a["id"]], "cave-answer") if a else None
+checked = verify("cave-answer") if made else None
+if made:
+    observe(made["clip"], 0, min(3, made["duration"]), "delivery", "does it start cleanly?")
+{"selection": a, "clip": made, "check": checked}
+```
+
+- Mark only after you have looked at both edges with focus `boundary`. `mark` reports `edges_not_seen`
+  when you have not; look, then mark again with `replaces`.
+- `verify` passing means the file is what you asked for. It does not mean the clip is good. Look at every
+  join it lists, and at the start and the end.
+- You cannot hear a click or a clipped breath at a cut. Say the sound of the clip is "not heard".
+- Hard cuts only: no transitions, captions, speed changes or music.
 
 ## How to work
 

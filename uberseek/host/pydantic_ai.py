@@ -23,6 +23,7 @@ from uberseek.observe.gateway import Observation
 
 Surface = Literal["code", "tools"]
 PLAIN = ("find", "words", "pauses", "cuts", "coverage")  # the operations offered one at a time on the `tools` surface
+BUILD = ("mark", "selections", "clip", "verify")  # building a clip: on both surfaces
 
 EXECUTE = """Run a short Python program against the video library and get back its result.
 
@@ -88,7 +89,7 @@ def toolset(
         """
         return guide.topic(topic)
 
-    extra = [Tool(read_guide, name="guide")] if skill else []
+    extra = [*(_retrying(getattr(library, name), limits.result) for name in BUILD), *([Tool(read_guide, name="guide")] if skill else [])]
 
     @functools.wraps(library.observe)
     def observe(*args, **kwargs) -> list:

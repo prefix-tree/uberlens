@@ -283,3 +283,91 @@ Example:
 ```python
 minus([0, 10], [[2, 3], [5, 12]])
 ```
+
+## `mark`
+
+```python
+mark(video: str, start: float, end: float, reason: str = '', replaces: str | None = None) -> dict
+```
+
+Save a span as a selection to use in a clip. It snaps to whole frames.
+
+The selection records which of your looks it rests on. If you never looked at its first or last
+frame, it is still saved and says so: look at the edge with focus "boundary", then mark again.
+
+Args:
+    video: Name or path of the video.
+    start: Where the selection starts, in seconds.
+    end: Where it ends, in seconds. The frame showing at this time is the first one left out.
+    reason: Why this span, in a few words. Kept with the selection.
+    replaces: The id of an earlier selection this one corrects.
+
+Returns:
+    {"id", "video", "start", "end", "frames", "edges_not_seen", "rests_on"}.
+
+Example:
+
+```python
+mark("interview.mp4", 1, 4, reason="the whole line, with a breath before it")
+```
+
+## `selections`
+
+```python
+selections() -> list[dict]
+```
+
+The selections saved so far, oldest first, leaving out any that a later one replaced.
+
+Example:
+
+```python
+selections()
+```
+
+## `clip`
+
+```python
+clip(selections: list[str], name: str) -> dict
+```
+
+Cut selections, in the order given, into one video file with hard cuts. Frame-exact.
+
+The clip is then a video like any other: look at it with `observe`, by the name returned.
+
+Args:
+    selections: Ids of selections, in the order they should play.
+    name: A short name for the clip: letters, digits, "-" or "_".
+
+Returns:
+    {"clip", "duration", "segments"}: the clip's file name, its length, and for each selection where
+    it came from in its source and where it sits in the clip.
+
+Example:
+
+```python
+clip([s["id"] for s in selections()][:1], "example")
+```
+
+## `verify`
+
+```python
+verify(clip: str) -> dict
+```
+
+Check a clip by code: it decodes, has the right number of frames, and each part starts and ends on the frame chosen.
+
+It also lists where the joins are, so you can look at them. Passing these checks does not mean the
+clip is good: look at it.
+
+Args:
+    clip: The clip's name, as `clip` returned it.
+
+Returns:
+    {"ok", "problems", "warnings", "duration", "joins", "next"}. "joins" are times in the clip.
+
+Example:
+
+```python
+verify("example")
+```
