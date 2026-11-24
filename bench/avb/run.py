@@ -133,6 +133,7 @@ def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) 
         "steps": len(tokens),
         "tokens": {"input": sum(t.get("input", 0) for t in tokens), "output": sum(t.get("output", 0) for t in tokens),
                    "cache_read": sum(t.get("cache", {}).get("read", 0) for t in tokens)},
+        "cost_usd": round(sum(e["part"].get("cost", 0) for e in events if e.get("type") == "step_finish"), 4),
         "tool_calls": len(tools),
         "uberseek_commands": sum("uberseek" in command for command in commands),
         "folder": str(work),
@@ -160,7 +161,7 @@ def main() -> None:
             row = run_one(Path(args.benchmark), name, condition, args.model, stamp)
             rows.append(row)
             score = row["reward"]["reward"] if row["reward"] else "no score"
-            used = f"{row['seconds']} s · {row['steps']} steps · {row['tokens']['input']} tokens in"
+            used = f"{row['seconds']} s · {row['steps']} steps · ${row['cost_usd']}"
             print(f"{name} · {condition} · reward {score} · {used} · {row['uberseek_commands']} uberseek commands", flush=True)
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / f"{stamp}.json").write_text(json.dumps({"at": stamp, "note": args.note, "rows": rows}, indent=1))
