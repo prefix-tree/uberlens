@@ -60,6 +60,13 @@ observe("interview.mp4", span[0], span[1], "delivery")
 {"candidates": len(hits), "best": hits[0]["text"]}
 ```
 
+`sheet` draws frames picked from anywhere in the video on one picture, which costs one look:
+
+```python
+found = shots("reel.mp4")[:24]
+sheet("reel.mp4", [(s[0] + s[1]) / 2 for s in found], labels=[str(s[0]) + " to " + str(s[1]) for s in found])
+```
+
 `toolset(..., surface="tools")` offers the same operations one call at a time instead. `find` searches the
 transcript and matches words, not meaning.
 

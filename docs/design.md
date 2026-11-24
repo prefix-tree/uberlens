@@ -95,6 +95,7 @@ it explore any codebase, with no special tool for each kind of analysis. The bas
 | --- | --- | --- |
 | `find(query)` | `grep` | Returns candidate spans that may match a description in words, or that resemble an earlier span |
 | `observe(span, focus)` | `cat` | Delivers images of the footage to the model as an observation, by artifact id |
+| `sheet(times, labels)` | A plot | Draws frames picked from anywhere in the video on one picture, in the caller's order |
 | `execute(program)` | A shell script | Runs a bounded program that combines searches, measurements and looks, and returns its result |
 
 - **The API is a small library, and `execute` is one way to run it.** A host that is itself a coding agent can
@@ -464,8 +465,8 @@ bigger orchestration layer:
   seek fails loudly and never returns a neighbouring frame.
 - **Media services in Python**, Whisper for transcription.
 - **One skill, written once, read two ways** (`uberseek/skill/`, a standard Agent Skill).
-  - *What is in it.* A core of about 120 lines: the three operations, how to work (orient, narrow with code,
-    look before deciding, zoom, check coverage, answer with what it rests on), and seven rules that each come from
+  - *What is in it.* A core of about 175 lines: the three operations, how to work (orient, narrow with code,
+    look before deciding, zoom, check coverage, answer with what it rests on), six worked programs, and eight rules that each come from
     a mistake a model made with this tool. Five reference files: every operation, looking and reading a
     picture, writing programs, worked recipes, and what UberSeek cannot do.
   - *How it stays true.* The operations reference is generated from the library and the recipes reference from
@@ -660,6 +661,18 @@ One vertical experiment before a broad harness.
        the data can notice it is wrong.** The silence measurement is fixed.
      - What follows: keep both, offer them as one surface (plain operations plus `execute`), and have programs
        return the runner-up and look at the winner. A computed answer is not ground truth.
+   - *Done: `sheet`.* A program picks up to 24 instants and labels them; the harness draws them on one
+     picture, which counts as one look. It is for scanning and comparing: one frame per shot, one per
+     candidate. The frames are separate instants, so there is no sound strip and `coverage` lists a sheet apart.
+     **This moves one decision from the harness to the caller:** the harness still sets the size of what is
+     shown, but the program now chooses which frames. That is a step toward letting the model set fidelity,
+     which section 2 names as an open tension.
+   - *Done: worked examples in the core of the skill.* No run had ever opened the skill's references (`guide`
+     was called 0 times in 16 runs), so the six most useful programs are now in the part that is always read.
+   - *Tried again, not measured* (`bench/locate/results`): two picture tasks, two cheap models, 4 runs. Programs
+     that combine steps went from 0 of 10 to 7 of 12, and every run used a sheet. **Tokens did not fall; they
+     rose about 40%**: the core is longer, and the models used sheets as well as looks. Whether a sheet saves
+     anything needs a task where it replaces several looks, and more runs.
    - *Next.* The explorer of E6: SAVE's loop reproduced twice on the same core, once with plain tools and once
      as code, on confirmed locate tasks. That settles the surface early. Picture search is added to `find` only
      after text search and the ladder are measured. No separate orchestration framework.

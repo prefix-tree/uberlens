@@ -129,7 +129,8 @@ async def main() -> None:
             print(f"{head} · failed: {row['error']}")
             continue
         print(f"{head} · found {row['found']} of {row['ranges']} · overlap {row['overlap']}")
-        work = f"{row['looks']} looks ({row.get('sheets', 0)} sheets), {row['programs']} programs ({row['programs_combining']} combining steps)"
+        work = f"{row['looks']} looks ({row.get('sheets', 0)} sheets), {row['programs']} programs"
+        work += f" ({row['programs_combining']} combining steps)"
         print(f"    {work} · {row['requests']} requests · {row['tokens']['input']} tokens in, {row['tokens']['output']} out")
 
     print("\n| Surface | Skill | Runs | Hit (overlap over 0.3) | Looked first | Programs combining steps | Tokens in per run |")
