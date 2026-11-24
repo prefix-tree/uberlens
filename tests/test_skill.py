@@ -111,7 +111,7 @@ def test_the_programs_shown_in_the_guide_run(spoken):
     project, speech = spoken
     blocks = re.findall(r"```python\n(.*?)```", guide.core("harness") + guide.topic("programs"), re.S)
     whole = [b for b in blocks if re.search(r'"(interview|reel)\.mp4"', b)]
-    assert len(whole) == 9  # seven ways to combine steps and building a clip in the core, and one in the guide to programs
+    assert len(whole) == 10  # seven ways to combine steps, building a clip and keeping track in the core, and one in the guide to programs
     for program in whole:
         done = Executor(project, [speech]).run_sync(re.sub(r"(interview|reel)\.mp4", "speech.mp4", program))
         assert done.error is None, done.text
@@ -167,7 +167,21 @@ def test_the_harness_gives_the_core_and_serves_the_rest_on_request(clips, tmp_pa
         return ModelResponse(parts=[TextPart("ok")])
 
     Agent(FunctionModel(plain), toolsets=[toolset(Project(tmp_path), [clips["bframes"]], skill=False)]).run_sync("hi")
-    tools = {"find", "observe", "sheet", "execute", "show_again", "mark", "selections", "clip", "verify"}
+    tools = {
+        "find",
+        "observe",
+        "sheet",
+        "execute",
+        "show_again",
+        "mark",
+        "selections",
+        "clip",
+        "verify",
+        "note",
+        "brief",
+        "status",
+        "videos",
+    }
     assert seen["plain"] == ("The videos you can use: bframes.mp4.", tools)
 
 

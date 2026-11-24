@@ -371,3 +371,74 @@ Example:
 ```python
 verify("example")
 ```
+
+## `note`
+
+```python
+note(observation: str, text: str) -> dict
+```
+
+Write down what you concluded from a look, in a sentence. Pictures leave your context; notes stay.
+
+A picture can always be shown again. What you concluded from it cannot be recovered unless it is
+written here. Notes appear in `status` and in `observations`.
+
+Args:
+    observation: The id of the look, like obs_000012.
+    text: What you concluded, in a sentence: what is there, and what it means for the task.
+
+Example:
+
+```python
+note(observe("interview.mp4", 1, 4)["id"], "the bar moves left to right; nothing else changes")
+```
+
+## `brief`
+
+```python
+brief(text: str) -> dict
+```
+
+Record the task exactly as it was given, so its requirements survive a shortened context.
+
+Copy the request word for word: lengths, formats, file names, what must and must not be in the
+result. Do not summarise it. It is shown at the top of `status`.
+
+Args:
+    text: The task, word for word.
+
+Example:
+
+```python
+brief("Make a 15-second clip of the answer. Output: clip.mp4, 16:9.")
+```
+
+## `status`
+
+```python
+status() -> str
+```
+
+Where the task stands: the brief word for word, the selections, the clips, and what each look concluded.
+
+Read it when you are unsure what you have already done, or after your context was shortened.
+
+Example:
+
+```python
+status()
+```
+
+## `videos`
+
+```python
+videos() -> list[dict]
+```
+
+The videos you can use, and the clips made so far: length, size, and what is prepared for each.
+
+Example:
+
+```python
+videos()
+```

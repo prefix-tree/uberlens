@@ -14,6 +14,7 @@ look only where a judgment needs eyes. It works like a shell for video:
 | See a span of the footage | `observe(video, start, end, focus)` | `cat` |
 | See many places at once, on one sheet | `sheet(video, times, labels)` | a plot |
 | Turn chosen spans into a video file | `mark`, `clip`, `verify` | an editor's bin and a render |
+| Keep track of the task | `brief`, `note`, `status`, `videos` | a notebook |
 | Combine searches, measurements and looks | a program (`execute`, or `uberseek run`) | a shell script |
 
 Measurements are the exact part: `words`, `pauses`, `loudness`, `cuts`, `shots`. Memory is kept for you:
@@ -137,9 +138,30 @@ if made:
 - You cannot hear a click or a clipped breath at a cut. Say the sound of the clip is "not heard".
 - Hard cuts only: no transitions, captions, speed changes or music.
 
+## Keeping track
+
+Your context is not a safe place to keep things. Pictures are taken out of it after you have used them, and
+a long task can have its context shortened, which loses details and often loses rules.
+
+- **Record the task first:** `brief(text)`, word for word. Lengths, formats, file names, what must and must
+  not be in the result. Do not summarise it.
+- **After each look, write what you concluded:** `note(id, "the second take is cleaner; she looks at the
+  camera")`. A picture can always be shown again by its id. What you concluded from it cannot be recovered
+  unless it is in a note.
+- **When unsure where you are, read `status()`:** the brief, the selections, the clips, and every note.
+  Before you finish, read the brief there again and check the result against each requirement.
+- `videos()` lists what you can use and what is prepared.
+
+```python
+brief("Make a clip of about 15 seconds of her answer about the cave. Output: one mp4, hard cuts only.")
+seen = observe("interview.mp4", 500, 520, "delivery", "is this the answer?")
+note(seen["id"], "the look covers 500 to 520 s; decide from the picture, then replace this note")
+status()[:400]
+```
+
 ## How to work
 
-1. **Orient.** `info(video)` gives the length and what is prepared. A look at the whole video
+1. **Orient.** Record the task with `brief`. `videos()` and `info(video)` give lengths and what is prepared. A look at the whole video
    (`observe(video, 0, duration)`) gives a map: a frame per slice of time, what is said under each, and the
    sound and cuts along the bottom.
 2. **Narrow with code, not with looks.** `find` for what is said. `shots` and `cuts` for structure.
@@ -147,7 +169,7 @@ if made:
    candidates, a count, a decision. One program that finds, filters and looks costs one round trip; five
    single calls cost five.
 3. **Look before you decide.** A search result or a measurement is a place to look, not an answer. Only a
-   picture you were shown counts as something you saw.
+   picture you were shown counts as something you saw. Then write a `note`: the picture will not stay.
 4. **Zoom.** Start wide and go closer only where it matters: minutes, then a passage of 10 to 60 seconds,
    then a moment of a few seconds. For a cut point, look with focus `boundary` at one instant.
 5. **Before saying something is not there, check `coverage`.** It says what you have not looked at.
