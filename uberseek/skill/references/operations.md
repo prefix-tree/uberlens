@@ -68,23 +68,56 @@ Example:
 words("interview.mp4", 1, 4)
 ```
 
-## `pauses`
+## `stumbles`
 
 ```python
-pauses(video: str, start: float | None = None, end: float | None = None) -> list[list[float]]
+stumbles(video: str, start: float | None = None, end: float | None = None) -> list[dict]
 ```
 
-Measured silent stretches in a span, as [start, end] pairs. A quarter of a second or longer.
+Places where the speaker stumbles: words said twice, lines restarted, words broken off, ums, and sound with no word.
+
+Candidates to look at, not decisions: "we had we had" may be a stumble or emphasis. The words come
+from the transcript, which often leaves out "um" and writes a repeat once, so the sound is checked
+too: a stretch between two words that is not a pause is reported as "sound", often an um the
+transcript dropped. To clean a line, remove each "cut" span, or mark around it.
 
 Args:
     video: Name or path of the video.
     start: Start of the span, in seconds. Leave out for the beginning.
     end: End of the span, in seconds. Leave out for the end of the video.
 
+Returns:
+    A list of {"kind", "start", "end", "text", "cut"}, in time order. "kind" is repeat, restart,
+    cut-off, filler or sound. "cut" is [start, end]: the span to remove to keep the last try.
+
 Example:
 
 ```python
-pauses("interview.mp4", 0, 5)
+stumbles("interview.mp4", 0, 30)
+```
+
+## `pauses`
+
+```python
+pauses(video: str, start: float | None = None, end: float | None = None, kind: str = 'silence') -> list[list[float]]
+```
+
+Measured pauses in a span, as [start, end] pairs. A quarter of a second or longer.
+
+"silence" finds stretches that are quiet outright. Under music or steady background sound nothing
+is quiet outright, so use "speech": it finds where the voice drops well below the speech around
+it, music or not. Both are measured from the sound; neither uses the transcript.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+    kind: silence (quiet outright) or speech (gaps in the voice, found under music too).
+
+Example:
+
+```python
+pauses("interview.mp4", 0, 5, kind="speech")
 ```
 
 ## `loudness`

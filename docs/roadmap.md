@@ -49,9 +49,9 @@ Each item comes from a run where the agent, or we, left UberSeek and wrote FFmpe
 | **A dense sheet at a chosen rate, with times printed** | The 15-frames-a-second sheet we built by hand to time the strips |
 | **Sound onsets or beats** | Whether an edit is cut to the music. `pauses` and `loudness` do not say where hits land |
 | **One sheet across many clips, and a view of a join** | Sequencing and Assembly: twelve separate pictures overflowed the agent's context before it had read the last |
-| **A pause measure that works under music** | One silence found in 90 seconds of speech over music, so "put the edge in a pause" had nothing to use |
+| **A pause measure that works under music** | One silence found in 90 seconds of speech over music, so "put the edge in a pause" had nothing to use. *Built:* `pauses(kind="speech")` judges the voice band against the speech around it |
 | **`clip` keeps the source's size; a clip opens by its name; one argument style** | A clip came out 852 pixels wide from an 854-pixel source; the agent could not look at its own join; five calls lost to `--reason` against `reason=` |
-| **Repeated words** | Finding a stumble: `find` matches words, not a phrase said twice |
+| **Repeated words** | Finding a stumble: `find` matches words, not a phrase said twice. *Built:* `stumbles` lists repeats, restarts, broken-off words, fillers, and sound between words the transcript has no word for |
 
 The first item serves the most cases, so it comes first; crop and zoom second.
 

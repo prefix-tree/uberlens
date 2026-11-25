@@ -12,6 +12,7 @@ from pathlib import Path
 
 from uberseek import select
 from uberseek.api import search, spans
+from uberseek.api import stumbles as stumbling
 from uberseek.ingest import signals, transcript
 from uberseek.media import MediaError
 from uberseek.observe.gateway import Observation, Project, Source
@@ -42,7 +43,7 @@ class Library:
     """The operations, bound to one project and to the videos an agent may use."""
 
     OPERATIONS = (
-        "info", "find", "words", "pauses", "loudness", "cuts", "shots", "observe", "sheet",
+        "info", "find", "words", "stumbles", "pauses", "loudness", "cuts", "shots", "observe", "sheet",
         "observations", "coverage", "expand", "merge", "minus", "mark", "selections", "clip", "verify",
         "note", "brief", "status", "videos",
     )  # fmt: skip
@@ -152,19 +153,58 @@ class Library:
 
     # Measurements
 
-    def pauses(self, video: str, start: float | None = None, end: float | None = None) -> list[list[float]]:
-        """Measured silent stretches in a span, as [start, end] pairs. A quarter of a second or longer.
+    def stumbles(self, video: str, start: float | None = None, end: float | None = None) -> list[dict]:
+        """Places where the speaker stumbles: words said twice, lines restarted, words broken off, ums, and sound with no word.
+
+        Candidates to look at, not decisions: "we had we had" may be a stumble or emphasis. The words come
+        from the transcript, which often leaves out "um" and writes a repeat once, so the sound is checked
+        too: a stretch between two words that is not a pause is reported as "sound", often an um the
+        transcript dropped. To clean a line, remove each "cut" span, or mark around it.
 
         Args:
             video: Name or path of the video.
             start: Start of the span, in seconds. Leave out for the beginning.
             end: End of the span, in seconds. Leave out for the end of the video.
+
+        Returns:
+            A list of {"kind", "start", "end", "text", "cut"}, in time order. "kind" is repeat, restart,
+            cut-off, filler or sound. "cut" is [start, end]: the span to remove to keep the last try.
         """
+        source = self._source(video)
+        low, high = self._window(source, start, end)
+        said = [(Fraction(w[0]), Fraction(w[1]), w[2]) for w in self._transcript(source)]  # all of it: a stumble can cross the edge
+        quiet = self.project.log.derived(source.hash, "voice_pauses", lambda: signals.voice_pauses(source.path))
+        gaps = [(Fraction(a), Fraction(b)) for a, b in quiet["spans"]]
+        found = stumbling.from_words(said) + stumbling.unworded(said, gaps)
+        return [
+            {"kind": f["kind"], "start": _f(f["start"]), "end": _f(f["end"]), "text": f["text"], "cut": [_f(t) for t in f["cut"]]}
+            for f in sorted(found, key=lambda f: f["start"])
+            if f["end"] > low and f["start"] < high
+        ]
+
+    def pauses(self, video: str, start: float | None = None, end: float | None = None, kind: str = "silence") -> list[list[float]]:
+        """Measured pauses in a span, as [start, end] pairs. A quarter of a second or longer.
+
+        "silence" finds stretches that are quiet outright. Under music or steady background sound nothing
+        is quiet outright, so use "speech": it finds where the voice drops well below the speech around
+        it, music or not. Both are measured from the sound; neither uses the transcript.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds. Leave out for the beginning.
+            end: End of the span, in seconds. Leave out for the end of the video.
+            kind: silence (quiet outright) or speech (gaps in the voice, found under music too).
+        """
+        if kind not in ("silence", "speech"):
+            raise ApiError(f"pauses(kind={kind!r}): use 'silence', or 'speech' for gaps in a voice under music")
         source = self._source(video)
         if source.info.audio is None:
             return []
         low, high = self._window(source, start, end)
-        quiet = self.project.log.derived(source.hash, "silences", lambda: signals.silences(source.path))
+        if kind == "speech":
+            quiet = self.project.log.derived(source.hash, "voice_pauses", lambda: signals.voice_pauses(source.path))
+        else:
+            quiet = self.project.log.derived(source.hash, "silences", lambda: signals.silences(source.path))
         return [[_f(a), _f(b)] for a, b in signals.within(quiet["spans"], low, high)]
 
     def loudness(self, video: str, start: float, end: float) -> list[list[float]]:

@@ -33,7 +33,7 @@ There are four kinds of step. A program strings them together.
 
 | Step | Functions | Gives |
 | --- | --- | --- |
-| **Propose** places to consider | `find` (what is said), `shots` and `cuts` (structure), `pauses` (silences), `coverage` (not yet seen) | Spans |
+| **Propose** places to consider | `find` (what is said), `shots` and `cuts` (structure), `pauses` (silences; `kind="speech"` under music), `stumbles` (ums, repeats, restarts), `coverage` (not yet seen) | Spans |
 | **Measure** a span | `words`, `pauses`, `loudness`, `shots`, `cuts` over that span | Values to compare |
 | **Reshape** a set of spans | `expand`, `merge`, `minus`, and Python's own `sorted`, slicing, `if` | Fewer or better spans |
 | **Look** | `observe` (one span, closely), `sheet` (many instants, one picture) | Pictures, after the program ends |

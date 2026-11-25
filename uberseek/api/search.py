@@ -17,11 +17,11 @@ _WORDS = (
     "a an and are as at be but by do does did for from had has have he her his how i in is it its of on or she so "
     "that the their them they this to was we were what when where which who why will with you your"
 )
-_STOP = frozenset(_WORDS.split())
+STOP = frozenset(_WORDS.split())
 
 
 def _tokens(text: str) -> list[str]:
-    return [t for t in re.findall(r"[a-z0-9']+", text.lower()) if t not in _STOP]
+    return [t for t in re.findall(r"[a-z0-9']+", text.lower()) if t not in STOP]
 
 
 def passages(words: list[list]) -> list[dict]:

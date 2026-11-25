@@ -13,7 +13,8 @@ Run it in the folder that holds the videos. Times are seconds, or `M:SS.mmm`.
 | See chosen instants of a video on one picture | `uberseek sheet talk.mp4 '[5, 20, 61.5]'` |
 | How something moves, or the camera moves | `uberseek observe clip.mp4 2 6 --focus motion` |
 | Find where something is said | `uberseek transcript talk.mp4` once, then `uberseek find talk.mp4 "aircraft carriers"` |
-| Exact times of words and silences | `uberseek words talk.mp4 50 60` and `uberseek pauses talk.mp4 50 60` |
+| Exact times of words and silences | `uberseek words talk.mp4 50 60` and `uberseek pauses talk.mp4 50 60`. Under music, `uberseek pauses talk.mp4 50 60 kind=speech` |
+| Stumbles to clean out: ums, words said twice, restarts | `uberseek stumbles talk.mp4 50 60`: each comes with the `cut` span that keeps the last try |
 | Where the shots change | `uberseek cuts reel.mp4` and `uberseek shots reel.mp4` |
 | Check one cut point or a join | `uberseek observe out.mp4 12.4 --focus boundary`: the frames on both sides and two seconds of sound |
 | Keep or remove spans, frame-exact | `uberseek mark talk.mp4 0 54.9`, `uberseek mark talk.mp4 67.3 90` (the parts to keep), `uberseek clip out sel_000001 sel_000002`, `uberseek verify out`. `clip` prints `File: <path>` |
@@ -29,7 +30,8 @@ What keeps you right:
 - **A number on a picture is that picture's number**, not a frame of the video. Read times from the labels.
 - **You do not hear the sound.** It is drawn as a strip with silences shaded. `pauses` gives them exactly.
 - **Word times are estimates**, good to a few tenths of a second. Where an edge must be exact, put it inside
-  a silence: run `pauses` around the word and cut in the pause, then look with `--focus boundary`.
+  a silence: run `pauses` around the word and cut in the pause, then look with `--focus boundary`. If
+  `pauses` finds nothing because music runs under the voice, add `kind=speech`.
 - **Nobody answers questions during the task.** Decide, say what you were unsure of, and deliver.
 
 More: `uberseek guide` (the whole skill), `uberseek guide recipes` (worked programs), `uberseek guide limits`.
