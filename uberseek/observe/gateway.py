@@ -18,7 +18,7 @@ from pathlib import Path
 import PIL
 
 from uberseek.ingest import signals, transcript
-from uberseek.media import FFmpegBackend, FrameIndex, FrameRef, MediaBackend, MediaError, SourceInfo
+from uberseek.media import FFmpegBackend, Frame, FrameIndex, FrameRef, MediaBackend, MediaError, SourceInfo
 from uberseek.observe import render
 from uberseek.observe.plan import LADDER, SAMPLE_RATE, SHEET_MOST, WAVEFORM_MAX, plan, tile_size
 from uberseek.state.log import Log
@@ -62,6 +62,30 @@ def _fraction(value: Fraction) -> str:
     return f"{value.numerator}/{value.denominator}"
 
 
+def _region(region) -> list[float] | None:
+    """The part of the frame to show: left, top, right, bottom as fractions of its width and height."""
+    if region is None:
+        return None
+    if len(region) != 4 or not all(isinstance(v, (int, float)) for v in region):
+        raise ValueError("a region is [left, top, right, bottom], each a fraction of the frame from 0 to 1")
+    left, top, right, bottom = (round(float(v), 4) for v in region)
+    if not (0 <= left < right <= 1 and 0 <= top < bottom <= 1):
+        raise ValueError(f"the region {list(region)} is not inside the frame: it needs 0 <= left < right <= 1 and 0 <= top < bottom <= 1")
+    return [left, top, right, bottom]
+
+
+def _shown(source: Source, region: list[float] | None) -> tuple[int, int]:
+    """The size of what is shown: the whole frame, or the region of it."""
+    width, height = source.info.video.width, source.info.video.height
+    if region:
+        width, height = max(2, round(width * (region[2] - region[0]))), max(2, round(height * (region[3] - region[1])))
+    return width, height
+
+
+def _of(region: list[float] | None) -> str:
+    return f" · region {region[0]:g},{region[1]:g} to {region[2]:g},{region[3]:g}" if region else ""
+
+
 class Project:
     """A folder holding the log, the pictures shown and what was derived from each source."""
 
@@ -99,18 +123,20 @@ class Project:
         end: Seconds | str | int | None = None,
         focus: str = "visual",
         purpose: str = "",
+        region: list[float] | None = None,
     ) -> Observation:
-        """Show a span of the footage. The caller sets the span and the focus; the harness sets the rest."""
+        """Show a span of the footage. The caller sets the span, the focus and the region; the harness sets the rest."""
         source = self.open(path)
+        region = _region(region)
         start = seconds(start)
         asked = (source.index, source.info.duration, source.info.audio is not None, start, start if end is None else seconds(end), focus)
         # Cuts cost a pass over the whole picture, so they are made only for a look that is planned by shots,
         # and used elsewhere when they already exist. The recipe says which, so the look can be made again.
         use_cuts = plan(*asked).level in ("section", "map") or self.log.has_derived(source.hash, "cuts")
-        made = plan(*asked, cuts=self._cuts(source) if use_cuts else None)
+        made = plan(*asked, cuts=self._cuts(source) if use_cuts else None, change=self.change(source)[1] if focus == "change" else None)
         words = transcript.name(self.transcript_model)
         words = words if self.log.has_derived(source.hash, words) else None
-        size, columns = tile_size((source.info.video.width, source.info.video.height), made.tile_long, len(made.targets))
+        size, columns = tile_size(_shown(source, region), made.tile_long, len(made.targets))
         request = {
             "start": _fraction(made.start),
             "end": _fraction(made.end),
@@ -130,17 +156,21 @@ class Project:
             "shots": made.shots,
             "words": words,
             "words_in": list(self.words_in),
-            "title": f"{source.path.name} · {_span(made.start, made.end)} · {focus}",
+            "region": region,
+            "title": f"{source.path.name} · {_span(made.start, made.end)} · {focus}{_of(region)}",
         }
         return self._look(source, request, recipe, list(made.targets), made.in_span)
 
-    def sheet(self, path: Path | str, times: list, labels: list[str] | None = None, purpose: str = "") -> Observation:
+    def sheet(
+        self, path: Path | str, times: list, labels: list[str] | None = None, purpose: str = "", region: list[float] | None = None
+    ) -> Observation:
         """Show frames picked from anywhere in a video as one picture, like a plot of chosen points.
 
         The caller chooses which instants to show and may label each; the harness still sets their size.
         These are separate instants, so there is no sound strip, and nothing between them counts as seen.
         """
         source = self.open(path)
+        region = _region(region)
         if not times:
             raise ValueError("a sheet needs at least one time")
         if len(times) > SHEET_MOST:
@@ -150,7 +180,7 @@ class Project:
         index = source.index
         targets = [index.frames[index.position(seconds(t))].pts for t in times]  # in the order asked, like a plot
         first, last = index.time(min(targets)), index.time(max(targets))
-        size, columns = tile_size((source.info.video.width, source.info.video.height), LADDER["passage"][2], len(targets))
+        size, columns = tile_size(_shown(source, region), LADDER["passage"][2], len(targets))
         request = {"start": _fraction(first), "end": _fraction(last), "focus": "sheet", "purpose": purpose}
         recipe = {
             "level": "sheet",
@@ -160,14 +190,78 @@ class Project:
             "sound": None,
             "mark": None,
             "labels": [str(label) for label in labels] if labels else None,
-            "title": f"{source.path.name} · {len(targets)} frames picked between {_span(first, last)} · separate instants, not a span",
+            "region": region,
+            "title": f"{source.path.name} · {len(targets)} frames between {_span(first, last)} · separate instants{_of(region)}",
         }
         return self._look(source, request, recipe, sorted(targets), index.position(last) - index.position(first) + 1)
+
+    def board(self, items: list[tuple], columns: int, title: str, purpose: str = "") -> Observation:
+        """Show frames from several videos as one picture. Each item is (path, time, label).
+
+        Every frame is drawn at the size of the first video's frame, so a video of another shape is
+        stretched. It is logged under the set of videos, not under any one of them.
+        """
+        if not items:
+            raise ValueError("there is nothing to show")
+        if len(items) > SHEET_MOST:
+            raise ValueError(
+                f"one picture shows at most {SHEET_MOST} frames, and {len(items)} were asked for: show fewer videos or fewer frames of each"
+            )
+        sources = {str(path): self.open(path) for path, _, _ in items}
+        first = next(iter(sources.values()))
+        size, columns = tile_size(_shown(first, None), LADDER["passage"][2], len(items), columns)
+        placed = []
+        for path, at, label in items:
+            source = sources[str(path)]
+            pts = source.index.frames[source.index.position(seconds(at))].pts
+            placed.append(
+                {"path": str(source.path), "hash": source.hash, "pts": pts, "time": _fraction(source.index.time(pts)), "label": str(label)}
+            )
+        recipe = {"level": "board", "items": placed, "frame_size": list(size), "columns": columns, "title": title}
+        request = {"start": "0", "end": "0", "focus": "board", "purpose": purpose}
+        together = Source(
+            Path(f"{len(sources)} videos"),
+            hashlib.sha256("".join(sorted(s.hash for s in sources.values())).encode()).hexdigest(),
+            first.info,
+            first.index,
+        )
+        return self._look(together, request, recipe, [], len(items))
+
+    def _board(self, recipe: dict) -> tuple[bytes, dict]:
+        """Decode and draw a picture of frames from several videos, and report what came out."""
+        size, frames = tuple(recipe["frame_size"]), [None] * len(recipe["items"])
+        for path in dict.fromkeys(item["path"] for item in recipe["items"]):
+            source = self.open(path)
+            mine = [(i, item) for i, item in enumerate(recipe["items"]) if item["path"] == path]
+            if any(item["hash"] != source.hash for _, item in mine):
+                raise MediaError(f"{Path(path).name} is not the version that was observed")
+            for (i, _), frame in zip(
+                mine, self.backend.frames(source.path, source.index, [item["pts"] for _, item in mine], size), strict=True
+            ):
+                frames[i] = frame
+        times = [Fraction(item["time"]) for item in recipe["items"]]
+        picture = render.sheet(frames, times, recipe["columns"], [item["label"] for item in recipe["items"]])
+        picture = render.stack(render.header(picture.width, recipe["title"]), picture)
+        delivered = {
+            "time_base": "1/1000",  # a board has no one timeline: these stand in, so code that reads any look still can
+            "frames": [{"pts": round(t * 1000), "pixels_sha256": f.pixel_hash} for t, f in zip(times, frames, strict=True)],
+            "size": list(picture.size),
+            "drawn": ["frames"],
+            "sound": None,
+        }
+        return render.png(picture), delivered
+
+    def change(self, source: Source) -> tuple[list[float], list[int], list[bytes]]:
+        """How much each frame differs from the one before: the mean, the largest cell, and the cells themselves."""
+        made = self.log.derived(source.hash, "change", lambda: signals.change(source.path, len(source.index.frames)))
+        cells, each = bytes.fromhex(made["cells"]), made["params"]["rows"] * made["params"]["columns"]
+        grid = [cells[i * each : (i + 1) * each] for i in range(len(made["mean"]))]
+        return made["mean"], [max(cell) for cell in grid], grid
 
     def _look(self, source: Source, request: dict, recipe: dict, in_time_order: list[int], in_span: int) -> Observation:
         """Draw what the recipe says, log it, and return it with the statement of what it shows."""
         began = time.perf_counter()
-        image, delivered = self._render(source, recipe)
+        image, delivered = self._board(recipe) if recipe["level"] == "board" else self._render(source, recipe)
         gaps = [float(b - a) * float(source.index.time_base) for a, b in pairwise(in_time_order)]
         record = self.log.append(
             {
@@ -213,10 +307,16 @@ class Project:
     def reproduce(self, id: str, path: Path | str | None = None) -> Reproduction:
         """Make a logged observation again and compare it with what was shown."""
         record = self.log.get(id)
-        source = self.open(path or record["source"]["path"])
-        if source.hash != record["source"]["hash"]:
-            return Reproduction(id, False, False, False, ["the file's content is not the version that was observed"])
-        image, delivered = self._render(source, record["recipe"])
+        if record["recipe"]["level"] == "board":
+            try:
+                image, delivered = self._board(record["recipe"])
+            except (MediaError, FileNotFoundError) as error:
+                return Reproduction(id, False, False, False, [str(error)])
+        else:
+            source = self.open(path or record["source"]["path"])
+            if source.hash != record["source"]["hash"]:
+                return Reproduction(id, False, False, False, ["the file's content is not the version that was observed"])
+            image, delivered = self._render(source, record["recipe"])
         was, notes = record["delivered"], []
         frames = delivered["frames"] == was["frames"]
         sound = delivered["sound"] == was["sound"]
@@ -232,7 +332,8 @@ class Project:
     def _render(self, source: Source, recipe: dict) -> tuple[bytes, dict]:
         """Decode and draw exactly what the recipe says, and report what came out."""
         index, targets = source.index, recipe["targets"]
-        frames = self.backend.frames(source.path, index, targets, tuple(recipe["frame_size"]))
+        region = tuple(recipe["region"]) if recipe.get("region") else None
+        frames: list[Frame] = self.backend.frames(source.path, index, targets, tuple(recipe["frame_size"]), region)
         times = [index.time(pts) for pts in targets]
         span = [Fraction(t) for t in recipe.get("span") or (times[0], times[-1])]
         delivered: dict = {"time_base": _fraction(index.time_base), "frames": [], "size": None, "drawn": ["frames"], "sound": None}
@@ -303,6 +404,20 @@ def _describe(record: dict, source: Source | None) -> str:
     times = [frame["pts"] * base for frame in delivered["frames"]]
     start, end = Fraction(request["start"]), Fraction(request["end"])
     span = _span(start, end)
+    if recipe["level"] == "board":
+        listed = "; ".join(
+            f"{i}: {Path(item['path']).name} at {clock(Fraction(item['time']))}{' (' + item['label'] + ')' if item['label'] else ''}"
+            for i, item in enumerate(recipe["items"], 1)
+        )
+        width, height = recipe["frame_size"]
+        return (
+            f"{record['id']}: {recipe['title']}.\n"
+            f"{len(recipe['items'])} frames, {width}x{height} each, left to right and top to bottom: {listed}.\n"
+            "Each picture has its number and its time in its own video printed in its corner, and its video named under it. "
+            "These are separate instants: nothing between them was shown, and no sound is drawn. Look closer with observe."
+        )
+    of = recipe.get("region")
+    part = f" Only part of each frame is shown: from {of[0]:g},{of[1]:g} to {of[2]:g},{of[3]:g} of its width and height." if of else ""
     if recipe["level"] == "sheet":
         labels = recipe.get("labels") or [""] * len(times)
         listed = "; ".join(
@@ -313,7 +428,7 @@ def _describe(record: dict, source: Source | None) -> str:
             f"{record['id']}: {Path(record['source']['path']).name}, a sheet of {len(times)} frames picked by the caller.\n"
             f"In the order given, {width}x{height} each: {listed}.\n"
             "Each picture has its number and its time printed in its corner. These are separate instants, not a span: "
-            "nothing between them was shown, and no sound is drawn. Look closer at one with observe."
+            "nothing between them was shown, and no sound is drawn. Look closer at one with observe." + part
         )
     lines = [
         f"{record['id']}: {Path(record['source']['path']).name}, {span}, focus {request['focus']}, level {recipe['level']}.",
@@ -330,6 +445,10 @@ def _describe(record: dict, source: Source | None) -> str:
             f"a number in this text or on the strip means that picture, not a frame count of the video. "
             f"The span holds {delivered['frames_in_span']} frames."
         )
+    if part:
+        lines.append(part.strip())
+    if request["focus"] == "change":
+        lines.append("The frames are those where the picture changes most, each with the frame before it; the rest are spread evenly.")
     if recipe.get("shots"):
         lines.append(f"One frame per shot: the span holds {recipe['shots']} shots.")
     if cuts := delivered.get("cuts"):

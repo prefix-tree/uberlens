@@ -17,7 +17,7 @@ from uberseek.state import working
 from uberseek.timecode import clock, seconds
 
 VIDEO = {".mp4", ".mov", ".mkv", ".webm", ".m4v", ".avi", ".ts", ".mxf"}
-COMMANDS = ("observe", "reproduce", "transcript", "find", "run", "guide", "skill", "mark", "selections", "clip", "verify")
+COMMANDS = ("observe", "reproduce", "transcript", "find", "run", "guide", "skill", "selections", "clip", "verify")
 COMMANDS += ("export", "note", "brief", "status", "log")
 PLAIN = tuple(name for name in Library.OPERATIONS if name not in COMMANDS)  # operations with no command written for them
 
@@ -35,12 +35,31 @@ def value(text: str):
         return float(seconds(text)) if re.fullmatch(r"\d+(:\d+)+(\.\d+)?", text) else text
 
 
+FLAGS = {"observe": ("focus", "purpose", "out", "region"), "find": ("limit",)}  # commands whose named arguments are flags
+
+
+def one_style(argv: list[str]) -> list[str]:
+    """Let a named argument be written either way everywhere: `--reason "x"` or `reason="x"`."""
+    at = 2 if argv[:1] == ["--project"] else 0
+    command, out = (argv[at] if len(argv) > at else ""), argv[: at + 1]
+    rest = argv[at + 1 :]
+    while rest:
+        word = rest.pop(0)
+        if command in PLAIN and word.startswith("--") and rest and len(word) > 2:
+            out.append(f"{word[2:].replace('-', '_')}={rest.pop(0)}")
+        elif command in FLAGS and "=" in word and word.split("=", 1)[0] in FLAGS[command]:
+            out += [f"--{word.split('=', 1)[0]}", word.split("=", 1)[1]]
+        else:
+            out.append(word)
+    return out
+
+
 def plain(project: Project, name: str, given: list[str]) -> int:
     """Run one operation as written: `uberseek pauses talk.mp4 50 60`, `uberseek find talk.mp4 moon limit=3`."""
     named = {a.split("=", 1)[0]: value(a.split("=", 1)[1]) for a in given if re.match(r"[a-z_]+=", a)}
     library = Library(project, here()) if name == "videos" else Library(project)
     result = getattr(library, name)(*[value(a) for a in given if not re.match(r"[a-z_]+=", a)], **named)
-    print(result["text"] if name == "sheet" else result if isinstance(result, str) else json.dumps(result))
+    print(result["text"] if name in Library.LOOKS else result if isinstance(result, str) else json.dumps(result))
     for seen in library.looks:
         print(f"Picture: {(project.log.root / 'artifacts' / (seen.record['artifact']['sha256'] + '.png')).resolve()}")
     return 0
@@ -58,6 +77,7 @@ def main(argv: list[str] | None = None) -> int:
     observe.add_argument("--focus", choices=FOCUSES, default="visual")
     observe.add_argument("--purpose", default="", help="what the look is for")
     observe.add_argument("--out", help="also write the picture here")
+    observe.add_argument("--region", type=json.loads, help="the part of the frame to show: '[left, top, right, bottom]' as fractions")
 
     reproduce = commands.add_parser("reproduce", help="make a logged observation again and compare")
     reproduce.add_argument("id", nargs="*", help="observation ids (default: all)")
@@ -81,17 +101,10 @@ def main(argv: list[str] | None = None) -> int:
     skill.add_argument("action", choices=["install"])
     skill.add_argument("folder", nargs="?", default=".claude/skills")
 
-    marking = commands.add_parser("mark", help="save a span as a selection for a clip")
-    marking.add_argument("video")
-    marking.add_argument("start")
-    marking.add_argument("end")
-    marking.add_argument("--reason", default="")
-
     commands.add_parser("selections", help="list the selections saved so far")
 
     clipping = commands.add_parser("clip", help="cut selections into one video file")
-    clipping.add_argument("name")
-    clipping.add_argument("selection", nargs="+", help="selection ids, in the order they should play")
+    clipping.add_argument("given", nargs="+", help="a name for the clip, and the selection ids in the order they should play")
 
     checking = commands.add_parser("verify", help="check a clip by code, and list where its joins are")
     checking.add_argument("name")
@@ -117,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
             "given", nargs="*", help="the operation's arguments, in order; name=value for a named one"
         )
 
-    args = parser.parse_args(argv)
+    args = parser.parse_args(one_style(list(sys.argv[1:] if argv is None else argv)))
     if args.command == "guide":
         print(guide.topic(args.topic) if args.topic else guide.core("shell"))
         return 0
@@ -127,7 +140,8 @@ def main(argv: list[str] | None = None) -> int:
     project = Project(args.project)
     try:
         if args.command == "observe":
-            seen = project.observe(args.video, args.start, args.end, args.focus, args.purpose)
+            seen = Library(project)._source(args.video)  # so a clip opens by its name
+            seen = project.observe(seen.path, args.start, args.end, args.focus, args.purpose, args.region)
             print(seen.text)
             path = project.log.root / "artifacts" / f"{seen.record['artifact']['sha256']}.png"
             if args.out:
@@ -145,12 +159,16 @@ def main(argv: list[str] | None = None) -> int:
             for seen in done.looks:
                 print(f"Picture: {project.log.root / 'artifacts' / (seen.record['artifact']['sha256'] + '.png')}")
             return 1 if done.error else 0
-        elif args.command == "mark":
-            print(json.dumps(Library(project).mark(args.video, seconds(args.start), seconds(args.end), args.reason), indent=1))
         elif args.command == "selections":
             print(json.dumps(Library(project).selections(), indent=1))
         elif args.command == "clip":
-            made = Library(project).clip(args.selection, args.name)
+            ids = [word for word in args.given if re.fullmatch(r"sel_\d+", word)]
+            names = [word for word in args.given if word not in ids]
+            if len(names) != 1 or not ids:
+                raise ValueError(
+                    "clip takes one name for the clip and the ids of the selections to join, like: clip answer sel_000001 sel_000002"
+                )
+            made = Library(project).clip(ids, names[0])
             print(json.dumps(made, indent=1))
             print(f"File: {select.clips_folder(project) / made['clip']}")
         elif args.command == "verify":

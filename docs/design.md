@@ -289,7 +289,8 @@ Rules for signals:
   alternatives, and to point at what has not been heard or seen yet. A selection is never made because a number
   was high.
 - **Each signal has to earn its place** against doing without it (section 6). The first build has the cheap
-  measured ones: speech timing and pauses, loudness and silence, cuts.
+  measured ones: speech timing and pauses, loudness and silence, cuts. Added since, from use: change per
+  frame, sound onsets, and repeated words.
 
 For speech footage the transcript is part of this. On speech-heavy video it carries most of the locating (on
 Video-MME long with a 7B model, subtitles score 65.4 and frames 52.0, `research-validation.md`), so `find` is the
@@ -672,7 +673,7 @@ One vertical experiment before a broad harness.
        the data can notice it is wrong.** The silence measurement is fixed.
      - What follows: keep both, offer them as one surface (plain operations plus `execute`), and have programs
        return the runner-up and look at the winner. A computed answer is not ground truth.
-   - *Done: `sheet`.* A program picks up to 24 instants and labels them; the harness draws them on one
+   - *Done: `sheet`.* A program picks up to 48 instants and labels them; the harness draws them on one
      picture, which counts as one look. It is for scanning and comparing: one frame per shot, one per
      candidate. The frames are separate instants, so there is no sound strip and `coverage` lists a sheet apart.
      **This moves one decision from the harness to the caller:** the harness still sets the size of what is
@@ -712,6 +713,29 @@ One vertical experiment before a broad harness.
      the clips stayed correct, and the models wrote three to five notes where they had written one. With the
      provider caching the fixed part, about 70% of input tokens were cache reads and a run cost roughly 60%
      less. One run per cell.
+   - *First runs on AgenticVBench* (`bench/avb/results`): nine tasks, one run each, a small model, in our own
+     runner. No gain in score. The first skill was used in four of nine runs; a short card loaded into every
+     run, with every operation a command, was used in nine of nine. Use then showed what was missing.
+   - *Done: what real use asked for.* Each of these replaced FFmpeg written by hand, in a benchmark run or
+     while taking a reference reel apart.
+     - **A change measure per frame** (`change`): how much each frame differs from the one before, over the
+       whole frame and in each of 24 parts of it. One pass over the picture, kept per file.
+     - **`events`**: abrupt changes, also in part of the frame, each with where in the frame it happened. On
+       the reel it gives the six strips of a collage and a flash matte, where `cuts` gives nothing.
+     - **`freezes`**: stretches where frames repeat, with frame numbers. On the benchmark's frozen-frames task
+       it gives both stretches.
+     - **Focus `change`**: a look that shows the frames where the picture changes most, each with the frame
+       before it, where an even spread steps over them. **This moves a second decision toward the data:** the
+       frames are chosen by a measurement, and the recipe records them, so the look is still made again exactly.
+     - **`region`** on `observe` and `sheet`: part of the frame, shown larger.
+     - **`sheet` up to 48 frames, and `every`** for a dense run at a steady rate.
+     - **`overview` and `seam`**: several videos on one picture, and the frames either side of a join. Logged
+       under the set of videos, so they count as a look at no single span.
+     - **`onsets`** (sudden rises in sound), **`gaps`** (between words, from the transcript, where music hides
+       the silences) and **`repeats`** (a phrase said twice in a row).
+     - **Fixes:** pixels within one percent of square are square, so a clip keeps its source's size; a clip
+       opens by its name; a named argument is written `name=value` or `--name value` on every command.
+     - Not measured yet: whether any of this changes a benchmark score.
    - *Next.* The explorer of E6: SAVE's loop reproduced twice on the same core, once with plain tools and once
      as code, on confirmed locate tasks. That settles the surface early. Picture search is added to `find` only
      after text search and the ladder are measured. No separate orchestration framework.

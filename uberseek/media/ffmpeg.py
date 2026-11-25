@@ -22,6 +22,7 @@ from uberseek.media.backend import (
     FrameIndex,
     FrameRef,
     MediaError,
+    Region,
     Segment,
     SourceInfo,
     VideoStream,
@@ -96,8 +97,8 @@ class FFmpegBackend:
         refs = tuple(FrameRef(pts, key) for pts, key in sorted(frames.items()))
         return FrameIndex(Fraction(data["streams"][0]["time_base"]), refs)
 
-    def frames(self, path: Path, index: FrameIndex, pts: list[int], size: tuple[int, int]) -> list[Frame]:
-        """Decode each group of frames from the keyframe before it.
+    def frames(self, path: Path, index: FrameIndex, pts: list[int], size: tuple[int, int], region: Region | None = None) -> list[Frame]:
+        """Decode each group of frames from the keyframe before it. With a region, only that part of each frame.
 
         If a group comes back incomplete, the seek landed past its keyframe; retry from the keyframe
         before, and last from the start of the file.
@@ -112,7 +113,7 @@ class FFmpegBackend:
             starts: list[int | None] = [*index.keyframes_before(targets[0])[:2], None]
             for start in starts:
                 seek = None if start is None else index.time(start)
-                got = self._decode(path, index.time_base, seek, targets, size)
+                got = self._decode(path, index.time_base, seek, targets, size, region)
                 if len(got) == len(targets):
                     found.update(got)
                     break
@@ -121,8 +122,14 @@ class FFmpegBackend:
                 raise MediaError(f"{path.name}: frames with pts {missing} are indexed but did not decode")
         return [found[p] for p in pts]
 
-    def _decode(self, path: Path, time_base: Fraction, seek: Seconds | None, targets: list[int], size: tuple[int, int]) -> dict[int, Frame]:
+    def _decode(
+        self, path: Path, time_base: Fraction, seek: Seconds | None, targets: list[int], size: tuple[int, int], region: Region | None = None
+    ) -> dict[int, Frame]:
         width, height = size
+        crop = ""
+        if region:
+            left, top, right, bottom = region
+            crop = f"crop=w=iw*{right - left:.6f}:h=ih*{bottom - top:.6f}:x=iw*{left:.6f}:y=ih*{top:.6f}:exact=1,"
         select = "+".join(f"eq(pts\\,{p})" for p in targets)
         args = [self.ffmpeg, "-v", "info", "-nostdin", "-nostats"]
         if seek is not None:
@@ -130,7 +137,7 @@ class FFmpegBackend:
             args += ["-seek_timestamp", "1", "-noaccurate_seek", "-ss", _decimal(seek, up=True)]
         args += [
             "-copyts", "-i", str(path), "-map", "0:v:0", "-an", "-sn", "-dn",
-            "-vf", f"select='{select}',showinfo=checksum=0,scale={width}:{height}:flags={_SCALE},setsar=1",
+            "-vf", f"select='{select}',showinfo=checksum=0,{crop}scale={width}:{height}:flags={_SCALE},setsar=1",
             "-fps_mode", "passthrough", "-frames:v", str(len(targets)),
             "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1",
         ]  # fmt: skip
@@ -201,9 +208,11 @@ def _video(stream: dict) -> VideoStream:
         if "rotation" in side:
             rotation = int(side["rotation"]) % 360
     width, height = int(stream["width"]), int(stream["height"])
-    sar = stream.get("sample_aspect_ratio", "1:1").replace(":", "/")
-    if Fraction(sar) > 0:
-        width = round(width * Fraction(sar))
+    sar = Fraction(stream.get("sample_aspect_ratio", "1:1").replace(":", "/"))
+    # Pixels within one percent of square are square: an encoder writes 1280:1281 to round a width, and
+    # treating that as a real shape would shave two pixels off every picture and every clip.
+    if sar > 0 and abs(sar - 1) > Fraction(1, 100):
+        width = round(width * sar)
     if rotation in (90, 270):
         width, height = height, width
     return VideoStream(stream["codec_name"], width, height, Fraction(stream["time_base"]), rotation)

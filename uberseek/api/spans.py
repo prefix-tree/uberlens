@@ -33,3 +33,13 @@ def minus(span: Span, spans: list[Span]) -> list[Span]:
     if at < span[1]:
         out.append([at, span[1]])
     return [s for s in out if s[1] > s[0]]
+
+
+def every(start: float, end: float, step: float) -> list[float]:
+    """Times from `start` to `end`, `step` seconds apart: the list a sheet wants for a dense run at a steady rate."""
+    if step <= 0 or end < start:
+        raise ValueError("every needs a step above zero and an end at or after the start")
+    count = int((end - start) / step + 1e-9) + 1
+    if count > 500:
+        raise ValueError(f"that is {count} times: use a larger step or a shorter span")
+    return [round(start + i * step, 3) for i in range(count)]

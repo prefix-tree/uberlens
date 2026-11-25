@@ -65,7 +65,7 @@ class Executor:
             def call(*args, **kwargs):
                 if len(calls) >= limits.calls:
                     raise ApiError(f"this program made more than {limits.calls} calls to the library; do less per program")
-                if name in ("observe", "sheet") and len(library.looks) >= limits.looks:
+                if name in Library.LOOKS and len(library.looks) >= limits.looks:
                     raise ApiError(
                         f"a program can look at most {limits.looks} times; return, see the pictures, then decide what to look at next"
                     )

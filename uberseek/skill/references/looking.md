@@ -28,7 +28,16 @@ in ten: something shorter than 0.4 seconds can hide between two pictures.
 | `speech` | 4 | Always | You only need where speech and silence are |
 | `boundary` | 8 consecutive frames, 4 before the instant and 4 from it | 2 seconds, centred on the instant | You are choosing an exact in or out point |
 
+| `change` | The frames where the picture changes most, each with the frame before it; the rest spread evenly | By the table above | Something happens fast or in part of the frame: a title pops on, a picture appears in a corner, a flash. An even spread would step over it |
+
 For `boundary`, give one time (no end). If you give a span, its middle is used.
+
+## Part of the frame
+
+`region=[left, top, right, bottom]`, in fractions of the frame's width and height, shows only that part,
+larger. `[0, 0.5, 1, 1]` is the lower half; `[0.25, 0.25, 0.75, 0.75]` the middle. Use it when what matters
+is small in the frame: a caption, a screen inside the picture, one panel of a split screen. `events` gives
+the part where a change happened as `where`, in the same form. Both `observe` and `sheet` take a region.
 
 ## Reading a picture
 
@@ -52,7 +61,7 @@ For `boundary`, give one time (no end). If you give a span, its middle is used.
 
 ## A sheet: many places on one picture
 
-`sheet(video, times, labels)` draws one frame for each time you give, in your order, up to 24. It is the
+`sheet(video, times, labels)` draws one frame for each time you give, in your order, up to 48. It is the
 cheap way to scan or compare: one look, however many frames.
 
 - Each frame has its number and its time in the corner, and your label under it.
@@ -64,11 +73,26 @@ cheap way to scan or compare: one look, however many frames.
   first and last frame of a candidate.
 - Follow a sheet with `observe` on the place it pointed to.
 
+## Several videos on one picture
+
+Looking at twelve clips one by one gives twelve pictures, and the first have left your context before you
+read the last. Two operations put several videos on one picture:
+
+- `overview(videos, per)` draws a few frames of each video in a row, first to last, with the video's name
+  under every frame. Use it to compare clips, put them in order, or match them to descriptions. Videos times
+  frames is at most 48.
+- `seam(first, second)` draws the last frames of one video beside the first frames of another: how the
+  join would look, before anything is joined. Use it to check a proposed order pair by pair.
+
+Each is one look. Follow them with `observe` on the clip that needs a closer look, with focus `motion`
+when the camera's movement matters.
+
 ## Choosing a cut point
 
 1. Find the rough place with a `delivery` look over the line.
 2. Get exact candidates from measurements: the end of a word (`words`), the start or end of a pause
-   (`pauses`), a cut (`cuts`).
+   (`pauses`), a gap between words when music runs under the speech (`gaps`), a cut (`cuts`), a beat
+   (`onsets`).
 3. Look at each candidate with `boundary`. A clean cut usually sits in a shaded silence, after the last
    word's mark, with nothing changing sharply between the frames either side of the yellow line.
 4. Say what you could not judge: whether a breath or a trailing sound is audible is "not heard".

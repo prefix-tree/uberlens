@@ -15,6 +15,8 @@ from typing import Protocol
 
 from uberseek.timecode import Seconds
 
+Region = tuple[float, float, float, float]  # the part of a frame to keep: left, top, right, bottom, as fractions
+
 
 class MediaError(RuntimeError):
     """The backend could not read the file, or did not return what was asked for."""
@@ -110,8 +112,11 @@ class MediaBackend(Protocol):
 
     def frame_index(self, path: Path) -> FrameIndex: ...
 
-    def frames(self, path: Path, index: FrameIndex, pts: list[int], size: tuple[int, int]) -> list[Frame]:
-        """Decode exactly the frames with these timestamps, scaled to size. Fails if any is missing."""
+    def frames(self, path: Path, index: FrameIndex, pts: list[int], size: tuple[int, int], region: Region | None = None) -> list[Frame]:
+        """Decode exactly the frames with these timestamps, scaled to size. Fails if any is missing.
+
+        A region is the part of the frame to keep: left, top, right, bottom as fractions of its width and height.
+        """
         ...
 
     def audio(self, path: Path, start: Seconds, duration: Seconds, rate: int) -> bytes:

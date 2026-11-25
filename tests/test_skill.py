@@ -83,6 +83,8 @@ RECIPES = {
     "coverage_check": {},
     "find_picture": {"looking_for": "a test pattern"},
     "build_clip": {"query": "money left", "name": "recipe-clip"},
+    "remove_freezes": {"name": "recipe-unstuck"},
+    "order_clips": {"order": ["speech.mp4", "speech.mp4"]},
 }
 
 

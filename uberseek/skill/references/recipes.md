@@ -116,6 +116,25 @@ for hit in shown:
 {"found": len(hits), "shown": [{"start": h["start"], "end": h["end"], "text": h["text"], "score": h["score"]} for h in shown]}
 ```
 
+## Put clips in order: see all of them on one picture, then check the joins of the order you propose
+
+`recipes/order_clips.py`
+
+```python
+# Put clips in order: see all of them on one picture, then check the joins of the order you propose.
+# Run it once to see the clips; set `order` from what the picture shows; run it again to check the joins.
+video = "1.mp4"  # the first clip
+others = []  # the rest: ["2.mp4", "3.mp4", ...]
+order = []  # your proposed order, once you have one: ["3.mp4", "1.mp4", "2.mp4"]
+
+clips = [video] + others
+overview(clips, per=3, purpose="what is in each clip, and which could follow which?")
+pairs = [[order[i], order[i + 1]] for i in range(len(order) - 1)][:3]
+for a, b in pairs:
+    seam(a, b, purpose="does " + b + " follow " + a + "?")
+{"clips": [[c, info(c)["duration"]] for c in clips], "joins_shown": pairs}
+```
+
 ## Gather candidates for a line from several phrasings, rank them by measurements, compare them on one sheet
 
 `recipes/rank_candidates.py`
@@ -149,4 +168,30 @@ if ranked:
 for c in ranked[:2]:
     observe(video, max(0, c["span"][0] - 1), c["span"][1] + 1, "delivery", "which take is cleanest?")
 ranked[:5]
+```
+
+## Remove stretches where the picture is stuck: measure them, keep everything else, cut, check, look at the joins
+
+`recipes/remove_freezes.py`
+
+```python
+# Remove stretches where the picture is stuck: measure them, keep everything else, cut, check, look at the joins.
+# One held frame of each stretch stays; the repeats of it go.
+video = "interview.mp4"
+name = "unstuck"  # the clip to make
+
+stuck = freezes(video)
+whole = [0, info(video)["duration"]]
+if stuck:
+    kept = minus(whole, [[f["start"], f["end"]] for f in stuck])
+    marked = [mark(video, a, b, reason="between two stuck stretches") for a, b in kept]
+    made = clip([m["id"] for m in marked], name)
+    checked = verify(name)
+    for join in made["segments"][1:3]:
+        observe(made["clip"], join["clip"][0], None, "boundary", "does the picture run on across this join?")
+    result = {"removed": stuck, "clip": made["clip"], "duration": made["duration"], "problems": checked["problems"]}
+else:
+    observe(video, whole[0], whole[1], "change", "nothing is stuck by measurement: where does the picture change?")
+    result = {"removed": [], "note": "no stretch of three or more repeated frames was found"}
+result
 ```

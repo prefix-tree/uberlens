@@ -10,14 +10,22 @@ import subprocess
 from fractions import Fraction
 from pathlib import Path
 
+from PIL import Image, ImageChops, ImageStat
+
 from uberseek.media.backend import MediaError
 
 SILENCE = {"noise_db": -35, "min_seconds": "0.25"}
 CUT = {"threshold": 10, "width": 320}
 TOUCH = Fraction(1, 50)  # silences closer than this are one silence
+CHANGE = {"width": 96, "height": 54, "rows": 4, "columns": 6}  # frames are compared this small, in this grid of cells
+EVENT = 8  # a part of the frame that differs this much from the frame before is an abrupt change
+STILL = 0.05  # a frame that differs less than this from the one before repeats it
+NEARLY = 0.12  # one frame up to this, between two that repeat, is the encoder's noise and not motion
+ONSET = {"rate": 8000, "window": 160, "rise_db": 6, "floor_db": -50, "apart": "0.08"}
 
 _SILENCE = re.compile(r"silence_(start|end): (-?[\d.]+)")
 _CUT = re.compile(r"frame:\d+\s+pts:(-?\d+)\s+pts_time:\S+\s+lavfi\.scd\.time=")
+_LEVEL = re.compile(r"pts_time:(-?[\d.]+)\s+lavfi\.astats\.Overall\.RMS_level=(-?[\d.]+|-?inf|nan)")
 _LOUDNESS = re.compile(r"pts_time:([\d.]+)\s+lavfi\.r128\.M=(-?[\d.]+|-?inf|nan)")
 
 
@@ -87,3 +95,64 @@ def within(spans: list[list[str]], start: Fraction, end: Fraction) -> list[tuple
         out.append((a, b))
     clipped = [(max(a, start), min(b, end)) for a, b in out]
     return [(a, b) for a, b in clipped if a < b]
+
+
+def change(path: Path, frames: int, ffmpeg: str = "ffmpeg") -> dict:
+    """How much each frame differs from the one before it: over the whole frame, and in each cell of a grid.
+
+    Every frame is decoded once, small and grey, so this costs a pass over the picture. `mean` is the mean
+    difference per pixel on a scale of 0 to 255, to three decimals: near zero for a repeated frame. `cells`
+    holds, for each frame, one byte per cell of the grid, row by row: the mean difference in that part of
+    the frame. A change in one part of the picture shows there and hardly at all in `mean`.
+    """
+    width, height, rows, columns = CHANGE["width"], CHANGE["height"], CHANGE["rows"], CHANGE["columns"]
+    run = subprocess.Popen(
+        [ffmpeg, "-v", "error", "-nostdin", "-i", str(path), "-map", "0:v:0", "-an", "-sn", "-dn",
+         "-vf", f"scale={width}:{height}:flags=area,format=gray", "-fps_mode", "passthrough", "-f", "rawvideo", "pipe:1"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )  # fmt: skip
+    step, before, mean, cells = width * height, None, [], bytearray()
+    while len(raw := run.stdout.read(step)) == step:
+        frame = Image.frombytes("L", (width, height), raw)
+        if before is None:
+            mean.append(0.0)
+            cells += bytes(rows * columns)
+        else:
+            differs = ImageChops.difference(before, frame)
+            mean.append(round(ImageStat.Stat(differs).mean[0], 3))
+            cells += differs.resize((columns, rows), Image.Resampling.BOX).tobytes()
+        before = frame
+    said = run.stderr.read().decode(errors="replace")
+    if run.wait() != 0:
+        raise MediaError(f"ffmpeg failed on {path.name}: {said[-300:]}")
+    if len(mean) != frames:
+        raise MediaError(f"{path.name}: {len(mean)} frames decoded where the index lists {frames}, so change cannot be placed on frames")
+    return {"kind": "measured", "tool": "ffmpeg and frame difference", "params": CHANGE, "mean": mean, "cells": cells.hex()}
+
+
+def onsets(path: Path, ffmpeg: str = "ffmpeg") -> dict:
+    """Instants where the sound gets suddenly louder: a hit, a beat, the start of a word after silence.
+
+    The level is measured every 20 ms. An onset is a window at least `rise_db` louder than the mean of the
+    three before it, and not closer than `apart` seconds to the one before.
+    """
+    graph = (
+        f"aresample={ONSET['rate']},aformat=channel_layouts=mono,asetnsamples=n={ONSET['window']}:p=0,"
+        "astats=metadata=1:reset=1,ametadata=mode=print:key=lavfi.astats.Overall.RMS_level:file=-"
+    )
+    levels = [
+        (Fraction(t), max(-120.0, float(v)) if v not in ("nan", "-inf") else -120.0)
+        for t, v in _LEVEL.findall(_filter(path, "a:0", graph, ffmpeg))
+    ]
+    found: list[list] = []
+    for i in range(3, len(levels)):
+        time, level = levels[i]
+        rise = level - sum(v for _, v in levels[i - 3 : i]) / 3
+        if (
+            level > ONSET["floor_db"]
+            and rise >= ONSET["rise_db"]
+            and (not found or time - Fraction(found[-1][0]) >= Fraction(ONSET["apart"]))
+        ):
+            found.append([str(time), round(rise, 1)])
+    return {"kind": "measured", "tool": "ffmpeg astats", "params": ONSET, "points": found}

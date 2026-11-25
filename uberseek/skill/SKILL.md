@@ -15,11 +15,15 @@ keeping spans, checking an edit. It works like a shell for video:
 | Find where something is said | `find(video, query)` | `grep` |
 | See a span of the footage | `observe(video, start, end, focus)` | `cat` |
 | See many places at once, on one sheet | `sheet(video, times, labels)` | a plot |
+| See several videos on one picture, or how two would join | `overview(videos)`, `seam(first, second)` | `ls`, `diff` |
+| Find where the picture changes or stops | `events(video)`, `freezes(video)` | a log of what happened |
 | Turn chosen spans into a video file | `mark`, `clip`, `verify` | an editor's bin and a render |
 | Keep track of the task | `brief`, `note`, `status`, `videos` | a notebook |
 | Combine searches, measurements and looks | a program (`execute`, or `uberseek run`) | a shell script |
 
-Measurements are the exact part: `words`, `pauses`, `loudness`, `cuts`, `shots`. Memory is kept for you:
+Measurements are the exact part: `words`, `gaps`, `repeats`, `pauses`, `loudness`, `onsets`, `cuts`, `shots`,
+`change`, `events`, `freezes`. Any look can show part of the frame, larger: `region=[left, top, right, bottom]`.
+Memory is kept for you:
 every look is logged, and `observations` and `coverage` read the log.
 
 ## What a program can do
@@ -33,10 +37,10 @@ There are four kinds of step. A program strings them together.
 
 | Step | Functions | Gives |
 | --- | --- | --- |
-| **Propose** places to consider | `find` (what is said), `shots` and `cuts` (structure), `pauses` (silences), `coverage` (not yet seen) | Spans |
-| **Measure** a span | `words`, `pauses`, `loudness`, `shots`, `cuts` over that span | Values to compare |
-| **Reshape** a set of spans | `expand`, `merge`, `minus`, and Python's own `sorted`, slicing, `if` | Fewer or better spans |
-| **Look** | `observe` (one span, closely), `sheet` (many instants, one picture) | Pictures, after the program ends |
+| **Propose** places to consider | `find` (what is said), `shots` and `cuts` (structure), `events` (abrupt changes), `freezes` (stops), `pauses` and `gaps` (silences), `repeats` (said twice), `coverage` (not yet seen) | Spans |
+| **Measure** a span | `words`, `pauses`, `loudness`, `onsets`, `shots`, `cuts`, `change` over that span | Values to compare |
+| **Reshape** a set of spans | `expand`, `merge`, `minus`, `every`, and Python's own `sorted`, slicing, `if` | Fewer or better spans |
+| **Look** | `observe` (one span, closely), `sheet` (many instants), `overview` (several videos), `seam` (a join) | Pictures, after the program ends |
 
 The usual order is propose, measure, reshape, look: code narrows many places to a few, and you look only at
 those. Ways to combine them:
@@ -196,6 +200,8 @@ Each of these comes from a mistake actually made with this tool.
 - **A program trusts its data, so check what it picks.** `max()` over a list of pauses or shots cannot notice
   that two entries touch or that a shot holds a missed cut. Have the program return the runner-up as well as
   the winner, and look at the winner before you report it.
+- **A look can step over what matters.** Frames are spread evenly, so something that happens between two of
+  them is not shown. When things happen fast, ask `events` where, or look with focus `change`.
 - **A sheet is for scanning, not for judging.** Its frames are small and are separate instants. Use it to
   find which place matters, then `observe` that place.
 - **Give spans you looked at.** If you report 1:36.8 to 1:39.0, a picture should show both edges.
@@ -216,6 +222,7 @@ you picked, in your order, each with its number, its time and your label, and no
 | `delivery` | Some frames, the sound strip, the words | How a line is said and where the pauses are |
 | `speech` | Few frames, the sound strip, the words | Where speech and silence are |
 | `boundary` | Consecutive frames around one instant, two seconds of sound | Whether a cut lands cleanly there |
+| `change` | The frames where the picture changes most, each with the frame before | What happens when it happens fast, or in part of the frame |
 
 <!-- harness -->
 ## Using it here
@@ -255,6 +262,6 @@ For more, read these files next to this one (or `uberseek guide <topic>`):
 | `operations` | You need a function's exact arguments or what it returns |
 | `looking` | You are choosing a span or a focus, or reading a picture closely |
 | `programs` | A program failed, or you are unsure what Python is allowed |
-| `recipes` | You want a worked program for a common job: a spoken moment, a picture, a cut point |
+| `recipes` | You want a worked program for a common job: a spoken moment, a picture, a cut point, a frozen stretch, clips to order |
 | `limits` | You wonder whether UberSeek can do something at all |
 | `card` | You want the short version: one line per job, as shell commands |

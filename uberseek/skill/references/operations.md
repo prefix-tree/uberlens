@@ -68,6 +68,54 @@ Example:
 words("interview.mp4", 1, 4)
 ```
 
+## `gaps`
+
+```python
+gaps(video: str, start: float, end: float, shortest: float = 0.15) -> list[list[float]]
+```
+
+The gaps between words in a span, as [start, end] pairs: where nobody is speaking, by the transcript.
+
+Unlike `pauses`, this works when music or noise runs under the speech, because it does not need
+silence. It is an estimate: an edge can be a few tenths of a second off.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds.
+    end: End of the span, in seconds.
+    shortest: The shortest gap to report, in seconds.
+
+Example:
+
+```python
+gaps("interview.mp4", 0, 5)
+```
+
+## `repeats`
+
+```python
+repeats(video: str, start: float, end: float) -> list[dict]
+```
+
+Words or phrases said twice in a row in a span: a stumble, a restart, a repeated take.
+
+From the transcript, so it finds only what the transcript wrote down; a speech model often leaves
+out a stutter. Each result gives the span of both sayings, so cutting `first` leaves one.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds.
+    end: End of the span, in seconds.
+
+Returns:
+    A list of {"text", "first": [start, end], "second": [start, end]}, in time order.
+
+Example:
+
+```python
+repeats("interview.mp4", 0, 5)
+```
+
 ## `pauses`
 
 ```python
@@ -104,6 +152,28 @@ Example:
 
 ```python
 loudness("interview.mp4", 0, 2)
+```
+
+## `onsets`
+
+```python
+onsets(video: str, start: float | None = None, end: float | None = None, rise: float = 10) -> list[float]
+```
+
+Instants where the sound gets suddenly louder: a hit, a beat, a word after a silence. Measured.
+
+Use it to see whether cuts follow the music, or to put a cut on a beat.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+    rise: How many decibels louder than the moment before. Lower finds more.
+
+Example:
+
+```python
+onsets("interview.mp4", 0, 5)
 ```
 
 ## `cuts`
@@ -144,10 +214,89 @@ Example:
 shots("interview.mp4", 0, 5)
 ```
 
+## `change`
+
+```python
+change(video: str, start: float, end: float) -> list[list[float]]
+```
+
+How much each frame in a span differs from the frame before it, as [time, whole, part] triples.
+
+`whole` is the mean difference over the frame (0 to 255): near zero means the frame repeats the one
+before. `part` is the largest difference in any one of 24 parts of the frame, so a change in a
+corner shows there. The first use on a video decodes all of it once.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds.
+    end: End of the span, in seconds.
+
+Example:
+
+```python
+change("interview.mp4", 1, 1.2)
+```
+
+## `events`
+
+```python
+events(video: str, start: float | None = None, end: float | None = None) -> list[dict]
+```
+
+Instants where the picture changes abruptly, in the whole frame or in part of it. Measured.
+
+Finds what `cuts` cannot: a picture appearing in one part of the frame, a title popping on, a
+single flash frame. Each event is the first frame that differs. Ordinary motion is not an event.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+
+Returns:
+    A list of {"time", "frame", "amount", "area", "where", "kind"}. `area` is the share of the frame
+    that changed, `where` its [left, top, right, bottom] as fractions of the frame (usable as a
+    region), and `kind` is "whole", "part", or "flash" for one frame unlike both its neighbours.
+
+Example:
+
+```python
+events("interview.mp4")
+```
+
+## `freezes`
+
+```python
+freezes(video: str, start: float | None = None, end: float | None = None, shortest: int = 3) -> list[dict]
+```
+
+Stretches where the picture stops: each frame repeats the one before it. Measured.
+
+For a stuck or duplicated stretch, or a still. To remove the repeats and keep one frame, cut from
+`start` to `end`: the frame before `start` is the one that was held.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+    shortest: The fewest repeated frames in a row that count. Footage at a lower frame rate than its
+        file repeats single frames all the time; three in a row is a stop.
+
+Returns:
+    A list of {"start", "end", "first_frame", "frames"}: the time of the first repeated frame, the
+    time of the first frame that moves again, the first repeated frame's number counted from 0, and
+    how many frames repeat.
+
+Example:
+
+```python
+freezes("interview.mp4")
+```
+
 ## `observe`
 
 ```python
-observe(video: str, start: float, end: float | None = None, focus: str = 'visual', purpose: str = '') -> dict
+observe(video: str, start: float, end: float | None = None, focus: str = 'visual', purpose: str = '', region: list[float] | None = None) -> dict
 ```
 
 Look at a span. The picture is shown to you after the program ends; a program cannot see it.
@@ -159,8 +308,11 @@ Args:
     start: Start of the span, in seconds.
     end: End of the span. Leave out to see the single frame showing at `start`.
     focus: visual (what is in the picture), motion (dense frames), speech or delivery (sound and
-        pauses, a few frames), boundary (frames and sound right around one instant).
+        pauses, a few frames), boundary (frames and sound right around one instant), change (the
+        frames where the picture changes most, each with the frame before it).
     purpose: The question this look should answer, in a few words. Kept in the log.
+    region: The part of the frame to show, as [left, top, right, bottom] in fractions of its width
+        and height: [0, 0.5, 1, 1] is the lower half. The part is shown larger. Leave out for all of it.
 
 Returns:
     {"id", "text"}: the observation's id and the statement of what it shows.
@@ -174,7 +326,7 @@ observe("interview.mp4", 1, 4, "delivery", "where does the line start?")
 ## `sheet`
 
 ```python
-sheet(video: str, times: list[float], labels: list[str] | None = None, purpose: str = '') -> dict
+sheet(video: str, times: list[float], labels: list[str] | None = None, purpose: str = '', region: list[float] | None = None) -> dict
 ```
 
 Show frames from anywhere in a video as one picture, like a plot: one frame per time you give.
@@ -185,9 +337,12 @@ with `observe`. The picture is shown to you after the program ends; a program ca
 
 Args:
     video: Name or path of the video.
-    times: The instants to show, in seconds, in the order to draw them. At most 24.
+    times: The instants to show, in seconds, in the order to draw them. At most 48. For a dense run
+        at a steady rate, `every(start, end, step)` makes the list.
     labels: A short label to print under each frame, one per time (a rank, a length, a few words).
     purpose: The question this sheet should answer, in a few words. Kept in the log.
+    region: The part of the frame to show, as [left, top, right, bottom] in fractions of its width
+        and height. Leave out for all of it.
 
 Returns:
     {"id", "text"}: the observation's id and the statement of what it shows.
@@ -196,6 +351,59 @@ Example:
 
 ```python
 sheet("interview.mp4", [1, 2.5, 4], labels=["first", "second", "third"], purpose="which one is sharpest?")
+```
+
+## `overview`
+
+```python
+overview(videos: list[str], per: int = 3, purpose: str = '') -> dict
+```
+
+Show several videos on one picture: a few frames of each, in a row, with the video's name under each.
+
+For comparing clips, putting them in order, or matching them to descriptions, at the cost of one
+look where one look per clip would not fit in your context. Frames are spread from each video's
+first frame to its last. Every frame is drawn in the shape of the first video.
+
+Args:
+    videos: Names or paths of the videos, in the order to draw them.
+    per: How many frames of each video: 1 is its middle, 2 its first and last, 3 adds the middle.
+        Videos times frames is at most 48.
+    purpose: The question this picture should answer, in a few words. Kept in the log.
+
+Returns:
+    {"id", "text"}: the observation's id and the statement of what it shows.
+
+Example:
+
+```python
+overview(["interview.mp4"], per=3, purpose="what is in each clip?")
+```
+
+## `seam`
+
+```python
+seam(first: str, second: str, frames: int = 3, purpose: str = '') -> dict
+```
+
+Show how one video would run into another: the last frames of the first beside the first frames of the second.
+
+For judging whether two clips follow each other, or how a cut between them would look, before
+joining anything.
+
+Args:
+    first: Name or path of the video that comes first.
+    second: Name or path of the video that follows it.
+    frames: How many consecutive frames of each to show, from 1 to 6.
+    purpose: The question this picture should answer, in a few words. Kept in the log.
+
+Returns:
+    {"id", "text"}: the observation's id and the statement of what it shows.
+
+Example:
+
+```python
+seam("interview.mp4", "interview.mp4", purpose="would these two join cleanly?")
 ```
 
 ## `observations`
@@ -282,6 +490,20 @@ Example:
 
 ```python
 minus([0, 10], [[2, 3], [5, 12]])
+```
+
+## `every`
+
+```python
+every(start: float, end: float, step: float) -> list[float]
+```
+
+Times from `start` to `end`, `step` seconds apart: the list a sheet wants for a dense run at a steady rate.
+
+Example:
+
+```python
+every(0, 2, 0.25)
 ```
 
 ## `mark`

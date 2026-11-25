@@ -37,23 +37,25 @@ tasks, one run each, a small model: no gain in score. With the first skill the a
 nine runs; with a short card loaded into every run and every operation a command, in nine of nine. The numbers
 are in [Results](./results) and in `bench/avb/results/`.
 
-## What real use has asked for
+## What real use asked for, and got
 
-Each item comes from a run where the agent, or we, left UberSeek and wrote FFmpeg by hand.
+Each item comes from a run where the agent, or we, left UberSeek and wrote FFmpeg by hand. All nine are built.
+None is measured on the benchmark yet.
 
-| Missing | Where it showed |
-| --- | --- |
-| **A per-frame change measure**, over the whole frame and over parts of it | Frozen frames in a Repair task. A six-strip collage that builds in under a second, where `cuts` found nothing because each strip changes a sixth of the frame. A single flash frame seen only by luck |
-| **Looks that follow change, not the clock** | A look at 14 seconds gave 8 frames 2 seconds apart; everything that mattered happened between the first two |
-| **Crop and zoom to a region** | A vertical reel whose picture was the middle third of the frame, and an editor's timeline to read in the lower third |
-| **A dense sheet at a chosen rate, with times printed** | The 15-frames-a-second sheet we built by hand to time the strips |
-| **Sound onsets or beats** | Whether an edit is cut to the music. `pauses` and `loudness` do not say where hits land |
-| **One sheet across many clips, and a view of a join** | Sequencing and Assembly: twelve separate pictures overflowed the agent's context before it had read the last |
-| **A pause measure that works under music** | One silence found in 90 seconds of speech over music, so "put the edge in a pause" had nothing to use |
-| **`clip` keeps the source's size; a clip opens by its name; one argument style** | A clip came out 852 pixels wide from an 854-pixel source; the agent could not look at its own join; five calls lost to `--reason` against `reason=` |
-| **Repeated words** | Finding a stumble: `find` matches words, not a phrase said twice |
+| Asked for | Built as | Where it showed |
+| --- | --- | --- |
+| A per-frame change measure, over the whole frame and parts of it | `change`, `events`, `freezes` | Frozen frames in a Repair task. A six-strip collage that builds in under a second, where `cuts` found nothing. A flash frame seen only by luck |
+| Looks that follow change, not the clock | Focus `change` | A look at 14 seconds gave 8 frames 2 seconds apart; everything that mattered happened between the first two |
+| Crop and zoom to a region | `region` on `observe` and `sheet` | A vertical reel whose picture was the middle third of the frame, and an editor's timeline to read |
+| A dense sheet at a chosen rate, with times printed | `sheet` up to 48 frames, and `every` | The 15-frames-a-second sheet we built by hand to time the strips |
+| Sound onsets or beats | `onsets` | Whether an edit is cut to the music |
+| One sheet across many clips, and a view of a join | `overview`, `seam` | Sequencing and Assembly: twelve separate pictures overflowed the agent's context |
+| A pause measure that works under music | `gaps`, from the transcript | One silence found in 90 seconds of speech over music |
+| `clip` keeps the source's size; a clip opens by its name; one argument style | Fixed | A clip 852 pixels wide from an 854-pixel source; the agent could not look at its own join; five calls lost to `--reason` against `reason=` |
+| Repeated words | `repeats` | Finding a stumble: `find` matches words, not a phrase said twice |
 
-The first item serves the most cases, so it comes first; crop and zoom second.
+Still missing from the same runs: a cut-out of a subject (a person mask), and any measure of whether a cut
+sounds clean.
 
 ## After that
 

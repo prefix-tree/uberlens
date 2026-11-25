@@ -100,7 +100,7 @@ sheet('reel.mp4', times, labels=[f'{s[0]:.1f}-{s[1]:.1f}' for s in ss],
 </div>
 <div>
 <code class="name">sheet</code>
-<p>Up to 24 frames from anywhere in the video on one picture. One look, however many frames.</p>
+<p>Up to 48 frames from anywhere in the video on one picture. One look, however many frames.</p>
 </div>
 <div>
 <code class="name">execute</code>

@@ -41,6 +41,15 @@ EXAMPLES = {
     "expand": "expand([10, 14], before=2, after=3)",
     "merge": "merge([[1, 2], [1.5, 3], [5, 6]], gap=0.5)",
     "minus": "minus([0, 10], [[2, 3], [5, 12]])",
+    "every": "every(0, 2, 0.25)",
+    "gaps": 'gaps("{video}", 0, 5)',
+    "repeats": 'repeats("{video}", 0, 5)',
+    "onsets": 'onsets("{video}", 0, 5)',
+    "change": 'change("{video}", 1, 1.2)',
+    "events": 'events("{video}")',
+    "freezes": 'freezes("{video}")',
+    "overview": 'overview(["{video}"], per=3, purpose="what is in each clip?")',
+    "seam": 'seam("{video}", "{video}", purpose="would these two join cleanly?")',
 }
 
 

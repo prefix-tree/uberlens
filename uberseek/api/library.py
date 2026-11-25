@@ -42,10 +42,12 @@ class Library:
     """The operations, bound to one project and to the videos an agent may use."""
 
     OPERATIONS = (
-        "info", "find", "words", "pauses", "loudness", "cuts", "shots", "observe", "sheet",
-        "observations", "coverage", "expand", "merge", "minus", "mark", "selections", "clip", "verify",
-        "note", "brief", "status", "videos",
+        "info", "find", "words", "gaps", "repeats", "pauses", "loudness", "onsets", "cuts", "shots", "change", "events",
+        "freezes", "observe", "sheet", "overview", "seam", "observations", "coverage", "expand", "merge", "minus", "every",
+        "mark", "selections", "clip", "verify", "note", "brief", "status", "videos",
     )  # fmt: skip
+
+    LOOKS = ("observe", "sheet", "overview", "seam")  # the operations that show a picture
 
     def __init__(self, project: Project, videos: list[Path | str] | None = None):
         self.project = project
@@ -55,11 +57,12 @@ class Library:
     # Sources
 
     def _source(self, video: str) -> Source:
+        made = select.clips_folder(self.project) / Path(video).name
         if self.allowed is None:
-            path = Path(video)
+            path = made if not Path(video).exists() and made.exists() else Path(video)  # a clip is known by its name
         elif Path(video).name in self.allowed:
             path = self.allowed[Path(video).name]
-        elif (made := select.clips_folder(self.project) / Path(video).name).exists():
+        elif made.exists():
             path = made  # a clip cut in this project is a video like any other
         else:
             raise ApiError(f"no video named {video!r}. Available: {', '.join(self.allowed) or 'none'}")
@@ -150,6 +153,56 @@ class Library:
         said = transcript.within(self._transcript(source), low, high)
         return [{"start": _f(a), "end": _f(b), "text": text} for a, b, text in said]
 
+    def gaps(self, video: str, start: float, end: float, shortest: float = 0.15) -> list[list[float]]:
+        """The gaps between words in a span, as [start, end] pairs: where nobody is speaking, by the transcript.
+
+        Unlike `pauses`, this works when music or noise runs under the speech, because it does not need
+        silence. It is an estimate: an edge can be a few tenths of a second off.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds.
+            end: End of the span, in seconds.
+            shortest: The shortest gap to report, in seconds.
+        """
+        said = self.words(video, start, end)
+        return [[a["end"], b["start"]] for a, b in zip(said, said[1:], strict=False) if b["start"] - a["end"] >= shortest]
+
+    def repeats(self, video: str, start: float, end: float) -> list[dict]:
+        """Words or phrases said twice in a row in a span: a stumble, a restart, a repeated take.
+
+        From the transcript, so it finds only what the transcript wrote down; a speech model often leaves
+        out a stutter. Each result gives the span of both sayings, so cutting `first` leaves one.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds.
+            end: End of the span, in seconds.
+
+        Returns:
+            A list of {"text", "first": [start, end], "second": [start, end]}, in time order.
+        """
+        said = self.words(video, start, end)
+        plain = ["".join(c for c in w["text"].lower() if c.isalnum()) for w in said]
+        found, used = [], set()
+        for size in (4, 3, 2, 1):
+            for i in range(len(said) - 2 * size + 1):
+                if (
+                    plain[i : i + size] == plain[i + size : i + 2 * size]
+                    and all(plain[i : i + size])
+                    and not used & set(range(i, i + 2 * size))
+                ):
+                    used |= set(range(i, i + 2 * size))
+                    first, second = said[i : i + size], said[i + size : i + 2 * size]
+                    found.append(
+                        {
+                            "text": " ".join(w["text"].strip() for w in first),
+                            "first": [first[0]["start"], first[-1]["end"]],
+                            "second": [second[0]["start"], second[-1]["end"]],
+                        }
+                    )
+        return sorted(found, key=lambda r: r["first"])
+
     # Measurements
 
     def pauses(self, video: str, start: float | None = None, end: float | None = None) -> list[list[float]]:
@@ -184,6 +237,127 @@ class Library:
         loud = self.project.log.derived(source.hash, "loudness", lambda: signals.loudness(source.path))
         return [[_f(t), float(v)] for t, v in loud["points"] if low <= Fraction(t) <= high]
 
+    def onsets(self, video: str, start: float | None = None, end: float | None = None, rise: float = 10) -> list[float]:
+        """Instants where the sound gets suddenly louder: a hit, a beat, a word after a silence. Measured.
+
+        Use it to see whether cuts follow the music, or to put a cut on a beat.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds. Leave out for the beginning.
+            end: End of the span, in seconds. Leave out for the end of the video.
+            rise: How many decibels louder than the moment before. Lower finds more.
+        """
+        source = self._source(video)
+        if source.info.audio is None:
+            return []
+        low, high = self._window(source, start, end)
+        found = self.project.log.derived(source.hash, "onsets", lambda: signals.onsets(source.path))
+        return [_f(t) for t, by in found["points"] if by >= rise and low <= Fraction(t) <= high]
+
+    def _frames(self, source: Source, start: float | None, end: float | None) -> range:
+        low, high = self._window(source, start, end)
+        return range(max(1, source.index.position(low)), source.index.position(high) + 1)
+
+    def change(self, video: str, start: float, end: float) -> list[list[float]]:
+        """How much each frame in a span differs from the frame before it, as [time, whole, part] triples.
+
+        `whole` is the mean difference over the frame (0 to 255): near zero means the frame repeats the one
+        before. `part` is the largest difference in any one of 24 parts of the frame, so a change in a
+        corner shows there. The first use on a video decodes all of it once.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds.
+            end: End of the span, in seconds.
+        """
+        source = self._source(video)
+        whole, part, _ = self.project.change(source)
+        at = source.index
+        return [[_f(at.time(at.frames[p].pts)), whole[p], part[p]] for p in self._frames(source, start, end)]
+
+    def events(self, video: str, start: float | None = None, end: float | None = None) -> list[dict]:
+        """Instants where the picture changes abruptly, in the whole frame or in part of it. Measured.
+
+        Finds what `cuts` cannot: a picture appearing in one part of the frame, a title popping on, a
+        single flash frame. Each event is the first frame that differs. Ordinary motion is not an event.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds. Leave out for the beginning.
+            end: End of the span, in seconds. Leave out for the end of the video.
+
+        Returns:
+            A list of {"time", "frame", "amount", "area", "where", "kind"}. `area` is the share of the frame
+            that changed, `where` its [left, top, right, bottom] as fractions of the frame (usable as a
+            region), and `kind` is "whole", "part", or "flash" for one frame unlike both its neighbours.
+        """
+        source = self._source(video)
+        _, part, grid = self.project.change(source)
+        rows, columns, at = signals.CHANGE["rows"], signals.CHANGE["columns"], source.index
+        found: list[dict] = []
+        for p in self._frames(source, start, end):
+            near = sorted(part[max(0, p - 15) : p] + part[p + 1 : p + 16])
+            usual = near[len(near) * 3 // 4] if near else 0  # the upper quartile: repeated frames pull a median to zero
+            if part[p] < max(2 * signals.EVENT, 4 * usual + 4):  # twice what counts as changed, and well above what is usual here
+                continue
+            if found and found[-1]["frame"] == p - 1:
+                found[-1]["kind"] = "flash"  # it differed from the frame before, and this one differs from it
+                continue
+            cells = [i for i, v in enumerate(grid[p]) if v >= max(signals.EVENT, part[p] // 3)]
+            across, down = [i % columns for i in cells], [i // columns for i in cells]
+            where = [min(across) / columns, min(down) / rows, (max(across) + 1) / columns, (max(down) + 1) / rows]
+            area = len(cells) / (rows * columns)
+            found.append(
+                {
+                    "time": _f(at.time(at.frames[p].pts)),
+                    "frame": p,
+                    "amount": part[p],
+                    "area": round(area, 2),
+                    "where": [round(v, 3) for v in where],
+                    "kind": "whole" if area >= 0.6 else "part",
+                }
+            )
+        return found
+
+    def freezes(self, video: str, start: float | None = None, end: float | None = None, shortest: int = 3) -> list[dict]:
+        """Stretches where the picture stops: each frame repeats the one before it. Measured.
+
+        For a stuck or duplicated stretch, or a still. To remove the repeats and keep one frame, cut from
+        `start` to `end`: the frame before `start` is the one that was held.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds. Leave out for the beginning.
+            end: End of the span, in seconds. Leave out for the end of the video.
+            shortest: The fewest repeated frames in a row that count. Footage at a lower frame rate than its
+                file repeats single frames all the time; three in a row is a stop.
+
+        Returns:
+            A list of {"start", "end", "first_frame", "frames"}: the time of the first repeated frame, the
+            time of the first frame that moves again, the first repeated frame's number counted from 0, and
+            how many frames repeat.
+        """
+        source = self._source(video)
+        whole, _, _ = self.project.change(source)
+        at, found = source.index, []
+        frames = list(self._frames(source, start, end))
+        still = [whole[p] < signals.STILL for p in frames]
+        for i in range(1, len(frames) - 1):  # one noisy frame between two that repeat does not end a stop
+            if not still[i] and whole[frames[i]] < signals.NEARLY and still[i - 1] and whole[frames[i + 1]] < signals.STILL:
+                still[i] = True
+        run: list[int] = []
+        for p, stopped in [*zip(frames, still, strict=True), (None, False)]:
+            if stopped:
+                run.append(p)
+                continue
+            if len(run) >= shortest:
+                after = run[-1] + 1
+                ends = at.time(at.frames[after].pts) if after < len(at.frames) else max(source.info.duration, at.end)
+                found.append({"start": _f(at.time(at.frames[run[0]].pts)), "end": _f(ends), "first_frame": run[0], "frames": len(run)})
+            run = []
+        return found
+
     def cuts(self, video: str, start: float | None = None, end: float | None = None) -> list[float]:
         """Times where the picture cuts to a new shot, measured. The first use on a video scans all of it.
 
@@ -212,7 +386,15 @@ class Library:
 
     # Looking
 
-    def observe(self, video: str, start: float, end: float | None = None, focus: str = "visual", purpose: str = "") -> dict:
+    def observe(
+        self,
+        video: str,
+        start: float,
+        end: float | None = None,
+        focus: str = "visual",
+        purpose: str = "",
+        region: list[float] | None = None,
+    ) -> dict:
         """Look at a span. The picture is shown to you after the program ends; a program cannot see it.
 
         You choose the span and the focus; how many frames and how large is chosen for you.
@@ -222,21 +404,26 @@ class Library:
             start: Start of the span, in seconds.
             end: End of the span. Leave out to see the single frame showing at `start`.
             focus: visual (what is in the picture), motion (dense frames), speech or delivery (sound and
-                pauses, a few frames), boundary (frames and sound right around one instant).
+                pauses, a few frames), boundary (frames and sound right around one instant), change (the
+                frames where the picture changes most, each with the frame before it).
             purpose: The question this look should answer, in a few words. Kept in the log.
+            region: The part of the frame to show, as [left, top, right, bottom] in fractions of its width
+                and height: [0, 0.5, 1, 1] is the lower half. The part is shown larger. Leave out for all of it.
 
         Returns:
             {"id", "text"}: the observation's id and the statement of what it shows.
         """
         source = self._source(video)
         try:
-            seen = self.project.observe(source.path, start, end, focus, purpose)
+            seen = self.project.observe(source.path, start, end, focus, purpose, region)
         except (MediaError, ValueError) as error:
             raise ApiError(str(error)) from error
         self.looks.append(seen)
         return {"id": seen.id, "text": seen.text}
 
-    def sheet(self, video: str, times: list[float], labels: list[str] | None = None, purpose: str = "") -> dict:
+    def sheet(
+        self, video: str, times: list[float], labels: list[str] | None = None, purpose: str = "", region: list[float] | None = None
+    ) -> dict:
         """Show frames from anywhere in a video as one picture, like a plot: one frame per time you give.
 
         Use it to scan or compare many places at the cost of one look: one frame per shot, one per
@@ -245,20 +432,88 @@ class Library:
 
         Args:
             video: Name or path of the video.
-            times: The instants to show, in seconds, in the order to draw them. At most 24.
+            times: The instants to show, in seconds, in the order to draw them. At most 48. For a dense run
+                at a steady rate, `every(start, end, step)` makes the list.
             labels: A short label to print under each frame, one per time (a rank, a length, a few words).
             purpose: The question this sheet should answer, in a few words. Kept in the log.
+            region: The part of the frame to show, as [left, top, right, bottom] in fractions of its width
+                and height. Leave out for all of it.
 
         Returns:
             {"id", "text"}: the observation's id and the statement of what it shows.
         """
         source = self._source(video)
         try:
-            seen = self.project.sheet(source.path, times, labels, purpose)
+            seen = self.project.sheet(source.path, times, labels, purpose, region)
         except (MediaError, ValueError) as error:
             raise ApiError(str(error)) from error
         self.looks.append(seen)
         return {"id": seen.id, "text": seen.text}
+
+    def _board(self, items: list[tuple], columns: int, title: str, purpose: str) -> dict:
+        try:
+            seen = self.project.board(items, columns, title, purpose)
+        except (MediaError, ValueError) as error:
+            raise ApiError(str(error)) from error
+        self.looks.append(seen)
+        return {"id": seen.id, "text": seen.text}
+
+    def overview(self, videos: list[str], per: int = 3, purpose: str = "") -> dict:
+        """Show several videos on one picture: a few frames of each, in a row, with the video's name under each.
+
+        For comparing clips, putting them in order, or matching them to descriptions, at the cost of one
+        look where one look per clip would not fit in your context. Frames are spread from each video's
+        first frame to its last. Every frame is drawn in the shape of the first video.
+
+        Args:
+            videos: Names or paths of the videos, in the order to draw them.
+            per: How many frames of each video: 1 is its middle, 2 its first and last, 3 adds the middle.
+                Videos times frames is at most 48.
+            purpose: The question this picture should answer, in a few words. Kept in the log.
+
+        Returns:
+            {"id", "text"}: the observation's id and the statement of what it shows.
+        """
+        if not videos or per < 1:
+            raise ApiError("overview needs at least one video and at least one frame of each")
+        items = []
+        for video in videos:
+            source = self._source(video)
+            last, at = len(source.index.frames) - 1, source.index
+            spots = [last // 2] if per == 1 else [round(k * last / (per - 1)) for k in range(per)]
+            items += [(source.path, at.time(at.frames[p].pts), f"{source.path.name} · {k}/{per}") for k, p in enumerate(spots, 1)]
+        shape = self._source(videos[0]).info.video
+        beside = max(1, round((len(items) * shape.height / shape.width * 4 / 3) ** 0.5 / per))  # videos side by side in a row
+        return self._board(
+            items, beside * per, f"{len(videos)} videos · {per} frame{'s' if per > 1 else ''} of each, first to last", purpose
+        )
+
+    def seam(self, first: str, second: str, frames: int = 3, purpose: str = "") -> dict:
+        """Show how one video would run into another: the last frames of the first beside the first frames of the second.
+
+        For judging whether two clips follow each other, or how a cut between them would look, before
+        joining anything.
+
+        Args:
+            first: Name or path of the video that comes first.
+            second: Name or path of the video that follows it.
+            frames: How many consecutive frames of each to show, from 1 to 6.
+            purpose: The question this picture should answer, in a few words. Kept in the log.
+
+        Returns:
+            {"id", "text"}: the observation's id and the statement of what it shows.
+        """
+        if not 1 <= frames <= 6:
+            raise ApiError("seam shows from 1 to 6 frames of each video")
+        a, b = self._source(first), self._source(second)
+        items = []
+        for back in range(min(frames, len(a.index.frames)) - 1, -1, -1):
+            pts = a.index.frames[len(a.index.frames) - 1 - back].pts
+            items.append((a.path, a.index.time(pts), f"{a.path.name} · {'last' if back == 0 else str(back) + ' before last'}"))
+        for ahead in range(min(frames, len(b.index.frames))):
+            label = f"{b.path.name} · {'first' if ahead == 0 else str(ahead) + ' after first'}"
+            items.append((b.path, b.index.time(b.index.frames[ahead].pts), label))
+        return self._board(items, len(items), f"{a.path.name} then {b.path.name} · the frames on each side of the join", purpose)
 
     # Memory
 
@@ -457,6 +712,7 @@ class Library:
     expand = staticmethod(spans.expand)
     merge = staticmethod(spans.merge)
     minus = staticmethod(spans.minus)
+    every = staticmethod(spans.every)
 
     def reference(self) -> str:
         """The operations with their signatures, what each does and what it returns, generated from this class."""

@@ -102,8 +102,8 @@ def test_a_sheet_shows_the_frames_picked_and_covers_nothing_between_them(clips, 
     covered = library.coverage("bframes.mp4", 0, 5)
     assert covered["sheets"] == [{"id": "obs_000001", "times": [0.5, 2.0, 4.0]}]
     assert covered["looked"] == [] and covered["never"] == [[0, 5]]  # separate instants close no gap
-    with pytest.raises(ApiError, match="at most 24 frames"):
-        library.sheet("bframes.mp4", [i / 10 for i in range(25)])
+    with pytest.raises(ApiError, match="at most 48 frames"):
+        library.sheet("bframes.mp4", [i / 10 for i in range(49)])
     with pytest.raises(ApiError, match="2 labels were given for 3 times"):
         library.sheet("bframes.mp4", [1, 2, 3], labels=["a", "b"])
     with pytest.raises(ApiError, match="at least one time"):
