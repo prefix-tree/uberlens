@@ -11,12 +11,14 @@ dependencies = ["pillow>=10.1"]
 pydantic-ai = ["pydantic-ai-slim>=2.71"]
 sandbox = ["pydantic-monty>=1.6"]
 transcript = ["faster-whisper>=1.1"]
+# The lab (uberseek/lab): beats, sounds and the measuring half of the matting tools.
+lab = ["numpy>=1.26"]
 
 [project.scripts]
 uberseek = "uberseek.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.8", "pydantic-ai-slim[anthropic,openai]>=2.71", "pydantic-monty>=1.6", "faster-whisper>=1.1"]
+dev = ["pytest>=8", "ruff>=0.8", "pydantic-ai-slim[anthropic,openai]>=2.71", "pydantic-monty>=1.6", "faster-whisper>=1.1", "numpy>=1.26"]
 
 [build-system]
 requires = ["hatchling"]

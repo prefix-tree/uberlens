@@ -1721,6 +1721,10 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+lab = [
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
 pydantic-ai = [
     { name = "pydantic-ai-slim" },
 ]
@@ -1734,6 +1738,8 @@ transcript = [
 [package.dev-dependencies]
 dev = [
     { name = "faster-whisper" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pydantic-ai-slim", extra = ["anthropic", "openai"] },
     { name = "pydantic-monty" },
     { name = "pytest" },
@@ -1743,15 +1749,17 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "faster-whisper", marker = "extra == 'transcript'", specifier = ">=1.1" },
+    { name = "numpy", marker = "extra == 'lab'", specifier = ">=1.26" },
     { name = "pillow", specifier = ">=10.1" },
     { name = "pydantic-ai-slim", marker = "extra == 'pydantic-ai'", specifier = ">=2.71" },
     { name = "pydantic-monty", marker = "extra == 'sandbox'", specifier = ">=1.6" },
 ]
-provides-extras = ["pydantic-ai", "sandbox", "transcript"]
+provides-extras = ["pydantic-ai", "sandbox", "transcript", "lab"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "faster-whisper", specifier = ">=1.1" },
+    { name = "numpy", specifier = ">=1.26" },
     { name = "pydantic-ai-slim", extras = ["anthropic", "openai"], specifier = ">=2.71" },
     { name = "pydantic-monty", specifier = ">=1.6" },
     { name = "pytest", specifier = ">=8" },
