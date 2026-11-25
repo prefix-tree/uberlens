@@ -1,7 +1,7 @@
 # Roadmap
 
 Where the project stands, what comes next, and what it is aiming at. The reasoning behind each step is in the
-[design](./design).
+[design](./design). The next pieces of work, each with how we will know it is done, are in the [backlog](./backlog).
 
 ## Milestones
 

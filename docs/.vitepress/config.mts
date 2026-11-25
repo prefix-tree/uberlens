@@ -43,6 +43,7 @@ export default defineConfig({
       { text: "Results", link: "/results", activeMatch: "^/results" },
       { text: "Blog", link: "/blog/", activeMatch: "^/blog" },
       { text: "Roadmap", link: "/roadmap", activeMatch: "^/roadmap" },
+      { text: "Backlog", link: "/backlog", activeMatch: "^/backlog" },
     ],
     sidebar: {
       "/blog/": [],
@@ -61,6 +62,7 @@ export default defineConfig({
             { text: "Design", link: "/design" },
             { text: "Results", link: "/results" },
             { text: "Roadmap", link: "/roadmap" },
+            { text: "Backlog", link: "/backlog" },
             { text: "Blog", link: "/blog/" },
           ],
         },
