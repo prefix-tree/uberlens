@@ -52,6 +52,13 @@ def clips(tmp_path_factory) -> dict[str, Path]:
     # Eighty seconds in ten shots of eight seconds, small and at five frames a second so it is quick to make.
     parts = [f"{'smptebars' if i % 2 else 'testsrc'}=size=160x90:rate=5:duration=8" for i in range(10)]
     clips["ten_shots"] = make(d / "ten_shots.mp4", *lavfi(parts), "-filter_complex", "concat=n=10:v=1:a=0", *h264, "-g", "10")
+    # A moving picture with a white flash frame at frame 45 (1.5 s), then frame 80 held for a second.
+    held = r"drawbox=c=white:t=fill:enable='eq(n\,45)',loop=loop=30:size=1:start=80"
+    clips["flash_freeze"] = make(d / "flash_freeze.mp4", *video[:-1], PATTERN.replace("duration=5", "duration=4"), "-vf", held, *h264)
+    # A collage that builds in 0.7 s: six grey strips appear on a dark ground, left to right, one every 4 frames from 1 s.
+    strips = ",".join(f"drawbox=x={round(k * 320 / 6)}:y=0:w=54:h=180:c=0xa0a0a0:t=fill:enable='gte(n,{30 + 4 * k})'" for k in range(6))
+    ground = ["-f", "lavfi", "-i", "color=c=0x202020:size=320x180:rate=30:duration=3"]
+    clips["strips"] = make(d / "strips.mp4", *ground, "-vf", strips, *h264)
     # Twelve minutes, one shot.
     clips["long"] = make(d / "long.mp4", "-f", "lavfi", "-i", "testsrc=size=160x90:rate=2:duration=720", *h264, "-g", "20")
     return clips

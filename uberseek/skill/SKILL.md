@@ -1,12 +1,14 @@
 ---
 name: uberseek
-description: Explore video with UberSeek - find where something is said or shown, look at any span as one picture of numbered frames with the sound drawn under it, measure pauses, loudness and cuts, and choose exact in and out points. Use this skill whenever a task needs you to look inside a video file - locating a moment, checking what happens at a time, comparing takes, picking a clip or a cut point, answering a question about footage, or reviewing an edit - even if the user only says "find the part where", "what happens at 2:30", "pull the best quote" or names an .mp4, .mov or .mkv file.
+description: Measure and look inside video files with UberSeek - see any span of a video as one labelled picture of numbered frames with the sound drawn under it, find where something is said, get exact times of words, pauses, cuts and shots, find flash frames, frozen frames and parts of the picture that change on their own, compare clips, check a cut point or a join, and cut chosen spans into a frame-exact file. Use this skill whenever a task involves a video file (.mp4, .mov, .mkv) and you need to know what is in it, where something happens, how clips differ or follow each other, where to cut, or whether an edit came out right - before writing FFmpeg or frame-extraction code by hand, even if the user only says "find the part where", "put these clips in order", "which clip matches", "cut out the bit where" or "check the result".
 ---
 
-# UberSeek: exploring video
+# UberSeek: a scripting environment for video
 
-A video is far larger than what your next decision needs. UberSeek lets you narrow it down with code and
-look only where a judgment needs eyes. It works like a shell for video:
+A video is far larger than what your next decision needs. UberSeek measures the picture and the sound exactly,
+lets you narrow things down with code, and shows you only the places that need eyes, each as one labelled
+picture. Use it for any job on video: finding a moment, comparing clips, choosing a cut point, removing or
+keeping spans, checking an edit. It works like a shell for video:
 
 | You want to | Use | Like |
 | --- | --- | --- |
@@ -17,7 +19,8 @@ look only where a judgment needs eyes. It works like a shell for video:
 | Keep track of the task | `brief`, `note`, `status`, `videos` | a notebook |
 | Combine searches, measurements and looks | a program (`execute`, or `uberseek run`) | a shell script |
 
-Measurements are the exact part: `words`, `pauses`, `loudness`, `cuts`, `shots`. Memory is kept for you:
+Measurements are the exact part: `words`, `pauses`, `loudness`, `cuts`, `shots`, and for change in the picture
+`change`, `flashes`, `freezes`, `part_changes`. Memory is kept for you:
 every look is logged, and `observations` and `coverage` read the log.
 
 ## What a program can do
@@ -31,8 +34,8 @@ There are four kinds of step. A program strings them together.
 
 | Step | Functions | Gives |
 | --- | --- | --- |
-| **Propose** places to consider | `find` (what is said), `shots` and `cuts` (structure), `pauses` (silences), `coverage` (not yet seen) | Spans |
-| **Measure** a span | `words`, `pauses`, `loudness`, `shots`, `cuts` over that span | Values to compare |
+| **Propose** places to consider | `find` (what is said), `shots` and `cuts` (structure), `flashes`, `freezes` and `part_changes` (what cuts miss), `pauses` (silences), `coverage` (not yet seen) | Spans |
+| **Measure** a span | `words`, `pauses`, `loudness`, `shots`, `cuts`, `change` (frame by frame) over that span | Values to compare |
 | **Reshape** a set of spans | `expand`, `merge`, `minus`, and Python's own `sorted`, slicing, `if` | Fewer or better spans |
 | **Look** | `observe` (one span, closely), `sheet` (many instants, one picture) | Pictures, after the program ends |
 
@@ -89,6 +92,17 @@ found = shots("reel.mp4")[:24]
 sheet("reel.mp4", [(s[0] + s[1]) / 2 for s in found], labels=[str(s[0]) + " to " + str(s[1]) for s in found],
       purpose="which shot shows the telescope?")
 len(found)
+```
+
+**When cuts find nothing.** A flash frame, a held frame or a collage that builds strip by strip changes too
+little of the picture, or too briefly, to be a cut. Ask for those, and put what they find on one sheet.
+
+```python
+found = {"flashes": flashes("reel.mp4"), "held": freezes("reel.mp4"), "parts": part_changes("reel.mp4")}
+times = sorted([f[0] for f in found["flashes"]] + [p["start"] for p in found["parts"]])[:24]
+if times:
+    sheet("reel.mp4", times, purpose="what changes at each of these?")
+{"flashes": found["flashes"][:6], "held": found["held"][:6], "parts": found["parts"][:6]}
 ```
 
 **Go wide, then narrow, across programs.** A program cannot see, so it cannot decide from a picture. Let one
@@ -229,7 +243,7 @@ For more, call `guide(topic)`:
 <!-- shell -->
 ## Using it from a shell
 
-Everything is one command, `uberseek` (run it with `uv run uberseek` inside the project). State is kept
+Everything is one command, `uberseek`. Run it in the folder that holds the videos. State is kept
 in `.uberseek/` in the current folder. Times are seconds, or `H:MM:SS.mmm`.
 
 ```sh
@@ -240,7 +254,8 @@ uberseek run program.py --video interview.mp4           # a program; prints its 
 uberseek guide recipes                                  # print a reference file
 ```
 
-`observe` and `run` print the path of each picture. Open that file to see it: the text alone is not the
+Every operation above is also a command, with its arguments in order: `uberseek pauses interview.mp4 500 520`,
+`uberseek sheet interview.mp4 '[5, 20, 61.5]'`, `uberseek videos`. `observe`, `sheet` and `run` print the path of each picture. Open that file to see it: the text alone is not the
 look. A program is plain Python like the ones above: call the functions directly, without `await` or
 imports, and end with the value to return.
 
@@ -254,3 +269,4 @@ For more, read these files next to this one (or `uberseek guide <topic>`):
 | `programs` | A program failed, or you are unsure what Python is allowed |
 | `recipes` | You want a worked program for a common job: a spoken moment, a picture, a cut point |
 | `limits` | You wonder whether UberSeek can do something at all |
+| `card` | You want the short version: one line per job, as shell commands |

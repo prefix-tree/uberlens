@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from fractions import Fraction
 from pathlib import Path
@@ -15,9 +16,38 @@ from uberseek.observe.plan import FOCUSES
 from uberseek.state import working
 from uberseek.timecode import clock, seconds
 
+VIDEO = {".mp4", ".mov", ".mkv", ".webm", ".m4v", ".avi", ".ts", ".mxf"}
+COMMANDS = ("observe", "reproduce", "transcript", "find", "run", "guide", "skill", "mark", "selections", "clip", "verify")
+COMMANDS += ("export", "note", "brief", "status", "log")
+PLAIN = tuple(name for name in Library.OPERATIONS if name not in COMMANDS)  # operations with no command written for them
+
+
+def here() -> list[Path]:
+    """The video files in the current folder: what a program or `videos` may use when none is named."""
+    return sorted(path for path in Path.cwd().iterdir() if path.suffix.lower() in VIDEO)
+
+
+def value(text: str):
+    """One argument of an operation given on the command line: a number, a JSON list, a clock time or a word."""
+    try:
+        return json.loads(text)
+    except ValueError:
+        return float(seconds(text)) if re.fullmatch(r"\d+(:\d+)+(\.\d+)?", text) else text
+
+
+def plain(project: Project, name: str, given: list[str]) -> int:
+    """Run one operation as written: `uberseek pauses talk.mp4 50 60`, `uberseek find talk.mp4 moon limit=3`."""
+    named = {a.split("=", 1)[0]: value(a.split("=", 1)[1]) for a in given if re.match(r"[a-z_]+=", a)}
+    library = Library(project, here()) if name == "videos" else Library(project)
+    result = getattr(library, name)(*[value(a) for a in given if not re.match(r"[a-z_]+=", a)], **named)
+    print(result["text"] if name == "sheet" else result if isinstance(result, str) else json.dumps(result))
+    for seen in library.looks:
+        print(f"Picture: {(project.log.root / 'artifacts' / (seen.record['artifact']['sha256'] + '.png')).resolve()}")
+    return 0
+
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="uberseek", description="Explore video: observe a span, and prove it can be made again.")
+    parser = argparse.ArgumentParser(prog="uberseek", description="Measure and look inside video files. `uberseek guide` explains it.")
     parser.add_argument("--project", default=".", help="folder that holds the log (default: here)")
     commands = parser.add_subparsers(dest="command", required=True)
 
@@ -42,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
 
     run = commands.add_parser("run", help="run a program against the library; prints its result and its pictures")
     run.add_argument("program", help="a file with the program, or - for standard input")
-    run.add_argument("--video", action="append", help="a video the program may use, by name (repeat for more)")
+    run.add_argument("--video", action="append", help="a video the program may use (repeat for more; default: those in this folder)")
 
     read = commands.add_parser("guide", help="print the UberSeek skill, or one part of it")
     read.add_argument("topic", nargs="?", choices=guide.TOPICS)
@@ -81,6 +111,12 @@ def main(argv: list[str] | None = None) -> int:
     log = commands.add_parser("log", help="list observations")
     log.add_argument("--json", action="store_true")
 
+    for name in PLAIN:
+        doc = (getattr(Library, name).__doc__ or "").strip().splitlines()[0]
+        commands.add_parser(name, help=doc).add_argument(
+            "given", nargs="*", help="the operation's arguments, in order; name=value for a named one"
+        )
+
     args = parser.parse_args(argv)
     if args.command == "guide":
         print(guide.topic(args.topic) if args.topic else guide.core("shell"))
@@ -104,7 +140,7 @@ def main(argv: list[str] | None = None) -> int:
             from uberseek.exec import Executor
 
             program = sys.stdin.read() if args.program == "-" else Path(args.program).read_text()
-            done = Executor(project, args.video).run_sync(program)
+            done = Executor(project, args.video or here()).run_sync(program)
             print(done.text)
             for seen in done.looks:
                 print(f"Picture: {project.log.root / 'artifacts' / (seen.record['artifact']['sha256'] + '.png')}")
@@ -142,10 +178,12 @@ def main(argv: list[str] | None = None) -> int:
                 failed += not again.exact
                 print(f"{id}: {'exact' if again.exact else 'DIFFERS: ' + '; '.join(again.notes)}")
             return 1 if failed else 0
+        elif args.command in PLAIN:
+            return plain(project, args.command, args.given)
         else:
             for record in project.log.observations():
                 print(json.dumps(record) if args.json else project.show(record["id"]).text.splitlines()[0])
-    except (MediaError, ApiError, KeyError, ValueError, FileNotFoundError) as error:
+    except (MediaError, ApiError, KeyError, ValueError, TypeError, FileNotFoundError) as error:
         print(f"uberseek: {error}", file=sys.stderr)
         return 2
     return 0

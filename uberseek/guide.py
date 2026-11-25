@@ -15,7 +15,7 @@ from pathlib import Path
 from uberseek.api.library import Library, signature
 
 SKILL = Path(__file__).parent / "skill"
-TOPICS = ("operations", "looking", "programs", "recipes", "limits")
+TOPICS = ("operations", "looking", "programs", "recipes", "limits", "card")
 
 # One call of each operation, as it would be written in a program.
 EXAMPLES = {
@@ -26,6 +26,10 @@ EXAMPLES = {
     "loudness": 'loudness("{video}", 0, 2)',
     "cuts": 'cuts("{video}")',
     "shots": 'shots("{video}", 0, 5)',
+    "change": 'change("{video}", 1, 2)',
+    "flashes": 'flashes("{video}")',
+    "freezes": 'freezes("{video}", shortest=0.5)',
+    "part_changes": 'part_changes("{video}", 0, 5)',
     "observe": 'observe("{video}", 1, 4, "delivery", "where does the line start?")',
     "sheet": 'sheet("{video}", [1, 2.5, 4], labels=["first", "second", "third"], purpose="which one is sharpest?")',
     "observations": 'observations("{video}", focus="delivery")',

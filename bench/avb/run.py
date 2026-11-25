@@ -1,4 +1,4 @@
-"""Run AgenticVBench Repair tasks with and without UberSeek: `uv run python -m bench.avb.run --tasks <id> ...`.
+"""Run AgenticVBench tasks with and without UberSeek: `uv run python -m bench.avb.run --tasks <id> ...`.
 
 Each run happens in a container that repeats the task's environment: the same base image, FFmpeg, CPU and
 memory limits, and clock. The agent is OpenCode. The score comes from the task's own verifier, which fetches
@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -61,12 +62,31 @@ def build(target: str) -> str:
     return tag
 
 
-def materials(task: dict, name: str) -> Path:
-    """The task's zip, fetched once. It holds input/ for the agent and golden/ for the verifier."""
+def find_task(benchmark: Path, name: str) -> Path:
+    """A task's folder, in whichever family holds it."""
+    found = sorted((benchmark / "tasks").glob(f"agentic_vbench_*/{name}/task.toml"))
+    if not found:
+        raise SystemExit(f"no task named {name} in {benchmark / 'tasks'}")
+    return found[0].parent
+
+
+def materials_url(folder: Path, task: dict) -> str:
+    """Where the task's zip is: the verifier's setting where there is one, else the image's build argument."""
+    url = task["steps"][0].get("verifier", {}).get("env", {}).get("MATERIALS_URL")
+    if url:
+        return url
+    found = re.search(r"^ARG MATERIALS_URL=(\S+)", (folder / "environment" / "Dockerfile").read_text(), re.M)
+    if not found:
+        raise SystemExit(f"{folder.name}: no MATERIALS_URL")
+    return found.group(1)
+
+
+def materials(folder: Path, task: dict) -> Path:
+    """The task's zip, fetched once. A Repair zip holds input/ for the agent and golden/ for the verifier."""
     CACHE.mkdir(parents=True, exist_ok=True)
-    path = CACHE / f"{name}.zip"
+    path = CACHE / f"{folder.parent.name}.{folder.name}.zip"
     if not path.exists():
-        url = task["steps"][0]["verifier"]["env"]["MATERIALS_URL"]
+        url = materials_url(folder, task)
         request = urllib.request.Request(url, headers={"User-Agent": "uberseek-bench/0.1"})
         with urllib.request.urlopen(request, timeout=120) as reply, path.open("wb") as out:
             shutil.copyfileobj(reply, out)
@@ -74,7 +94,7 @@ def materials(task: dict, name: str) -> Path:
 
 
 def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) -> dict:
-    folder = benchmark / "tasks" / "agentic_vbench_repair" / name
+    folder = find_task(benchmark, name)
     task = tomllib.loads((folder / "task.toml").read_text())
     limits, step = task["environment"], task["steps"][0]
     timeout = int(step["agent"]["timeout_sec"])
@@ -82,10 +102,14 @@ def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) 
     for sub in ("workspace/materials", "workspace/output", "workspace/work", "logs", "tests"):
         (work / sub).mkdir(parents=True)
 
-    with zipfile.ZipFile(materials(task, name)) as archive:  # only input/ is given to the agent
-        for member in archive.namelist():
-            if member.startswith("input/") and not member.endswith("/"):
-                target = work / "workspace" / "materials" / member.removeprefix("input/")
+    with zipfile.ZipFile(materials(folder, task)) as archive:
+        names = [member for member in archive.namelist() if not member.endswith("/")]
+        split = any(member.startswith("input/") for member in names)  # then only input/ is given to the agent
+        for member in names:
+            if not split or member.startswith("input/"):
+                target = (work / "workspace" / "materials" / member.removeprefix("input/")).resolve()
+                if not target.is_relative_to(work):
+                    raise SystemExit(f"{folder.name}: the zip has a path outside the folder: {member}")
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(archive.read(member))
     (work / "instruction.md").write_text((folder / "steps" / "solve" / "instruction.md").read_text())
@@ -112,9 +136,9 @@ def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) 
 
     # The verifier: the task's own test.sh, which fetches the answer itself, after the agent is gone.
     shutil.copytree(folder / "steps" / "solve" / "tests", work / "tests", dirs_exist_ok=True)
-    url = step["verifier"]["env"]["MATERIALS_URL"]
+    secret = [arg for key, value in step["verifier"].get("env", {}).items() for arg in ("-e", f"{key}={value}")]
     sh(
-        "docker", "run", "--rm", *common, *env, *mounts, "-v", f"{work / 'tests'}:/tests", "-e", f"MATERIALS_URL={url}",
+        "docker", "run", "--rm", *common, *env, *mounts, "-v", f"{work / 'tests'}:/tests", *secret,
         "avb-native", "bash", "/tests/test.sh",
         timeout=int(step["verifier"]["timeout_sec"]),
     )  # fmt: skip
@@ -145,7 +169,7 @@ def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--benchmark", default="/home/user/philolabs/agentic-vbench", help="a checkout of PhiloLabs/agentic-vbench")
-    parser.add_argument("--tasks", nargs="+", required=True, help="Repair task ids, like exp-content-cut-wsj-task01")
+    parser.add_argument("--tasks", nargs="+", required=True, help="task ids of any family, like exp-content-cut-wsj-task01")
     parser.add_argument("--conditions", nargs="+", default=list(CONDITIONS), choices=(*CONDITIONS, ORACLE))
     parser.add_argument("--model", default=MODEL, help="an OpenCode model id")
     parser.add_argument("--no-build", action="store_true", help="use the images already built")

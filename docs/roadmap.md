@@ -17,30 +17,43 @@ Built ahead of plan, in their smallest form: cutting and checking a clip, and co
 
 ## The target: AgenticVBench
 
-[AgenticVBench](https://github.com/PhiloLabs/agentic-vbench) is a benchmark of 100 video-editing tasks for
+[AgenticVBench](https://github.com/PhiloLabs/agentic-vbench) is a benchmark of 100 post-production tasks for
 coding agents, built with industry editors. An agent gets source media, a brief and 30 minutes, edits with its
 own shell and FFmpeg, and is scored on the file it delivers.
 
-| Category | Tasks | What it needs | How UberSeek fits |
+| Category | Tasks | What decides it | How UberSeek fits |
 | --- | --- | --- | --- |
-| Repurpose | 36 | Find the right moments in sources of minutes to hours, and cut them | The closest fit: locating, selecting and working within a budget |
-| Repair | 18 | Find the damaged stretch, then fix it | Half a fit: it helps find the stretch, not repair it |
-| Assembly and Sequencing | 46 | Match and order shots by what they show | Needs comparing pictures; there is no search by picture yet |
+| Repurpose | 36 | Choosing the right moments from a long source, cuts that do not land mid-word, a vertical reframe, a title card, music under speech. Mostly judged by models | Finding and choosing moments, and checking the result. The build needs more than hard cuts: that is [UberScene](https://uberscene.prefixtree.xyz/)'s part |
+| Sequencing | 28 | Seeing 7 to 13 clips and judging which follows which | Looking across many clips at once, which no operation does yet |
+| Assembly | 18 | Judging 12 clips for shot size, angle and camera movement | The same |
+| Repair | 18 | Seven tasks need a place found exactly; six need picture restoration; five are sound only | The seven locating tasks |
 
-Why this benchmark: its own failure analysis points at what UberSeek is for. 83% of failed Repurpose runs
-spent their time transcribing or thumbnailing whole sources and never assembled a cut, and 65% of failed
-Repair runs picked the wrong stretch of time.
+A fifth family, Understanding (25 tasks on videos of 10 minutes to 5 hours, scored by code), is the closest to
+what UberSeek is for. The strongest agents score under 0.1 on it after hours of work, so it is a long-term
+target, not a first measurement.
 
-**Nothing has been run on it yet.** What it takes:
+**First pilots are run**, in our own runner, not Harbor, so nothing here compares with published scores. Nine
+tasks, one run each, a small model: no gain in score. With the first skill the agent used UberSeek in four of
+nine runs; with a short card loaded into every run and every operation a command, in nine of nine. The numbers
+are in [Results](./results) and in `bench/avb/results/`.
 
-1. **An adapter.** The benchmark runs agents through Harbor and has no supported way to add a tool. The route
-   is a custom agent that installs UberSeek and its skill before the clock starts, leaving the tasks untouched.
-2. **Preparation inside the clock.** The rules do not address preparing data beforehand, and the benchmark's
-   own ablations show that handing an agent notes lifts scores. So everything UberSeek prepares must happen
-   inside the 30 minutes: transcribe a span, not a three-hour source.
-3. **State that survives.** The coding agent's host shortens its context. The brief and the notes live in a
-   working file the agent re-reads.
-4. **A first comparison.** The same agent and model with and without UberSeek, on the Repurpose tasks.
+## What real use has asked for
+
+Each item comes from a run where the agent, or we, left UberSeek and wrote FFmpeg by hand.
+
+| Missing | Where it showed |
+| --- | --- |
+| **A per-frame change measure**, over the whole frame and over parts of it | Frozen frames in a Repair task. A six-strip collage that builds in under a second, where `cuts` found nothing because each strip changes a sixth of the frame. A single flash frame seen only by luck |
+| **Looks that follow change, not the clock** | A look at 14 seconds gave 8 frames 2 seconds apart; everything that mattered happened between the first two |
+| **Crop and zoom to a region** | A vertical reel whose picture was the middle third of the frame, and an editor's timeline to read in the lower third |
+| **A dense sheet at a chosen rate, with times printed** | The 15-frames-a-second sheet we built by hand to time the strips |
+| **Sound onsets or beats** | Whether an edit is cut to the music. `pauses` and `loudness` do not say where hits land |
+| **One sheet across many clips, and a view of a join** | Sequencing and Assembly: twelve separate pictures overflowed the agent's context before it had read the last |
+| **A pause measure that works under music** | One silence found in 90 seconds of speech over music, so "put the edge in a pause" had nothing to use |
+| **`clip` keeps the source's size; a clip opens by its name; one argument style** | A clip came out 852 pixels wide from an 854-pixel source; the agent could not look at its own join; five calls lost to `--reason` against `reason=` |
+| **Repeated words** | Finding a stumble: `find` matches words, not a phrase said twice |
+
+The first item serves the most cases, so it comes first; crop and zoom second.
 
 ## After that
 

@@ -21,8 +21,13 @@ on any of these, say it is **not heard** and should be checked by ear.
 
 ## Its measurements can be wrong
 
-- **Cuts.** Hard cuts are found. Flashes to white, fades and dissolves are often missed, so two shots can
-  be reported as one. Fast action or a camera flash can be reported as a cut.
+- **Cuts.** Hard cuts are found. Fades and dissolves are often missed, so two shots can be reported as one.
+  Fast action or a camera flash can be reported as a cut. A flash frame is found by `flashes`, and a strip or
+  a corner changing on its own by `part_changes`; `cuts` misses both.
+- **Change.** `change`, `flashes`, `freezes` and `part_changes` measure brightness on a small grey copy of
+  each frame cut into eighths. A change of colour alone is not seen, a part is located to the nearest eighth,
+  and quick motion in one part (a hand, a ball) can be reported as a part change. A freeze in noisy or
+  grainy footage may not be found, because the noise keeps changing.
 - **Transcript.** It is produced by a speech model. Names and rare words are often wrong; a word's time
   can be off by a tenth of a second or more; overlapping speakers are merged; it does not say who speaks.
 - **Pauses.** A pause is a stretch quieter than a fixed level for a quarter of a second. Under music or
@@ -43,5 +48,5 @@ each and compare the two pictures.
 ## The first time is slow
 
 The first `find` or `words` on a video transcribes all of it (about a quarter of its length, on a CPU).
-The first `cuts` or `shots` scans the whole picture (a few seconds per ten minutes). Both happen once per
-file and are kept.
+The first `cuts` or `shots` scans the whole picture (a few seconds per ten minutes), and so does the first of
+`change`, `flashes`, `freezes` or `part_changes`. Each happens once per file and is kept.

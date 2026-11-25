@@ -12,7 +12,7 @@ folder with a `SKILL.md` and reference files, in the repository at
 **The core**, always read:
 
 - The operations, as a shell for video: `find` like `grep`, `observe` like `cat`, a program like a script.
-- What a program can do: the four kinds of step (propose, measure, reshape, look) and seven ways to combine
+- What a program can do: the four kinds of step (propose, measure, reshape, look) and eight ways to combine
   them, each as a short program.
 - Building a clip, and keeping track of a task.
 - How to work: orient, narrow with code, look before deciding, zoom, check coverage, answer with what it rests on.
