@@ -15,6 +15,7 @@ Run it in the folder that holds the videos. Times are seconds, or `M:SS.mmm`.
 | Find where something is said | `uberseek transcript talk.mp4` once, then `uberseek find talk.mp4 "aircraft carriers"` |
 | Exact times of words and silences | `uberseek words talk.mp4 50 60` and `uberseek pauses talk.mp4 50 60` |
 | Where the shots change | `uberseek cuts reel.mp4` and `uberseek shots reel.mp4` |
+| Flash frames, frozen frames, a strip or corner changing on its own | `uberseek flashes reel.mp4`, `uberseek freezes reel.mp4`, `uberseek part_changes reel.mp4`; frame by frame, `uberseek change reel.mp4 10 14` |
 | Check one cut point or a join | `uberseek observe out.mp4 12.4 --focus boundary`: the frames on both sides and two seconds of sound |
 | Keep or remove spans, frame-exact | `uberseek mark talk.mp4 0 54.9`, `uberseek mark talk.mp4 67.3 90` (the parts to keep), `uberseek clip out sel_000001 sel_000002`, `uberseek verify out`. `clip` prints `File: <path>` |
 | Several steps in one go | `uberseek run program.py`: Python with every operation as a function. See `uberseek guide` |

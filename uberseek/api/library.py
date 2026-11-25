@@ -42,7 +42,8 @@ class Library:
     """The operations, bound to one project and to the videos an agent may use."""
 
     OPERATIONS = (
-        "info", "find", "words", "pauses", "loudness", "cuts", "shots", "observe", "sheet",
+        "info", "find", "words", "pauses", "loudness", "cuts", "shots", "change", "flashes", "freezes", "part_changes",
+        "observe", "sheet",
         "observations", "coverage", "expand", "merge", "minus", "mark", "selections", "clip", "verify",
         "note", "brief", "status", "videos",
     )  # fmt: skip
@@ -100,6 +101,7 @@ class Library:
             "has_sound": source.info.audio is not None,
             "has_transcript": log.has_derived(source.hash, key),
             "has_cuts": log.has_derived(source.hash, "cuts"),
+            "has_changes": log.has_derived(source.hash, "changes"),
         }
 
     # Searching
@@ -209,6 +211,99 @@ class Library:
         low, high = self._window(source, start, end)
         edges = [_f(low), *self.cuts(video, start, end), _f(high)]
         return [[a, b] for a, b in zip(edges, edges[1:], strict=False) if b > a]
+
+    def _after(self, source: Source, pts: int) -> Fraction:
+        """When the frame after this one starts: the end of a span whose last frame is this one."""
+        index = source.index
+        at = index.position(index.time(pts)) + 1
+        return index.time(index.frames[at].pts) if at < len(index.frames) else max(source.info.duration, index.end)
+
+    def change(self, video: str, start: float, end: float) -> list[list[float]]:
+        """How much the picture changes at each frame of a span, measured: [time, whole, part] for every frame.
+
+        "whole" is the mean change from the frame before over the whole picture, "part" the change of the
+        eighth-by-eighth part that changed most, both in percent of the most a pixel can change. A cut is
+        high in both; a strip or a corner changing is high in "part" only; a held picture is near 0 in both.
+        The first use on a video scans all of it.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds.
+            end: End of the span, in seconds. At most 60 seconds after `start`.
+        """
+        source = self._source(video)
+        low, high = self._window(source, start, end)
+        if high - low > 60:
+            raise ApiError("change covers at most 60 seconds at a time; ask for a shorter span, or use flashes, freezes and part_changes")
+        made, index = self.project._changes(source), source.index
+        rows = zip(made["pts"], made["whole"], made["part"], strict=True)
+        return [[_f(index.time(p)), w, q] for p, w, q in rows if low <= index.time(p) <= high]
+
+    def flashes(self, video: str, start: float | None = None, end: float | None = None) -> list[list[float]]:
+        """Flash frames, measured: one to three frames unlike the frames on both sides, as [start, end] pairs.
+
+        A flash to white or black, or a single frame of another shot. `cuts` misses most of them or reports
+        one as a cut. The first use on a video scans all of it.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds. Leave out for the beginning.
+            end: End of the span, in seconds. Leave out for the end of the video.
+
+        Returns:
+            [start, end] pairs: the first flash frame, and the frame after the last, where the picture returns.
+        """
+        source = self._source(video)
+        low, high = self._window(source, start, end)
+        found = [(source.index.time(a), self._after(source, b)) for a, b in self.project._changes(source)["flashes"]]
+        return [[_f(a), _f(b)] for a, b in found if low <= a <= high]
+
+    def freezes(self, video: str, start: float | None = None, end: float | None = None, shortest: float = 0.2) -> list[list[float]]:
+        """Where the picture is held, measured: no part of it changes from one frame to the next.
+
+        A frozen frame, a still or a title. Set `shortest` to 0 to find even a single repeated frame. The
+        first use on a video scans all of it.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds. Leave out for the beginning.
+            end: End of the span, in seconds. Leave out for the end of the video.
+            shortest: The shortest hold to report, in seconds.
+
+        Returns:
+            [start, end] pairs: the first held frame, and where the picture changes again.
+        """
+        source = self._source(video)
+        low, high = self._window(source, start, end)
+        last = max(source.info.duration, source.index.end)
+        held = [(source.index.time(a), last if b is None else source.index.time(b)) for a, b in self.project._changes(source)["freezes"]]
+        clipped = [(max(a, low), min(b, high)) for a, b in held if b - a >= seconds(shortest)]
+        return [[_f(a), _f(b)] for a, b in clipped if a < b]
+
+    def part_changes(self, video: str, start: float | None = None, end: float | None = None) -> list[dict]:
+        """Where one part of the picture changes abruptly and then stays, while the rest holds. Measured.
+
+        A strip of a collage appearing, a picture in a picture switching, a caption box popping in. `cuts`
+        sees none of these, because most of the frame does not change. The first use on a video scans all of it.
+
+        Args:
+            video: Name or path of the video.
+            start: Start of the span, in seconds. Leave out for the beginning.
+            end: End of the span, in seconds. Leave out for the end of the video.
+
+        Returns:
+            A list of {"start", "end", "where", "change"}. "where" is [left, top, right, bottom] as shares of
+            the width and height, to the nearest eighth. "change" is the most a part changed, in percent.
+        """
+        source = self._source(video)
+        low, high = self._window(source, start, end)
+        out = []
+        for found in self.project._changes(source)["parts"]:
+            a = source.index.time(found["first"])
+            if low <= a <= high:
+                after = self._after(source, found["last"])
+                out.append({"start": _f(a), "end": _f(after), "where": found["where"], "change": found["change"]})
+        return out
 
     # Looking
 

@@ -204,6 +204,9 @@ class Project:
     def _cuts(self, source: Source) -> list[int]:
         return self.log.derived(source.hash, "cuts", lambda: signals.cuts(source.path))["pts"]
 
+    def _changes(self, source: Source) -> dict:
+        return self.log.derived(source.hash, "changes", lambda: signals.changes(source.path))
+
     def show(self, id: str) -> Observation:
         """A past observation again, from its stored picture. Nothing is decoded."""
         record = self.log.get(id)

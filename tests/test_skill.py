@@ -111,7 +111,7 @@ def test_the_programs_shown_in_the_guide_run(spoken):
     project, speech = spoken
     blocks = re.findall(r"```python\n(.*?)```", guide.core("harness") + guide.topic("programs"), re.S)
     whole = [b for b in blocks if re.search(r'"(interview|reel)\.mp4"', b)]
-    assert len(whole) == 10  # seven ways to combine steps, building a clip and keeping track in the core, and one in the guide to programs
+    assert len(whole) == 11  # eight ways to combine steps, building a clip and keeping track in the core, and one in the guide to programs
     for program in whole:
         done = Executor(project, [speech]).run_sync(re.sub(r"(interview|reel)\.mp4", "speech.mp4", program))
         assert done.error is None, done.text
@@ -223,6 +223,6 @@ def test_the_card_names_only_commands_that_exist():
     from uberseek.cli import COMMANDS, PLAIN
 
     card = guide.topic("card")
-    named = set(re.findall(r"`uberseek ([a-z]+)", card))
+    named = set(re.findall(r"`uberseek ([a-z_]+)", card))
     assert named and named <= {*COMMANDS, *PLAIN}
     assert len(card) < 4500  # it is loaded into every run, so it stays short

@@ -144,6 +144,107 @@ Example:
 shots("interview.mp4", 0, 5)
 ```
 
+## `change`
+
+```python
+change(video: str, start: float, end: float) -> list[list[float]]
+```
+
+How much the picture changes at each frame of a span, measured: [time, whole, part] for every frame.
+
+"whole" is the mean change from the frame before over the whole picture, "part" the change of the
+eighth-by-eighth part that changed most, both in percent of the most a pixel can change. A cut is
+high in both; a strip or a corner changing is high in "part" only; a held picture is near 0 in both.
+The first use on a video scans all of it.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds.
+    end: End of the span, in seconds. At most 60 seconds after `start`.
+
+Example:
+
+```python
+change("interview.mp4", 1, 2)
+```
+
+## `flashes`
+
+```python
+flashes(video: str, start: float | None = None, end: float | None = None) -> list[list[float]]
+```
+
+Flash frames, measured: one to three frames unlike the frames on both sides, as [start, end] pairs.
+
+A flash to white or black, or a single frame of another shot. `cuts` misses most of them or reports
+one as a cut. The first use on a video scans all of it.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+
+Returns:
+    [start, end] pairs: the first flash frame, and the frame after the last, where the picture returns.
+
+Example:
+
+```python
+flashes("interview.mp4")
+```
+
+## `freezes`
+
+```python
+freezes(video: str, start: float | None = None, end: float | None = None, shortest: float = 0.2) -> list[list[float]]
+```
+
+Where the picture is held, measured: no part of it changes from one frame to the next.
+
+A frozen frame, a still or a title. Set `shortest` to 0 to find even a single repeated frame. The
+first use on a video scans all of it.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+    shortest: The shortest hold to report, in seconds.
+
+Returns:
+    [start, end] pairs: the first held frame, and where the picture changes again.
+
+Example:
+
+```python
+freezes("interview.mp4", shortest=0.5)
+```
+
+## `part_changes`
+
+```python
+part_changes(video: str, start: float | None = None, end: float | None = None) -> list[dict]
+```
+
+Where one part of the picture changes abruptly and then stays, while the rest holds. Measured.
+
+A strip of a collage appearing, a picture in a picture switching, a caption box popping in. `cuts`
+sees none of these, because most of the frame does not change. The first use on a video scans all of it.
+
+Args:
+    video: Name or path of the video.
+    start: Start of the span, in seconds. Leave out for the beginning.
+    end: End of the span, in seconds. Leave out for the end of the video.
+
+Returns:
+    A list of {"start", "end", "where", "change"}. "where" is [left, top, right, bottom] as shares of
+    the width and height, to the nearest eighth. "change" is the most a part changed, in percent.
+
+Example:
+
+```python
+part_changes("interview.mp4", 0, 5)
+```
+
 ## `observe`
 
 ```python

@@ -1,6 +1,6 @@
 ---
 name: uberseek
-description: Measure and look inside video files with UberSeek - see any span of a video as one labelled picture of numbered frames with the sound drawn under it, find where something is said, get exact times of words, pauses, cuts and shots, compare clips, check a cut point or a join, and cut chosen spans into a frame-exact file. Use this skill whenever a task involves a video file (.mp4, .mov, .mkv) and you need to know what is in it, where something happens, how clips differ or follow each other, where to cut, or whether an edit came out right - before writing FFmpeg or frame-extraction code by hand, even if the user only says "find the part where", "put these clips in order", "which clip matches", "cut out the bit where" or "check the result".
+description: Measure and look inside video files with UberSeek - see any span of a video as one labelled picture of numbered frames with the sound drawn under it, find where something is said, get exact times of words, pauses, cuts and shots, find flash frames, frozen frames and parts of the picture that change on their own, compare clips, check a cut point or a join, and cut chosen spans into a frame-exact file. Use this skill whenever a task involves a video file (.mp4, .mov, .mkv) and you need to know what is in it, where something happens, how clips differ or follow each other, where to cut, or whether an edit came out right - before writing FFmpeg or frame-extraction code by hand, even if the user only says "find the part where", "put these clips in order", "which clip matches", "cut out the bit where" or "check the result".
 ---
 
 # UberSeek: a scripting environment for video
@@ -19,7 +19,8 @@ keeping spans, checking an edit. It works like a shell for video:
 | Keep track of the task | `brief`, `note`, `status`, `videos` | a notebook |
 | Combine searches, measurements and looks | a program (`execute`, or `uberseek run`) | a shell script |
 
-Measurements are the exact part: `words`, `pauses`, `loudness`, `cuts`, `shots`. Memory is kept for you:
+Measurements are the exact part: `words`, `pauses`, `loudness`, `cuts`, `shots`, and for change in the picture
+`change`, `flashes`, `freezes`, `part_changes`. Memory is kept for you:
 every look is logged, and `observations` and `coverage` read the log.
 
 ## What a program can do
@@ -33,8 +34,8 @@ There are four kinds of step. A program strings them together.
 
 | Step | Functions | Gives |
 | --- | --- | --- |
-| **Propose** places to consider | `find` (what is said), `shots` and `cuts` (structure), `pauses` (silences), `coverage` (not yet seen) | Spans |
-| **Measure** a span | `words`, `pauses`, `loudness`, `shots`, `cuts` over that span | Values to compare |
+| **Propose** places to consider | `find` (what is said), `shots` and `cuts` (structure), `flashes`, `freezes` and `part_changes` (what cuts miss), `pauses` (silences), `coverage` (not yet seen) | Spans |
+| **Measure** a span | `words`, `pauses`, `loudness`, `shots`, `cuts`, `change` (frame by frame) over that span | Values to compare |
 | **Reshape** a set of spans | `expand`, `merge`, `minus`, and Python's own `sorted`, slicing, `if` | Fewer or better spans |
 | **Look** | `observe` (one span, closely), `sheet` (many instants, one picture) | Pictures, after the program ends |
 
@@ -91,6 +92,17 @@ found = shots("reel.mp4")[:24]
 sheet("reel.mp4", [(s[0] + s[1]) / 2 for s in found], labels=[str(s[0]) + " to " + str(s[1]) for s in found],
       purpose="which shot shows the telescope?")
 len(found)
+```
+
+**When cuts find nothing.** A flash frame, a held frame or a collage that builds strip by strip changes too
+little of the picture, or too briefly, to be a cut. Ask for those, and put what they find on one sheet.
+
+```python
+found = {"flashes": flashes("reel.mp4"), "held": freezes("reel.mp4"), "parts": part_changes("reel.mp4")}
+times = sorted([f[0] for f in found["flashes"]] + [p["start"] for p in found["parts"]])[:24]
+if times:
+    sheet("reel.mp4", times, purpose="what changes at each of these?")
+{"flashes": found["flashes"][:6], "held": found["held"][:6], "parts": found["parts"][:6]}
 ```
 
 **Go wide, then narrow, across programs.** A program cannot see, so it cannot decide from a picture. Let one
