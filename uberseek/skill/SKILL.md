@@ -115,6 +115,24 @@ What keeps a program useful:
 - **Do not branch on a picture.** `observe` and `sheet` return an id and a text to the program, not what
   is in the frame.
 
+## Taking an edit apart
+
+To learn how a piece is built (when each element appears, where in the frame, what flashes), measure first
+and look second. `events` lists every abrupt change with its time, its frame and `where` it is in the frame;
+a change in one part of the frame is not a cut, so `cuts` misses it. Then one look with focus `change` shows
+the frames either side of each event, and `region` shows the part that changed, larger.
+
+```python
+found = events("reel.mp4", 0, 4)
+strips = [e for e in found if e["kind"] == "part"]
+observe("reel.mp4", 0, 4, "change", "what appears at each event?")
+{"events": [[e["time"], e["where"], e["kind"]] for e in found], "parts": len(strips)}
+```
+
+- An event's time is its first frame, exact. Report it, not a time read off a sampled look.
+- `where` divides the frame into 6 columns and 4 rows: a strip in column 2 of 6 is `[0.333, 0, 0.5, 1]`.
+- A slow wipe or fade is not an event. If the look shows something `events` did not list, say so.
+
 ## Building a clip
 
 Finding a span is half the job. To turn choices into a video file: mark each span, cut them, check the
@@ -262,6 +280,6 @@ For more, read these files next to this one (or `uberseek guide <topic>`):
 | `operations` | You need a function's exact arguments or what it returns |
 | `looking` | You are choosing a span or a focus, or reading a picture closely |
 | `programs` | A program failed, or you are unsure what Python is allowed |
-| `recipes` | You want a worked program for a common job: a spoken moment, a picture, a cut point, a frozen stretch, clips to order |
+| `recipes` | You want a worked program for a common job: a spoken moment, a picture, a cut point, a frozen stretch, clips to order, an edit taken apart |
 | `limits` | You wonder whether UberSeek can do something at all |
 | `card` | You want the short version: one line per job, as shell commands |

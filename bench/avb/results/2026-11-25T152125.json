@@ -1,0 +1,234 @@
+{
+ "at": "2026-11-25T152125",
+ "note": "hook eval: take a collage hook apart; with and without UberSeek",
+ "rows": [
+  {
+   "task": "hook-collage-synthetic",
+   "condition": "native",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "strips_matched": 6,
+     "strips_true": 6,
+     "strips_answered": 6,
+     "flash": true,
+     "title": true,
+     "answer": {
+      "strips": [
+       {
+        "t": 0.4,
+        "column": 0
+       },
+       {
+        "t": 0.6,
+        "column": 2
+       },
+       {
+        "t": 0.8,
+        "column": 1
+       },
+       {
+        "t": 1.0,
+        "column": 3
+       },
+       {
+        "t": 1.2,
+        "column": 5
+       },
+       {
+        "t": 1.4,
+        "column": 4
+       }
+      ],
+      "flash": 1.8,
+      "title": 3.0
+     }
+    }
+   },
+   "seconds": 46,
+   "timed_out": false,
+   "steps": 7,
+   "tokens": {
+    "input": 18,
+    "output": 2410,
+    "cache_read": 89753
+   },
+   "cost_usd": 0.0065,
+   "tool_calls": 6,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-25T152125/hook-collage-synthetic/native"
+  },
+  {
+   "task": "hook-collage-synthetic",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "strips_matched": 6,
+     "strips_true": 6,
+     "strips_answered": 6,
+     "flash": true,
+     "title": true,
+     "answer": {
+      "strips": [
+       {
+        "t": 0.4,
+        "column": 0
+       },
+       {
+        "t": 0.6,
+        "column": 2
+       },
+       {
+        "t": 0.8,
+        "column": 1
+       },
+       {
+        "t": 1.0,
+        "column": 3
+       },
+       {
+        "t": 1.2,
+        "column": 5
+       },
+       {
+        "t": 1.4,
+        "column": 4
+       }
+      ],
+      "flash": 1.8,
+      "title": 3.0
+     }
+    }
+   },
+   "seconds": 22,
+   "timed_out": false,
+   "steps": 7,
+   "tokens": {
+    "input": 20,
+    "output": 1562,
+    "cache_read": 96943
+   },
+   "cost_usd": 0.0049,
+   "tool_calls": 7,
+   "uberseek_commands": 3,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-25T152125/hook-collage-synthetic/uberseek"
+  },
+  {
+   "task": "hook-collage-reel",
+   "condition": "native",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "strips_matched": 6,
+     "strips_true": 6,
+     "strips_answered": 6,
+     "flash": true,
+     "title": null,
+     "answer": {
+      "strips": [
+       {
+        "t": 0.183,
+        "column": 0
+       },
+       {
+        "t": 0.35,
+        "column": 1
+       },
+       {
+        "t": 0.517,
+        "column": 2
+       },
+       {
+        "t": 0.683,
+        "column": 3
+       },
+       {
+        "t": 0.883,
+        "column": 4
+       },
+       {
+        "t": 1.05,
+        "column": 5
+       }
+      ],
+      "flash": 1.433,
+      "title": 4.467
+     }
+    }
+   },
+   "seconds": 63,
+   "timed_out": false,
+   "steps": 13,
+   "tokens": {
+    "input": 32,
+    "output": 3887,
+    "cache_read": 214723
+   },
+   "cost_usd": 0.0084,
+   "tool_calls": 12,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-25T152125/hook-collage-reel/native"
+  },
+  {
+   "task": "hook-collage-reel",
+   "condition": "uberseek",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "strips_matched": 6,
+     "strips_true": 6,
+     "strips_answered": 6,
+     "flash": true,
+     "title": null,
+     "answer": {
+      "strips": [
+       {
+        "t": 0.183,
+        "column": 0
+       },
+       {
+        "t": 0.35,
+        "column": 1
+       },
+       {
+        "t": 0.517,
+        "column": 2
+       },
+       {
+        "t": 0.683,
+        "column": 3
+       },
+       {
+        "t": 0.883,
+        "column": 4
+       },
+       {
+        "t": 1.05,
+        "column": 5
+       }
+      ],
+      "flash": 1.433,
+      "title": 4.1
+     }
+    }
+   },
+   "seconds": 51,
+   "timed_out": false,
+   "steps": 9,
+   "tokens": {
+    "input": 26,
+    "output": 1863,
+    "cache_read": 204384
+   },
+   "cost_usd": 0.0076,
+   "tool_calls": 9,
+   "uberseek_commands": 4,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-25T152125/hook-collage-reel/uberseek"
+  }
+ ]
+}

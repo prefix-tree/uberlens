@@ -1,0 +1,120 @@
+{
+ "at": "2026-11-25T152116",
+ "note": "",
+ "rows": [
+  {
+   "task": "hook-collage-synthetic",
+   "condition": "oracle",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "strips_matched": 6,
+     "strips_true": 6,
+     "strips_answered": 6,
+     "flash": true,
+     "title": true,
+     "answer": {
+      "strips": [
+       {
+        "t": 0.4,
+        "column": 0
+       },
+       {
+        "t": 0.6,
+        "column": 2
+       },
+       {
+        "t": 0.8,
+        "column": 1
+       },
+       {
+        "t": 1.0,
+        "column": 3
+       },
+       {
+        "t": 1.2,
+        "column": 5
+       },
+       {
+        "t": 1.4,
+        "column": 4
+       }
+      ],
+      "flash": 1.8,
+      "title": 3.0
+     }
+    }
+   },
+   "seconds": 1,
+   "timed_out": false,
+   "steps": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cache_read": 0
+   },
+   "cost_usd": 0,
+   "tool_calls": 0,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-25T152116/hook-collage-synthetic/oracle"
+  },
+  {
+   "task": "hook-collage-reel",
+   "condition": "oracle",
+   "model": "openrouter/anthropic/claude-haiku-5.5",
+   "reward": {
+    "reward": 1.0,
+    "details": {
+     "strips_matched": 6,
+     "strips_true": 6,
+     "strips_answered": 6,
+     "flash": true,
+     "title": null,
+     "answer": {
+      "strips": [
+       {
+        "t": 0.183,
+        "column": 0
+       },
+       {
+        "t": 0.35,
+        "column": 1
+       },
+       {
+        "t": 0.517,
+        "column": 2
+       },
+       {
+        "t": 0.683,
+        "column": 3
+       },
+       {
+        "t": 0.883,
+        "column": 4
+       },
+       {
+        "t": 1.05,
+        "column": 5
+       }
+      ],
+      "flash": 1.433,
+      "title": null
+     }
+    }
+   },
+   "seconds": 0,
+   "timed_out": false,
+   "steps": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cache_read": 0
+   },
+   "cost_usd": 0,
+   "tool_calls": 0,
+   "uberseek_commands": 0,
+   "folder": "/home/user/uberlens/data/avb/runs/2026-11-25T152116/hook-collage-reel/oracle"
+  }
+ ]
+}

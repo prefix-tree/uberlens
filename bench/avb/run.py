@@ -65,8 +65,9 @@ def build(target: str) -> str:
 def find_task(benchmark: Path, name: str) -> Path:
     """A task's folder, in whichever family holds it."""
     found = sorted((benchmark / "tasks").glob(f"agentic_vbench_*/{name}/task.toml"))
+    found += sorted((HERE / "tasks").glob(f"*/{name}/task.toml"))  # our own tasks, in the same layout
     if not found:
-        raise SystemExit(f"no task named {name} in {benchmark / 'tasks'}")
+        raise SystemExit(f"no task named {name} in {benchmark / 'tasks'} or {HERE / 'tasks'}")
     return found[0].parent
 
 
@@ -93,15 +94,8 @@ def materials(folder: Path, task: dict) -> Path:
     return path
 
 
-def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) -> dict:
-    folder = find_task(benchmark, name)
-    task = tomllib.loads((folder / "task.toml").read_text())
-    limits, step = task["environment"], task["steps"][0]
-    timeout = int(step["agent"]["timeout_sec"])
-    work = (CACHE / "runs" / stamp / name / condition).resolve()
-    for sub in ("workspace/materials", "workspace/output", "workspace/work", "logs", "tests"):
-        (work / sub).mkdir(parents=True)
-
+def unpack(folder: Path, task: dict, work: Path) -> None:
+    """A benchmark task's zip into the agent's materials. Only input/ is given when the zip has one."""
     with zipfile.ZipFile(materials(folder, task)) as archive:
         names = [member for member in archive.namelist() if not member.endswith("/")]
         split = any(member.startswith("input/") for member in names)  # then only input/ is given to the agent
@@ -112,6 +106,24 @@ def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) 
                     raise SystemExit(f"{folder.name}: the zip has a path outside the folder: {member}")
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(archive.read(member))
+
+
+def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) -> dict:
+    folder = find_task(benchmark, name)
+    task = tomllib.loads((folder / "task.toml").read_text())
+    limits, step = task["environment"], task["steps"][0]
+    timeout = int(step["agent"]["timeout_sec"])
+    work = (CACHE / "runs" / stamp / name / condition).resolve()
+    for sub in ("workspace/materials", "workspace/output", "workspace/work", "logs", "tests"):
+        (work / sub).mkdir(parents=True)
+
+    if "materials" in task:  # our own tasks name their files instead of a zip
+        for given, source in task["materials"].items():
+            if not (REPO / source).exists():
+                raise SystemExit(f"{folder.name}: {source} is missing. See the task's metadata for how to get it.")
+            shutil.copy(REPO / source, work / "workspace" / "materials" / given)
+    else:
+        unpack(folder, task, work)
     (work / "instruction.md").write_text((folder / "steps" / "solve" / "instruction.md").read_text())
 
     common = ["--network", "host", "--cpus", str(limits["cpus"]), "--memory", f"{limits['memory_mb']}m"]

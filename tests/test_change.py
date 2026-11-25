@@ -121,3 +121,35 @@ def test_named_arguments_work_either_way_and_a_clip_opens_by_its_name(clips, tmp
     assert "either.mp4, 0:01.000, focus boundary" in capsys.readouterr().out
     assert main([*run, "observe", "bframes.mp4", "2", "--region", "[0, 0.5, 1, 1]"]) == 0
     assert main([*run, "clip", "sel_000001"]) == 2  # no name
+
+
+def test_the_hook_eval_is_answered_by_the_harness_and_scored_by_its_judge(tmp_path):
+    """The generated hook's answer is known from how it was made; `events` gives it, and the judge scores it 1."""
+    import json
+    import subprocess
+    import sys
+
+    from bench.avb import hook
+
+    video = hook.synthetic(tmp_path / "hook.mp4")
+    library = Library(Project(tmp_path), [video])
+    found = library.events("hook.mp4")
+    parts = [e for e in found if e["kind"] == "part" and e["time"] < 1.6]
+    answer = {
+        "strips": [{"t": e["time"], "column": round(e["where"][0] * 6)} for e in parts],
+        "flash": next(e["time"] for e in found if 1.6 < e["time"] < 2.5),
+        "title": next(e["time"] for e in found if e["kind"] == "whole"),
+    }
+    assert answer == hook.ANSWERS["hook-collage-synthetic"]
+    tests = hook.TASKS / "hook-collage-synthetic" / "steps" / "solve" / "tests"
+    (tmp_path / "answer.json").write_text(json.dumps(answer))
+    wrong = dict(answer, strips=answer["strips"][:3] + [{"t": 9, "column": 0}], flash=None)
+    (tmp_path / "wrong.json").write_text(json.dumps(wrong))
+    for given, expected in (("answer.json", 1.0), ("wrong.json", 0.5)):  # 3 of 6 strips (0.3), no flash, the title (0.2)
+        subprocess.run(
+            [sys.executable, str(tests / "judge.py"), "--answer", str(tmp_path / given), "--truth", str(tests / "answer.json"),
+             "--reward-json", str(tmp_path / "reward.json")],
+            check=True,
+        )  # fmt: skip
+        assert json.loads((tmp_path / "reward.json").read_text())["reward"] == expected
+    assert hook.ANSWERS["hook-collage-synthetic"] == json.loads((tests / "answer.json").read_text())

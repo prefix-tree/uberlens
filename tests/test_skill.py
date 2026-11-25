@@ -85,6 +85,7 @@ RECIPES = {
     "build_clip": {"query": "money left", "name": "recipe-clip"},
     "remove_freezes": {"name": "recipe-unstuck"},
     "order_clips": {"order": ["speech.mp4", "speech.mp4"]},
+    "take_apart": {},
 }
 
 
@@ -113,7 +114,7 @@ def test_the_programs_shown_in_the_guide_run(spoken):
     project, speech = spoken
     blocks = re.findall(r"```python\n(.*?)```", guide.core("harness") + guide.topic("programs"), re.S)
     whole = [b for b in blocks if re.search(r'"(interview|reel)\.mp4"', b)]
-    assert len(whole) == 10  # seven ways to combine steps, building a clip and keeping track in the core, and one in the guide to programs
+    assert len(whole) == 11  # seven ways to combine steps, taking an edit apart, building a clip and keeping track, and one in the guide
     for program in whole:
         done = Executor(project, [speech]).run_sync(re.sub(r"(interview|reel)\.mp4", "speech.mp4", program))
         assert done.error is None, done.text

@@ -32,6 +32,8 @@ def value(text: str):
     try:
         return json.loads(text)
     except ValueError:
+        if text in ("None", "none", "null", "-"):
+            return None  # an argument left out on purpose
         return float(seconds(text)) if re.fullmatch(r"\d+(:\d+)+(\.\d+)?", text) else text
 
 
@@ -141,7 +143,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "observe":
             seen = Library(project)._source(args.video)  # so a clip opens by its name
-            seen = project.observe(seen.path, args.start, args.end, args.focus, args.purpose, args.region)
+            seen = project.observe(
+                seen.path,
+                args.start,
+                None if args.end in ("None", "none", "null", "-") else args.end,
+                args.focus,
+                args.purpose,
+                args.region,
+            )
             print(seen.text)
             path = project.log.root / "artifacts" / f"{seen.record['artifact']['sha256']}.png"
             if args.out:

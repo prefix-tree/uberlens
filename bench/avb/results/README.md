@@ -102,7 +102,37 @@ Cost of the nine runs: $0.13.
   - Twelve separate pictures, one per clip: the agent's context dropped the first ones before it had read the
     last, and it fetched them again.
 
+## The new operations, and a hook eval (2026-11-25, one run per cell)
+
+**The nine tasks again, with what real use asked for** (`events`, `freezes`, `region`, `overview`, `seam`,
+`gaps`, `repeats`, the clip fixes). UberSeek was used in nine of nine runs, and the new operations were found:
+`overview` in all four Sequencing and Assembly runs, `freezes` on the frozen-frames task, `events`, `change`,
+`repeats`, `onsets` and `gaps` on the stumble task. Scores: Assembly 2 at 0.25, Sequencing 0.06 and 0.06,
+everything else 0. One run per cell; no change that can be read.
+
+- On the frozen-frames task `freezes` gave both stretches, and the agent then cut with its own `select` filter
+  and failed the verifier's picture check. The card now says to remove what `freezes` finds with `mark`,
+  `clip` and `verify`.
+- One run wrote `None` for an argument it meant to leave out; the command line now accepts it.
+
+**A hook eval** (`bench/avb/tasks/uberseek_hook/`, made by `bench/avb/hook.py`): take a collage hook apart.
+Report each strip's first frame and column, the flash, and the title card, to within 0.1 s.
+`hook-collage-synthetic` is generated, so its answer is known from how it was made; `hook-collage-reel` is the
+real reel, its answer measured with `events` and confirmed by eye. Both reference solutions score 1.0, and a
+test checks that `events` alone gives the synthetic answer.
+
+| Task | Without UberSeek | With UberSeek |
+| --- | --- | --- |
+| hook-collage-synthetic | 1.0 · 46 s · 7 steps | 1.0 · 22 s · 7 steps (first command: `events`) |
+| hook-collage-reel | 1.0 · 63 s · 13 steps | 1.0 · 51 s · 9 steps (first command: `events`) |
+
+- **The task can be done, and the model resolves it, with and without UberSeek.** Without it, the agent wrote
+  its own frame differencing with NumPy, cropped to the picture area, and got every strip right.
+- With UberSeek the agent went to `events` first, as the skill now says, and finished faster in fewer steps.
+- So this eval does not separate the two conditions. To make it do so it needs to be harder: more strips,
+  some that fade in, distractors, or a tolerance of one frame.
+
 Files: `2026-11-24T151044.json` (the ten runs), `2026-11-24T155719.json` (content-cut-wsj without UberSeek,
 run again because the first try ended when OpenCode refused a write outside `/workspace`; the runner now
 allows it), `2026-11-24T150409.json` (the first trial pair), `2026-11-24T150314.json` (the reference solution), `2026-11-24T214931.json` (Sequencing and
-Assembly), `2026-11-24T230315.json` (the skill rewritten).
+Assembly), `2026-11-24T230315.json` (the skill rewritten), and the two latest files (the new operations; the hook eval).

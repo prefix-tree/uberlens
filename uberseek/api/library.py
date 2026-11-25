@@ -298,7 +298,7 @@ class Library:
         found: list[dict] = []
         for p in self._frames(source, start, end):
             near = sorted(part[max(0, p - 15) : p] + part[p + 1 : p + 16])
-            usual = near[len(near) * 3 // 4] if near else 0  # the upper quartile: repeated frames pull a median to zero
+            usual = near[len(near) // 2] if near else 0  # what is usual nearby; other events in the window do not move a median
             if part[p] < max(2 * signals.EVENT, 4 * usual + 4):  # twice what counts as changed, and well above what is usual here
                 continue
             if found and found[-1]["frame"] == p - 1:
