@@ -119,6 +119,8 @@ def run_one(benchmark: Path, name: str, condition: str, model: str, stamp: str) 
 
     if "materials" in task:  # our own tasks name their files instead of a zip
         for given, source in task["materials"].items():
+            if not (REPO / source).exists() and (make := task.get("metadata", {}).get("make")):
+                subprocess.run(make.split(), cwd=REPO, check=True)  # a generated file is made, not committed
             if not (REPO / source).exists():
                 raise SystemExit(f"{folder.name}: {source} is missing. See the task's metadata for how to get it.")
             shutil.copy(REPO / source, work / "workspace" / "materials" / given)
