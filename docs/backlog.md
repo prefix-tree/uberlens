@@ -19,8 +19,8 @@ Size: S is under a day, M a few days, L a week or more.
 
 | # | Item | From | Done when | Size |
 | --- | --- | --- | --- | --- |
-| 1 | **A harder hook eval**: more strips, some fading in, a distractor moving in part of the frame, a one-frame tolerance | Hook eval 2026-11-25: both conditions scored 1.0, so it cannot tell them apart | Without UberSeek scores below 1.0 on a cheap model, and the reference solution still scores 1.0 | S |
-| 2 | **Three runs per cell** on the nine benchmark tasks and the hook eval | Every pilot so far: one run per cell, differences within chance | A results table with three runs per cell, mean and spread | S |
+| 1 | **A hook eval from real footage**: strips of moving video, low contrast between them, camera motion, compression | The generated hooks, easy and hard, both scored 1.0 in all six runs without UberSeek (2026-11-26): clean generated steps are what simple differencing handles. Building the hard one did improve `events` | Without UberSeek scores below 1.0 on a cheap model, and the reference solution still scores 1.0 | M |
+| 2 | **Three runs per cell** on the nine benchmark tasks | Every benchmark pilot so far: one run per cell, differences within chance. Done for the hook eval | A results table with three runs per cell, mean and spread | S |
 | 3 | **Cuts in the task's own format**: `clip` writes to a path given, keeps the source's frame rate and codec settings; `export` gives cuts in frames or milliseconds | Frozen-frames task: `freezes` found both stretches, the agent cut by hand and failed the picture check. Passage tasks: cuts converted by hand | The frozen-frames task passes in a run that uses `clip`; a test writes and reads both formats | M |
 | 4 | **Edges in a pause**: an operation or recipe that moves a chosen edge to the nearest pause or gap, and says how far it moved | Passage-cut tasks: three of four runs found the passage and missed an edge by 0.06 to 0.16 s beyond the tolerance | A test on generated speech; one passage-cut task passes in a run that uses it | M |
 

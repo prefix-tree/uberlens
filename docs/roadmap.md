@@ -54,6 +54,9 @@ None is measured on the benchmark yet.
 | `clip` keeps the source's size; a clip opens by its name; one argument style | Fixed | A clip 852 pixels wide from an 854-pixel source; the agent could not look at its own join; five calls lost to `--reason` against `reason=` |
 | Repeated words | `repeats` | Finding a stumble: `find` matches words, not a phrase said twice |
 
+Since then, a harder hook eval showed `events` finding four of nine strips; it now measures 16 by 9 parts of the
+frame and counts a change only if the new picture stays, and finds eight of nine within a frame.
+
 Still missing from the same runs: a cut-out of a subject (a person mask), and any measure of whether a cut
 sounds clean.
 

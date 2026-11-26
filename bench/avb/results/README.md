@@ -132,7 +132,29 @@ test checks that `events` alone gives the synthetic answer.
 - So this eval does not separate the two conditions. To make it do so it needs to be harder: more strips,
   some that fade in, distractors, or a tolerance of one frame.
 
+## The hook eval, harder, three runs per cell (2026-11-26)
+
+`hook-collage-hard` adds 60 frames a second, nine strips at uneven gaps, two fades, a ball crossing the frame
+throughout, a one-frame flash, and a tolerance of 0.02 s. Building it showed `events` finding four of nine
+strips; `events` was rebuilt (a change that stays, 16 by 9 parts) and now finds eight of nine within a frame.
+
+| Task | Without UberSeek: score, seconds | With UberSeek: score, seconds |
+| --- | --- | --- |
+| hook-collage-hard | 1.0, 1.0, 1.0 · 130, 214, 118 s | 1.0, 1.0, 1.0 · 78, 87, 104 s |
+| hook-collage-synthetic | 1.0, 1.0, 1.0 · 63, 39, 45 s | 1.0, 1.0, 1.0 · 45, 26, 33 s |
+| hook-collage-reel | 1.0, 1.0, 1.0 · 79, 69, 132 s | 1.0, 1.0, 1.0 · 101, 59, 58 s |
+
+Eighteen runs, $0.18.
+
+- **The harder task still does not separate the conditions.** A cheap model writing NumPy frame differences
+  gets every strip within a frame. Generated pictures change in clean steps, which is exactly what simple
+  differencing handles.
+- **With UberSeek it is faster:** 90 s on average against 154 s on the hard task, at the same cost.
+- Where `events` was a frame or two late on a fade, the agent with UberSeek still answered right: it checked.
+- What would separate them is real footage: strips of moving video, low contrast between strips, camera
+  motion, compression noise. That is the next version of this eval.
+
 Files: `2026-11-24T151044.json` (the ten runs), `2026-11-24T155719.json` (content-cut-wsj without UberSeek,
 run again because the first try ended when OpenCode refused a write outside `/workspace`; the runner now
 allows it), `2026-11-24T150409.json` (the first trial pair), `2026-11-24T150314.json` (the reference solution), `2026-11-24T214931.json` (Sequencing and
-Assembly), `2026-11-24T230315.json` (the skill rewritten), and the two latest files (the new operations; the hook eval).
+Assembly), `2026-11-24T230315.json` (the skill rewritten), and the files after them (the new operations; the hook eval; three repeats of it).
