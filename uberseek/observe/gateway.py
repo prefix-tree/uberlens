@@ -133,7 +133,12 @@ class Project:
         # Cuts cost a pass over the whole picture, so they are made only for a look that is planned by shots,
         # and used elsewhere when they already exist. The recipe says which, so the look can be made again.
         use_cuts = plan(*asked).level in ("section", "map") or self.log.has_derived(source.hash, "cuts")
-        made = plan(*asked, cuts=self._cuts(source) if use_cuts else None, change=self.change(source)[1] if focus == "change" else None)
+        scores = None
+        if focus == "change":
+            first, last = source.index.position(start), source.index.position(start if end is None else seconds(end))
+            found = self.surprise(source, first, last)
+            scores = [max(found[p]) if p in found else 0 for p in range(len(source.index.frames))]
+        made = plan(*asked, cuts=self._cuts(source) if use_cuts else None, change=scores)
         words = transcript.name(self.transcript_model)
         words = words if self.log.has_derived(source.hash, words) else None
         size, columns = tile_size(_shown(source, region), made.tile_long, len(made.targets))
@@ -251,12 +256,40 @@ class Project:
         }
         return render.png(picture), delivered
 
-    def change(self, source: Source) -> tuple[list[float], list[int], list[bytes]]:
-        """How much each frame differs from the one before: the mean, the largest cell, and the cells themselves."""
+    def change(self, source: Source) -> tuple[list[float], list[int], list[bytes], tuple[int, int]]:
+        """How much each frame differs from the one before: the mean, the largest cell, the cells, and the grid's rows and columns."""
         made = self.log.derived(source.hash, "change", lambda: signals.change(source.path, len(source.index.frames)))
-        cells, each = bytes.fromhex(made["cells"]), made["params"]["rows"] * made["params"]["columns"]
+        rows, columns = made["params"]["rows"], made["params"]["columns"]
+        cells, each = bytes.fromhex(made["cells"]), rows * columns
         grid = [cells[i * each : (i + 1) * each] for i in range(len(made["mean"]))]
-        return made["mean"], [max(cell) for cell in grid], grid
+        return made["mean"], [max(cell) for cell in grid], grid, (rows, columns)
+
+    def colours(self, source: Source) -> list[bytes]:
+        """For each frame, the mean red, green and blue of each part of the grid, row by row."""
+        made = self.log.derived(source.hash, "change", lambda: signals.change(source.path, len(source.index.frames)))
+        if "colours" not in made:
+            raise MediaError("this project's change measure is from an older version; delete its cache entry to measure again")
+        each = made["params"]["rows"] * made["params"]["columns"] * 3
+        raw = bytes.fromhex(made["colours"])
+        return [raw[i * each : (i + 1) * each] for i in range(len(made["mean"]))]
+
+    def surprise(self, source: Source, first: int, last: int) -> dict[int, list[int]]:
+        """For each frame in first..last, how much more each cell changed than is usual for that cell nearby.
+
+        Usual is the median of the same cell over the 15 frames either side, so steady motion in one part of
+        the picture (a ball, a ticker) does not hide a sudden change in another. Cells that did not change
+        clearly (at least signals.EVENT, and well above usual) count as 0.
+        """
+        _, _, grid, _ = self.change(source)
+        out, reach = {}, signals.REACH
+        for p in range(max(1, first), min(last, len(grid) - 1) + 1):
+            window = [q for q in range(max(1, p - reach), min(len(grid), p + reach + 1)) if q != p]
+            excess = []
+            for c, value in enumerate(grid[p]):
+                usual = sorted(grid[q][c] for q in window)[len(window) // 2] if window else 0
+                excess.append(value - usual if value >= signals.EVENT and value >= 4 * usual + 4 else 0)
+            out[p] = excess
+        return out
 
     def _look(self, source: Source, request: dict, recipe: dict, in_time_order: list[int], in_span: int) -> Observation:
         """Draw what the recipe says, log it, and return it with the statement of what it shows."""

@@ -124,14 +124,17 @@ the frames either side of each event, and `region` shows the part that changed, 
 
 ```python
 found = events("reel.mp4", 0, 4)
-strips = [e for e in found if e["kind"] == "part"]
+strips = [e for e in found if e["kind"] in ("part", "fade")]
 observe("reel.mp4", 0, 4, "change", "what appears at each event?")
-{"events": [[e["time"], e["where"], e["kind"]] for e in found], "parts": len(strips)}
+{"events": [[e["time"], e["centre"], e["kind"]] for e in found], "parts": len(strips)}
 ```
 
-- An event's time is its first frame, exact. Report it, not a time read off a sampled look.
-- `where` divides the frame into 6 columns and 4 rows: a strip in column 2 of 6 is `[0.333, 0, 0.5, 1]`.
-- A slow wipe or fade is not an event. If the look shows something `events` did not list, say so.
+- An event's time is its first frame, exact for something that pops in. Report it, not a time read off a
+  sampled look. A fade's time can be a frame or two late, where it becomes measurable.
+- `centre` is [x, y] as fractions of the frame: in a layout of N columns, the column is `int(centre[0] * N)`.
+  `where` is the block that changed, usable as a region.
+- Only changes that stay count: something passing through is left out, and so is anything smaller than
+  three of the 16 by 9 parts of the frame. If the look shows something `events` did not list, say so.
 
 ## Building a clip
 

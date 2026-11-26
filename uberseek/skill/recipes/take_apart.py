@@ -7,8 +7,8 @@ columns = 6  # how many columns `where` divides the frame into
 found = events(video, start, end)
 timeline = []
 for e in found:
-    left = e["where"][0]
-    timeline.append({"time": e["time"], "frame": e["frame"], "kind": e["kind"], "column": round(left * columns), "where": e["where"]})
+    column = min(columns - 1, int(e["centre"][0] * columns))
+    timeline.append({"time": e["time"], "frame": e["frame"], "kind": e["kind"], "column": column, "where": e["where"]})
 observe(video, start, end, "change", "what appears at each measured event?")
 if found:
     biggest = sorted(found, key=lambda e: -e["amount"])[0]

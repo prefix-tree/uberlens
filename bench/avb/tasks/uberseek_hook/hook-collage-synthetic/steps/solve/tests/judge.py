@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """Score an answer about how a collage hook is built: each strip's time and column, the flash, the title.
 
-A strip counts when its time is within 0.1 s of a true strip's and its column is the same; each true strip
-matches at most one answered. The flash and the title count when within 0.1 s. Weights: strips 0.6, flash
-0.2, title 0.2; when the title is not graded, strips 0.8 and flash 0.2.
+A strip counts when its time is within the answer's tolerance (0.1 s unless it says so) of a true
+strip's, and its column is the same; each true strip matches at most one answered. The flash and the
+title count when within the same tolerance. Weights: strips 0.6, flash 0.2, title 0.2; when the title
+is not graded, strips 0.8 and flash 0.2.
 """
 
 import argparse
 import json
 from pathlib import Path
-
-TOLERANCE = 0.1
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--answer")
@@ -18,6 +17,7 @@ parser.add_argument("--truth")
 parser.add_argument("--reward-json")
 args = parser.parse_args()
 truth = json.loads(Path(args.truth).read_text())
+TOLERANCE = truth.get("tolerance", 0.1)  # seconds
 out = Path(args.reward_json)
 out.parent.mkdir(parents=True, exist_ok=True)
 try:

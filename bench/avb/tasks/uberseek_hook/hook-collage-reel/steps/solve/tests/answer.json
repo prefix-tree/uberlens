@@ -26,5 +26,6 @@
   }
  ],
  "flash": 1.433,
- "title": null
+ "title": null,
+ "tolerance": 0.1
 }

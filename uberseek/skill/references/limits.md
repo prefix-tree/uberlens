@@ -24,9 +24,10 @@ on any of these, say it is **not heard** and should be checked by ear.
 - **Cuts.** Hard cuts are found. Flashes to white, fades and dissolves are often missed, so two shots can
   be reported as one. Fast action or a camera flash can be reported as a cut. A change in part of the frame
   is not a cut: `events` finds those.
-- **Events and freezes.** They compare each frame with the one before, at a small size. A slow wipe or a
-  fade is many small changes and may give no event. A still picture is reported as a freeze, whether or not
-  it is a fault.
+- **Events and freezes.** They compare each frame with the one before, at a small size, in 16 by 9 parts.
+  An event is a change that stays; something passing through, or smaller than three parts, is left out. A
+  fade's time can be a frame or two late. A still picture is reported as a freeze, whether or not it is a
+  fault.
 - **Transcript.** It is produced by a speech model. Names and rare words are often wrong; a word's time
   can be off by a tenth of a second or more; overlapping speakers are merged; it does not say who speaks.
 - **Pauses.** A pause is a stretch quieter than a fixed level for a quarter of a second. Under music or

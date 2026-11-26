@@ -272,15 +272,17 @@ class Library:
             end: End of the span, in seconds.
         """
         source = self._source(video)
-        whole, part, _ = self.project.change(source)
+        whole, part, _, _ = self.project.change(source)
         at = source.index
         return [[_f(at.time(at.frames[p].pts)), whole[p], part[p]] for p in self._frames(source, start, end)]
 
     def events(self, video: str, start: float | None = None, end: float | None = None) -> list[dict]:
-        """Instants where the picture changes abruptly, in the whole frame or in part of it. Measured.
+        """Where the picture changes abruptly, in the whole frame or in part of it: something appears, cuts, fades in or flashes. Measured.
 
-        Finds what `cuts` cannot: a picture appearing in one part of the frame, a title popping on, a
-        single flash frame. Each event is the first frame that differs. Ordinary motion is not an event.
+        Finds what `cuts` cannot: a picture appearing in one part of the frame, a title popping on, a fade, a
+        flash of a frame or two. Each part of the frame is compared with what is usual for that part nearby,
+        so steady motion elsewhere (a moving object, a ticker) does not hide a change. The frame is divided
+        into 16 columns and 9 rows for this.
 
         Args:
             video: Name or path of the video.
@@ -288,37 +290,143 @@ class Library:
             end: End of the span, in seconds. Leave out for the end of the video.
 
         Returns:
-            A list of {"time", "frame", "amount", "area", "where", "kind"}. `area` is the share of the frame
-            that changed, `where` its [left, top, right, bottom] as fractions of the frame (usable as a
-            region), and `kind` is "whole", "part", or "flash" for one frame unlike both its neighbours.
+            A list of {"time", "frame", "frames", "kind", "amount", "area", "where", "centre"}, in time order.
+            `time` and `frame` are the first frame that differs: for a fade, the first frame where any of it
+            shows. `frames` is how many frames the change takes. `kind` is "part", "whole" (a cut), "fade" (it
+            builds over several frames) or "flash" (it appears and goes within a few frames). `area` is the
+            share of the frame that changed; `where` is its [left, top, right, bottom] as fractions of the
+            frame, usable as a region; `centre` is [x, y] of the change, weighted by how much each part changed.
         """
         source = self._source(video)
-        _, part, grid = self.project.change(source)
-        rows, columns, at = signals.CHANGE["rows"], signals.CHANGE["columns"], source.index
+        _, _, _, (rows, columns) = self.project.change(source)
+        colour = self.project.colours(source)
+        frames = self._frames(source, start, end)
+        excess = self.project.surprise(source, frames.start, frames.stop + 4)
+        at, cells, last = source.index, rows * columns, len(colour) - 1
+        none = [0] * cells
+
+        def middle(c: int, low: int, high: int) -> tuple[int, int, int]:
+            span = range(max(0, low), min(last, high) + 1)
+            return tuple(sorted(colour[q][3 * c + k] for q in span)[len(span) // 2] for k in range(3)) if span else (0, 0, 0)
+
+        def apart(x, y) -> int:
+            return max(abs(a - b) for a, b in zip(x, y, strict=True))
+
+        stays: dict[int, list[tuple[int, int, int]]] = {}  # first frame -> [(part, frames it takes, how far it moved)]
+        goes: dict[int, set[int]] = {}  # first frame -> parts that changed and came back
+        for c in range(cells):
+            p = frames.start
+            while p < frames.stop:
+                if not excess.get(p, none)[c]:
+                    p += 1
+                    continue
+                q = p
+                while q - p < 30 and excess.get(q + 1, none)[c]:
+                    q += 1
+                before, after = middle(c, p - 6, p - 1), middle(c, q + 1, q + 6)  # just before, and just after it settles
+                end = min(q + signals.STAYS, last)  # near the end of the video, as late as there is
+                later = middle(c, end - 5, end) if end - 5 > q + 6 else after
+                moved = apart(before, after)
+                earlier = middle(c, p - signals.STAYS, p - signals.STAYS + 5) if p >= signals.STAYS else None
+                if earlier is not None and moved >= signals.STEP and apart(earlier, after) < moved / 2:
+                    p = q + 1  # it went back to what was there a moment ago: the end of something passing
+                    continue
+                if moved >= signals.STEP and apart(after, later) < moved / 2:
+                    stays.setdefault(p, []).append((c, q - p + 1, moved, p))
+                elif (moved >= signals.STEP and apart(before, later) < moved / 2) or (q - p <= 2 and moved < signals.STEP):
+                    goes.setdefault(p, set()).add(c)  # it changed and went back: a flash, or something passing
+                p = q + 1
+
+        def grouped(by_start: dict) -> list[tuple[int, list]]:
+            out: list[tuple[int, list]] = []
+            for p in sorted(by_start):
+                if out and p - out[-1][0] <= 1:
+                    out[-1][1].extend(by_start[p])
+                else:
+                    out.append((p, list(by_start[p])))
+            return out
+
+        def blocks(parts: set[int]) -> list[set[int]]:
+            """The parts that touch each other, as separate blocks: a strip is one block, a passing object another."""
+            left, out = set(parts), []
+            while left:
+                block, edge = set(), [left.pop()]
+                while edge:
+                    c = edge.pop()
+                    block.add(c)
+                    for n in (
+                        c - columns,
+                        c + columns,
+                        *((c - 1,) if c % columns else ()),
+                        *((c + 1,) if c % columns < columns - 1 else ()),
+                    ):
+                        if n in left:
+                            left.discard(n)
+                            edge.append(n)
+                out.append(block)
+            return [b for b in out if len(b) >= signals.PARTS]
+
         found: list[dict] = []
-        for p in self._frames(source, start, end):
-            near = sorted(part[max(0, p - 15) : p] + part[p + 1 : p + 16])
-            usual = near[len(near) // 2] if near else 0  # what is usual nearby; other events in the window do not move a median
-            if part[p] < max(2 * signals.EVENT, 4 * usual + 4):  # twice what counts as changed, and well above what is usual here
+        changed: dict[int, set[int]] = {}  # first frame -> parts that changed and stayed
+        for p, parts in grouped(stays):
+            moved = {}
+            for c, _, far, _ in parts:
+                moved[c] = max(moved.get(c, 0), far)
+            changed[p] = set(moved)
+            merged: list[set[int]] = []  # blocks in the same columns are one thing that something passed in front of
+            for block in sorted(blocks(set(moved)), key=len, reverse=True):
+                spans = {c % columns for c in block}
+                same = next((m for m in merged if len(spans & {c % columns for c in m}) >= len(spans) / 2), None)
+                if same is None:
+                    merged.append(set(block))
+                else:
+                    same |= block
+            for block in merged:
+                mine = [(length, began) for c, length, _, began in parts if c in block]
+                lasts = sorted(length for length, _ in mine)[len(mine) // 2]
+                began = [b for _, b in mine]
+                first = min(set(began), key=lambda b: (-began.count(b), b))  # the frame most of it changed on
+                area = len(block) / cells
+                kind = "fade" if lasts >= 3 else "whole" if area >= 0.6 else "part"
+                found.append(self._event(at, first, kind, lasts, {c: moved[c] for c in block}, rows, columns))
+        passing = [
+            (p, block)
+            for p, parts in grouped({k: [(c, 1, 1, k) for c in v] for k, v in goes.items()})
+            for block in blocks({c for c, _, _, _ in parts})
+        ]
+
+        def touches(one: set[int], other: set[int]) -> bool:
+            return any(n in other for c in one for n in (c - columns, c + columns, c - 1, c + 1)) and len(one & other) < len(one) / 2
+
+        flashes: list[dict] = []
+        for p, block in passing:
+            if any(q in changed for q in range(p - 1, p + 2)) or len(block) / cells >= 0.6:
+                continue  # the edge of something that appeared for good on this frame, or a cut
+            if any(0 < abs(q - p) <= 8 and touches(block, other) for q, other in passing):
+                continue  # the same change moving on into the parts beside it: motion, not a flash
+            if flashes and p - flashes[-1]["frame"] <= 12 and len(block & flashes[-1]["_parts"]) >= len(block) / 2:
+                flashes[-1]["frames"] = p - flashes[-1]["frame"]  # the same flash going away again
                 continue
-            if found and found[-1]["frame"] == p - 1:
-                found[-1]["kind"] = "flash"  # it differed from the frame before, and this one differs from it
-                continue
-            cells = [i for i, v in enumerate(grid[p]) if v >= max(signals.EVENT, part[p] // 3)]
-            across, down = [i % columns for i in cells], [i // columns for i in cells]
-            where = [min(across) / columns, min(down) / rows, (max(across) + 1) / columns, (max(down) + 1) / rows]
-            area = len(cells) / (rows * columns)
-            found.append(
-                {
-                    "time": _f(at.time(at.frames[p].pts)),
-                    "frame": p,
-                    "amount": part[p],
-                    "area": round(area, 2),
-                    "where": [round(v, 3) for v in where],
-                    "kind": "whole" if area >= 0.6 else "part",
-                }
-            )
-        return found
+            flashes.append(self._event(at, p, "flash", 1, dict.fromkeys(block, 1), rows, columns) | {"_parts": block})
+        found += [{k: v for k, v in f.items() if k != "_parts"} for f in flashes]
+        return sorted(found, key=lambda e: e["frame"])
+
+    @staticmethod
+    def _event(at, p: int, kind: str, frames: int, total: dict[int, int], rows: int, columns: int) -> dict:
+        across, down, weight = [c % columns for c in total], [c // columns for c in total], sum(total.values())
+        return {
+            "time": _f(at.time(at.frames[p].pts)),
+            "frame": p,
+            "frames": frames if kind == "fade" else 1,  # a flash's is set once it is seen to go
+            "kind": kind,
+            "amount": max(total.values()),
+            "area": round(len(total) / (rows * columns), 3),
+            "where": [round(v, 3) for v in (min(across) / columns, min(down) / rows, (max(across) + 1) / columns, (max(down) + 1) / rows)],
+            "centre": [
+                round(sum(v * (c % columns + 0.5) for c, v in total.items()) / weight / columns, 3),
+                round(sum(v * (c // columns + 0.5) for c, v in total.items()) / weight / rows, 3),
+            ],
+        }
 
     def freezes(self, video: str, start: float | None = None, end: float | None = None, shortest: int = 3) -> list[dict]:
         """Stretches where the picture stops: each frame repeats the one before it. Measured.
@@ -339,7 +447,7 @@ class Library:
             how many frames repeat.
         """
         source = self._source(video)
-        whole, _, _ = self.project.change(source)
+        whole, _, _, _ = self.project.change(source)
         at, found = source.index, []
         frames = list(self._frames(source, start, end))
         still = [whole[p] < signals.STILL for p in frames]

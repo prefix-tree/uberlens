@@ -17,10 +17,14 @@ from uberseek.media.backend import MediaError
 SILENCE = {"noise_db": -35, "min_seconds": "0.25"}
 CUT = {"threshold": 10, "width": 320}
 TOUCH = Fraction(1, 50)  # silences closer than this are one silence
-CHANGE = {"width": 96, "height": 54, "rows": 4, "columns": 6}  # frames are compared this small, in this grid of cells
-EVENT = 8  # a part of the frame that differs this much from the frame before is an abrupt change
+CHANGE = {"width": 192, "height": 108, "rows": 9, "columns": 16}  # frames are compared this small, in this grid of cells
+EVENT = 8  # a part of the frame that differs this much from the frame before, and well above usual, has changed
+REACH = 15  # frames either side that say what is usual for a part of the frame
+PARTS = 3  # parts of the frame (of 16 by 9) that must change together for an event: fewer is a moving object
+STAYS = 24  # a change is an event only if the new picture of a part is still there this many frames after it settles
+STEP = 20  # how far a part's colour must move, on a scale of 0 to 255, to count as a new picture
 STILL = 0.05  # a frame that differs less than this from the one before repeats it
-NEARLY = 0.12  # one frame up to this, between two that repeat, is the encoder's noise and not motion
+NEARLY = 0.2  # one frame up to this, between two that repeat, is the encoder's noise and not motion
 ONSET = {"rate": 8000, "window": 160, "rise_db": 6, "floor_db": -50, "apart": "0.08"}
 
 _SILENCE = re.compile(r"silence_(start|end): (-?[\d.]+)")
@@ -103,18 +107,21 @@ def change(path: Path, frames: int, ffmpeg: str = "ffmpeg") -> dict:
     Every frame is decoded once, small and grey, so this costs a pass over the picture. `mean` is the mean
     difference per pixel on a scale of 0 to 255, to three decimals: near zero for a repeated frame. `cells`
     holds, for each frame, one byte per cell of the grid, row by row: the mean difference in that part of
-    the frame. A change in one part of the picture shows there and hardly at all in `mean`.
+    the frame. A change in one part of the picture shows there and hardly at all in `mean`. `colours` holds,
+    for each frame, the mean red, green and blue of each cell, so whether a change stays can be told.
     """
     width, height, rows, columns = CHANGE["width"], CHANGE["height"], CHANGE["rows"], CHANGE["columns"]
     run = subprocess.Popen(
         [ffmpeg, "-v", "error", "-nostdin", "-i", str(path), "-map", "0:v:0", "-an", "-sn", "-dn",
-         "-vf", f"scale={width}:{height}:flags=area,format=gray", "-fps_mode", "passthrough", "-f", "rawvideo", "pipe:1"],
+         "-vf", f"scale={width}:{height}:flags=area,format=rgb24", "-fps_mode", "passthrough", "-f", "rawvideo", "pipe:1"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )  # fmt: skip
-    step, before, mean, cells = width * height, None, [], bytearray()
+    step, before, mean, cells, colours = width * height * 3, None, [], bytearray(), bytearray()
     while len(raw := run.stdout.read(step)) == step:
-        frame = Image.frombytes("L", (width, height), raw)
+        picture = Image.frombytes("RGB", (width, height), raw)
+        colours += picture.resize((columns, rows), Image.Resampling.BOX).tobytes()
+        frame = picture.convert("L")
         if before is None:
             mean.append(0.0)
             cells += bytes(rows * columns)
@@ -128,7 +135,14 @@ def change(path: Path, frames: int, ffmpeg: str = "ffmpeg") -> dict:
         raise MediaError(f"ffmpeg failed on {path.name}: {said[-300:]}")
     if len(mean) != frames:
         raise MediaError(f"{path.name}: {len(mean)} frames decoded where the index lists {frames}, so change cannot be placed on frames")
-    return {"kind": "measured", "tool": "ffmpeg and frame difference", "params": CHANGE, "mean": mean, "cells": cells.hex()}
+    return {
+        "kind": "measured",
+        "tool": "ffmpeg and frame difference",
+        "params": CHANGE,
+        "mean": mean,
+        "cells": cells.hex(),
+        "colours": colours.hex(),
+    }
 
 
 def onsets(path: Path, ffmpeg: str = "ffmpeg") -> dict:

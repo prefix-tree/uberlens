@@ -243,10 +243,12 @@ change("interview.mp4", 1, 1.2)
 events(video: str, start: float | None = None, end: float | None = None) -> list[dict]
 ```
 
-Instants where the picture changes abruptly, in the whole frame or in part of it. Measured.
+Where the picture changes abruptly, in the whole frame or in part of it: something appears, cuts, fades in or flashes. Measured.
 
-Finds what `cuts` cannot: a picture appearing in one part of the frame, a title popping on, a
-single flash frame. Each event is the first frame that differs. Ordinary motion is not an event.
+Finds what `cuts` cannot: a picture appearing in one part of the frame, a title popping on, a fade, a
+flash of a frame or two. Each part of the frame is compared with what is usual for that part nearby,
+so steady motion elsewhere (a moving object, a ticker) does not hide a change. The frame is divided
+into 16 columns and 9 rows for this.
 
 Args:
     video: Name or path of the video.
@@ -254,9 +256,12 @@ Args:
     end: End of the span, in seconds. Leave out for the end of the video.
 
 Returns:
-    A list of {"time", "frame", "amount", "area", "where", "kind"}. `area` is the share of the frame
-    that changed, `where` its [left, top, right, bottom] as fractions of the frame (usable as a
-    region), and `kind` is "whole", "part", or "flash" for one frame unlike both its neighbours.
+    A list of {"time", "frame", "frames", "kind", "amount", "area", "where", "centre"}, in time order.
+    `time` and `frame` are the first frame that differs: for a fade, the first frame where any of it
+    shows. `frames` is how many frames the change takes. `kind` is "part", "whole" (a cut), "fade" (it
+    builds over several frames) or "flash" (it appears and goes within a few frames). `area` is the
+    share of the frame that changed; `where` is its [left, top, right, bottom] as fractions of the
+    frame, usable as a region; `centre` is [x, y] of the change, weighted by how much each part changed.
 
 Example:
 
